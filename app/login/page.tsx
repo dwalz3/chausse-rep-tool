@@ -5,15 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useStore } from '@/store';
 import { RepIdentity } from '@/types';
 
-const USERS: { email: string; rep: RepIdentity; label: string }[] = [
-  { email: 'austin@chausseselections.com',    rep: 'austin',    label: 'Austin' },
-  { email: 'jason@chausseselections.com',     rep: 'jason',     label: 'Jason' },
-  { email: 'alejandra@chausseselections.com', rep: 'alejandra', label: 'Alejandra' },
-  { email: 'dave@chausseselections.com',      rep: 'dave',      label: 'Dave' },
-];
-
 export default function LoginPage() {
-  const [email, setEmail] = useState(USERS[0].email);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,7 +22,7 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.toLowerCase().trim(), password }),
       });
 
       if (res.ok) {
@@ -92,7 +85,7 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Email selector */}
+          {/* Email */}
           <div>
             <label
               htmlFor="email"
@@ -100,10 +93,14 @@ export default function LoginPage() {
             >
               Email
             </label>
-            <select
+            <input
               id="email"
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@chausseselections.com"
+              required
+              autoComplete="email"
               style={{
                 width: '100%',
                 padding: '10px 12px',
@@ -113,14 +110,9 @@ export default function LoginPage() {
                 color: '#1C1917',
                 fontSize: 15,
                 outline: 'none',
+                boxSizing: 'border-box',
               }}
-            >
-              {USERS.map((u) => (
-                <option key={u.email} value={u.email}>
-                  {u.label} — {u.email}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Password */}
@@ -138,6 +130,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
+              autoComplete="current-password"
               style={{
                 width: '100%',
                 padding: '10px 12px',
@@ -162,16 +155,16 @@ export default function LoginPage() {
           {/* Submit */}
           <button
             type="submit"
-            disabled={loading || !password}
+            disabled={loading || !email || !password}
             style={{
-              backgroundColor: loading || !password ? '#a8a29e' : '#2D5A3D',
+              backgroundColor: loading || !email || !password ? '#a8a29e' : '#2D5A3D',
               color: '#FFFFFF',
               border: 'none',
               borderRadius: 8,
               padding: '12px',
               fontSize: 15,
               fontWeight: 600,
-              cursor: loading || !password ? 'not-allowed' : 'pointer',
+              cursor: loading || !email || !password ? 'not-allowed' : 'pointer',
               marginTop: 4,
             }}
           >
