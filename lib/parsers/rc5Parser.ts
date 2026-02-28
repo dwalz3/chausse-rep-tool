@@ -7,11 +7,14 @@ function derivePrimaryRep(raw: string): Rc5Row['primaryRep'] {
   const hasAustin = lower.includes('austin');
   const hasJason = lower.includes('jason');
   const hasDave = lower.includes('dave');
-  if (hasAustin && !hasJason && !hasDave) return 'austin';
-  if (hasJason && !hasAustin && !hasDave) return 'jason';
-  if (hasDave && !hasAustin && !hasJason) return 'dave';
-  if (!hasAustin && !hasJason && !hasDave) return 'unknown';
-  return 'shared';
+  const hasAlejandra = lower.includes('alejandra');
+  const count = [hasAustin, hasJason, hasDave, hasAlejandra].filter(Boolean).length;
+  if (count > 1) return 'shared';
+  if (hasAustin) return 'austin';
+  if (hasJason) return 'jason';
+  if (hasDave) return 'dave';
+  if (hasAlejandra) return 'alejandra';
+  return 'unknown';
 }
 
 function excelDateToYYYYMM(val: unknown): string | null {

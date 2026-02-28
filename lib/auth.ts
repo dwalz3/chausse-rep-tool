@@ -58,7 +58,7 @@ export async function verifyCookie(value: string): Promise<RepIdentity | null> {
     const rep = value.slice(0, colonIdx);
     const mac = value.slice(colonIdx + 1);
 
-    if (rep !== 'austin' && rep !== 'jason') return null;
+    if (rep !== 'austin' && rep !== 'jason' && rep !== 'dave' && rep !== 'alejandra') return null;
 
     const expected = await hmacHex(rep, secret);
     const ok = await timingSafeEqual(mac, expected);

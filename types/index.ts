@@ -1,6 +1,6 @@
 // ── Identity & Auth ────────────────────────────────────────────────────────────
 
-export type RepIdentity = 'austin' | 'jason';
+export type RepIdentity = 'austin' | 'jason' | 'dave' | 'alejandra';
 
 export interface RepSession {
   rep: RepIdentity;
@@ -19,7 +19,7 @@ export interface Rc5Row {
   account: string;
   accountCode: string;
   salesRep: string;           // raw string e.g. "Austin", "Jason"
-  primaryRep: 'austin' | 'jason' | 'dave' | 'shared' | 'unknown'; // derived
+  primaryRep: 'austin' | 'jason' | 'dave' | 'alejandra' | 'shared' | 'unknown'; // derived
   region: string;
   accountType: string;        // Restaurant, Bar, Wine Shop, Retail, etc.
   totalRevenue: number;

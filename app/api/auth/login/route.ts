@@ -1,28 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { signCookie, COOKIE_NAME } from '@/lib/auth';
+import { RepIdentity } from '@/types';
+
+// Email → internal rep identity + env var key
+const EMAIL_MAP: Record<string, { rep: RepIdentity; envKey: string }> = {
+  'austin@chausseselections.com':    { rep: 'austin',    envKey: 'AUSTIN_PASS' },
+  'jason@chausseselections.com':     { rep: 'jason',     envKey: 'JASON_PASS' },
+  'dave@chausseselections.com':      { rep: 'dave',      envKey: 'DAVE_PASS' },
+  'alejandra@chausseselections.com': { rep: 'alejandra', envKey: 'ALEJANDRA_PASS' },
+};
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => ({})) as { rep?: string; password?: string };
-  const { rep, password } = body;
+  const body = await req.json().catch(() => ({})) as { email?: string; password?: string };
+  const { email, password } = body;
 
-  if (!rep || !password) {
-    return NextResponse.json({ error: 'Missing rep or password' }, { status: 400 });
+  if (!email || !password) {
+    return NextResponse.json({ error: 'Missing email or password' }, { status: 400 });
   }
 
-  if (rep !== 'austin' && rep !== 'jason') {
-    return NextResponse.json({ error: 'Invalid rep' }, { status: 401 });
+  const entry = EMAIL_MAP[email.toLowerCase().trim()];
+  if (!entry) {
+    return NextResponse.json({ error: 'Incorrect email or password' }, { status: 401 });
   }
 
-  const envKey = rep === 'austin' ? 'AUSTIN_PASS' : 'JASON_PASS';
-  const correctPass = process.env[envKey];
-
+  const correctPass = process.env[entry.envKey];
   if (!correctPass || password !== correctPass) {
-    return NextResponse.json({ error: 'Incorrect password' }, { status: 401 });
+    return NextResponse.json({ error: 'Incorrect email or password' }, { status: 401 });
   }
 
-  const cookieValue = await signCookie(rep);
+  const cookieValue = await signCookie(entry.rep);
 
-  const res = NextResponse.json({ ok: true, rep });
+  const res = NextResponse.json({ ok: true, rep: entry.rep });
   res.cookies.set(COOKIE_NAME, cookieValue, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

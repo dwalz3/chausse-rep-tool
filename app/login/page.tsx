@@ -5,8 +5,15 @@ import { useRouter } from 'next/navigation';
 import { useStore } from '@/store';
 import { RepIdentity } from '@/types';
 
+const USERS: { email: string; rep: RepIdentity; label: string }[] = [
+  { email: 'austin@chausseselections.com',    rep: 'austin',    label: 'Austin' },
+  { email: 'jason@chausseselections.com',     rep: 'jason',     label: 'Jason' },
+  { email: 'alejandra@chausseselections.com', rep: 'alejandra', label: 'Alejandra' },
+  { email: 'dave@chausseselections.com',      rep: 'dave',      label: 'Dave' },
+];
+
 export default function LoginPage() {
-  const [rep, setRep] = useState<RepIdentity>('austin');
+  const [email, setEmail] = useState(USERS[0].email);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,11 +29,12 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rep, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       if (res.ok) {
-        setRepInStore(rep);
+        const data = await res.json() as { rep: RepIdentity };
+        setRepInStore(data.rep);
         router.push('/');
       } else {
         const data = await res.json().catch(() => ({})) as { error?: string };
@@ -84,18 +92,18 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Rep selector */}
+          {/* Email selector */}
           <div>
             <label
-              htmlFor="rep"
+              htmlFor="email"
               style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#1C1917', marginBottom: 6 }}
             >
-              Your name
+              Email
             </label>
             <select
-              id="rep"
-              value={rep}
-              onChange={(e) => setRep(e.target.value as RepIdentity)}
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               style={{
                 width: '100%',
                 padding: '10px 12px',
@@ -107,8 +115,11 @@ export default function LoginPage() {
                 outline: 'none',
               }}
             >
-              <option value="austin">Austin</option>
-              <option value="jason">Jason</option>
+              {USERS.map((u) => (
+                <option key={u.email} value={u.email}>
+                  {u.label} — {u.email}
+                </option>
+              ))}
             </select>
           </div>
 

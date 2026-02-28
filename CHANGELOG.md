@@ -1,5 +1,15 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.5.1 — 2026-02-28
+4-user auth: email-based login, Alejandra added.
+
+### Changed
+- `types/index.ts` — `RepIdentity` expanded to `'austin' | 'jason' | 'dave' | 'alejandra'`; `Rc5Row.primaryRep` updated to match
+- `lib/auth.ts` — `verifyCookie` accepts all 4 rep identities
+- `app/api/auth/login/route.ts` — accepts email address, maps to rep identity + env var; error message no longer leaks valid emails
+- `app/login/page.tsx` — selector now shows full email for all 4 users
+- `lib/parsers/rc5Parser.ts` — `derivePrimaryRep` handles Alejandra; simplified multi-rep shared detection
+
 ## v0.5.0 — 2026-02-28
 All 10 routes complete, full TypeScript pass.
 
