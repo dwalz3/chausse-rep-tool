@@ -66,7 +66,38 @@ function resolveFromRows(
     'wine code', 'item code', 'item number', 'item no', 'item #',
     'product code', 'code', 'sku', 'item'
   );
-  const colDefault = findCol(headers, 'default price', 'retail price', 'price', 'unit price', 'btl price', 'bottle price');
+
+  // Price column: exclude "price label", "price type", "price code", "price group" —
+  // those are Vinosmith/distributor text metadata columns, not dollar values.
+  // After named keywords, fall back to scanning for the first numeric column.
+  function findPriceCol(): number {
+    // 1. Named keywords (exact intent)
+    const named = findCol(headers, 'default price', 'retail price', 'unit price', 'btl price', 'bottle price', 'sell price', 'suggested price');
+    if (named >= 0) return named;
+    // 2. Any column containing 'price' EXCEPT those that are clearly text labels
+    for (let i = 0; i < headers.length; i++) {
+      const h = headers[i];
+      if (h.includes('price') && !/price\s*(label|type|code|tier|group|level|class|name|id)/.test(h)) {
+        return i;
+      }
+    }
+    // 3. 'default', 'retail', 'wholesale' standalone
+    const named2 = findCol(headers, 'default', 'retail', 'wholesale');
+    if (named2 >= 0) return named2;
+    // 4. Scan data rows — first column (after the code col) with consistently numeric, non-zero values
+    if (raw.length > headerRowIdx + 1) {
+      const dataRows = raw.slice(headerRowIdx + 1, headerRowIdx + 11) as unknown[][];
+      for (let col = 0; col < headers.length; col++) {
+        if (col === colCode) continue;
+        const vals = dataRows.map((r) => Number((r as unknown[])[col]));
+        const numericPositive = vals.filter((v) => isFinite(v) && v > 0).length;
+        if (numericPositive >= Math.min(5, dataRows.length * 0.6)) return col;
+      }
+    }
+    return -1;
+  }
+
+  const colDefault = findPriceCol();
   const colFob = findCol(headers, 'fob price', 'fob', 'laid-in', 'laid in', 'cost');
 
   const detectedCodeCol = colCode >= 0 ? headers[colCode] : '(not found)';
