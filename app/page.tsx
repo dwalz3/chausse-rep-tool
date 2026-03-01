@@ -83,6 +83,12 @@ export default function DashboardPage() {
   // Cap goal attainment display at 999%
   const attainmentPct = goalIsSet ? Math.min((mtdRevenue / target) * 100, 999) : 0;
 
+  const ra21Data = useStore((s) => s.ra21Data);
+  const ra30Data = useStore((s) => s.ra30Data);
+
+  const topWine = ra21Data?.rows[0] ?? null;
+  const newPlacementsCount = ra30Data?.recentPlacements.length ?? 0;
+
   const hasData = !!rc5Data && !!rep;
 
   return (
@@ -172,7 +178,7 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* Focus card */}
+              {/* Focus card — enhanced with RA21 top wine */}
               <div
                 onClick={() => router.push('/focus')}
                 style={{ flex: 1, minWidth: 200, backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #D1FAE5', padding: '16px 18px', cursor: 'pointer' }}
@@ -183,9 +189,36 @@ export default function DashboardPage() {
                   <TrendingUp size={16} color="#3FB950" />
                   <span style={{ fontSize: 13, fontWeight: 700, color: '#E6EDF3' }}>Focus List</span>
                 </div>
-                <p style={{ margin: 0, fontSize: 13, color: '#3FB950', fontWeight: 600 }}>Top performers</p>
-                <p style={{ margin: '4px 0 0', fontSize: 12, color: '#7D8590' }}>view your top wines to push →</p>
+                {topWine ? (
+                  <>
+                    <p style={{ margin: 0, fontSize: 12, color: '#7D8590', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      #1: {topWine.wineName || topWine.wineCode}
+                    </p>
+                    <p style={{ margin: '2px 0 0', fontSize: 20, fontWeight: 700, color: '#3FB950' }}>
+                      {'$' + Math.round(topWine.revenue).toLocaleString()}
+                    </p>
+                  </>
+                ) : (
+                  <p style={{ margin: 0, fontSize: 13, color: '#3FB950', fontWeight: 600 }}>view top wines to push →</p>
+                )}
               </div>
+
+              {/* New Placements card */}
+              {newPlacementsCount > 0 && (
+                <div
+                  onClick={() => router.push('/focus')}
+                  style={{ flex: 1, minWidth: 200, backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #DBEAFE', padding: '16px 18px', cursor: 'pointer' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#031D41')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#161B22')}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <TrendingUp size={16} color="#58A6FF" />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#E6EDF3' }}>New Placements</span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#58A6FF' }}>{newPlacementsCount}</p>
+                  <p style={{ margin: '4px 0 0', fontSize: 12, color: '#7D8590' }}>in the last 90 days →</p>
+                </div>
+              )}
             </div>
           </>
         )}

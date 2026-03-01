@@ -2,11 +2,13 @@
 
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Shell from '@/components/layout/Shell';
 import { useStore } from '@/store';
 import WineTypeBadge from '@/components/portfolio/WineTypeBadge';
-import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
-import { Ra25WineRow, WineType } from '@/types';
+import { TrendingUp, TrendingDown, RefreshCw, AlertCircle, Info } from 'lucide-react';
+import { Ra21Row } from '@/types/reports';
+import { WineType as WineTypeProp } from '@/types';
 
 function normCode(s: string) {
   return s.toString().trim().toUpperCase();
@@ -22,20 +24,37 @@ function fmtMonth(ym: string | null) {
   return new Date(Number(y), Number(m) - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
 }
 
+// Talking-point chips for each wine
+interface TalkingPoint { label: string; color: string; bg: string }
+
+function TalkingPointChip({ tp }: { tp: TalkingPoint }) {
+  return (
+    <span style={{ fontSize: 10, fontWeight: 700, backgroundColor: tp.bg, color: tp.color, borderRadius: 4, padding: '2px 6px', whiteSpace: 'nowrap' }}>
+      {tp.label}
+    </span>
+  );
+}
+
 export default function FocusPage() {
   const router = useRouter();
-  const rc5Data = useStore((s) => s.rc5Data);
-  const ra25Data = useStore((s) => s.ra25Data);
-  const winePropertiesData = useStore((s) => s.winePropertiesData);
-  const pricingData = useStore((s) => s.pricingData);
+  const rc5Data      = useStore((s) => s.rc5Data);
+  const ra21Data     = useStore((s) => s.ra21Data);
+  const ra30Data     = useStore((s) => s.ra30Data);
+  const ra3Data      = useStore((s) => s.ra3Data);
+  const rb6RepData   = useStore((s) => s.rb6RepData);
+  const ra27Data     = useStore((s) => s.ra27Data);
   const inventoryData = useStore((s) => s.inventoryData);
-  const rep = useStore((s) => s.rep);
+  const pricingData  = useStore((s) => s.pricingData);
+  const winePropertiesData = useStore((s) => s.winePropertiesData);
+  const rep          = useStore((s) => s.rep);
+
+  // ── Lookup maps ───────────────────────────────────────────────────────────────
 
   const winePropsMap = useMemo(() => {
-    const map = new Map<string, { wineType: WineType; producer: string; country: string }>();
+    const map = new Map<string, { wineType: WineTypeProp; producer: string; country: string; wineName: string }>();
     if (winePropertiesData) {
       for (const w of winePropertiesData) {
-        map.set(normCode(w.wineCode), { wineType: w.wineType, producer: w.producer, country: w.country });
+        map.set(normCode(w.wineCode), { wineType: w.wineType, producer: w.producer, country: w.country, wineName: w.wineName || w.name });
       }
     }
     return map;
@@ -44,15 +63,78 @@ export default function FocusPage() {
   const priceMap = useMemo(() => {
     const map = new Map<string, number>();
     if (pricingData) {
-      for (const p of pricingData) {
-        map.set(normCode(p.wineCode), p.defaultPrice);
-      }
+      for (const p of pricingData) map.set(normCode(p.wineCode), p.defaultPrice);
     }
     return map;
   }, [pricingData]);
 
-  // RB1-based focus: join inventory velocity with wine properties
-  // This is the preferred data source when available — shows what's actually selling now
+  const repAccounts = useMemo(() => {
+    if (!rc5Data || !rep) return new Set<string>();
+    const s = new Set<string>();
+    for (const r of rc5Data.rows) if (r.primaryRep === rep) s.add(r.account.toLowerCase());
+    return s;
+  }, [rc5Data, rep]);
+
+  // ── RA21-based enriched rows ──────────────────────────────────────────────────
+
+  function enrichRa21(row: Ra21Row) {
+    const key = normCode(row.wineCode);
+    const props = winePropsMap.get(key);
+    const price = priceMap.get(key) ?? 0;
+    const rb6   = rb6RepData?.byWineCode?.[key];
+    const accountCount = ra27Data?.byWineCode?.[key] ?? row.accountCount ?? 0;
+    const recentPlacements = ra30Data?.byWineCode?.[key]?.filter((r) => (r.daysAgo ?? 999) <= 90).length ?? 0;
+
+    // Build talking points: Low stock > New placements > Account count > Rank
+    const tps: TalkingPoint[] = [];
+    if (rb6?.isOutOfStock) tps.push({ label: 'Out of stock', color: '#F85149', bg: '#3D0000' });
+    else if (rb6?.isCritical) tps.push({ label: 'Critical stock', color: '#F85149', bg: '#3D0000' });
+    else if (rb6?.isLowStock) tps.push({ label: 'Low stock', color: '#E3B341', bg: '#2D2000' });
+    if (recentPlacements > 0) tps.push({ label: `+${recentPlacements} new placement${recentPlacements > 1 ? 's' : ''}`, color: '#79BAFF', bg: '#031D41' });
+    if (accountCount > 0) tps.push({ label: `${accountCount} accts`, color: '#8B949E', bg: '#21262D' });
+    tps.push({ label: `#${row.rank}`, color: '#3FB950', bg: '#0D2918' });
+
+    return { ...row, props, price, accountCount, tps };
+  }
+
+  const pushThese = useMemo(() => {
+    if (!ra21Data) return [];
+    return ra21Data.rows.slice(0, 15).map(enrichRa21);
+  }, [ra21Data, winePropsMap, priceMap, rb6RepData, ra27Data, ra30Data]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const expandThese = useMemo(() => {
+    if (!ra21Data) return [];
+    return ra21Data.rows
+      .filter((r) => {
+        const count = ra27Data?.byWineCode?.[normCode(r.wineCode)] ?? r.accountCount ?? 0;
+        return count < 10 && r.revenue > 5000;
+      })
+      .sort((a, b) => {
+        const aCount = ra27Data?.byWineCode?.[normCode(a.wineCode)] ?? a.accountCount ?? 1;
+        const bCount = ra27Data?.byWineCode?.[normCode(b.wineCode)] ?? b.accountCount ?? 1;
+        return (b.revenue / Math.max(bCount, 1)) - (a.revenue / Math.max(aCount, 1));
+      })
+      .slice(0, 10)
+      .map(enrichRa21);
+  }, [ra21Data, winePropsMap, priceMap, rb6RepData, ra27Data, ra30Data]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const newPlacements = useMemo(() => {
+    if (!ra30Data) return [];
+    return ra30Data.recentPlacements
+      .sort((a, b) => (a.daysAgo ?? 999) - (b.daysAgo ?? 999))
+      .slice(0, 10);
+  }, [ra30Data]);
+
+  const watchList = useMemo(() => {
+    if (!ra3Data) return [];
+    return ra3Data.rows
+      .filter((r) => r.trend === 'Declining')
+      .sort((a, b) => a.changePct - b.changePct)
+      .slice(0, 5);
+  }, [ra3Data]);
+
+  // ── RB1 velocity fallback ────────────────────────────────────────────────────
+
   const rb1Wines = useMemo(() => {
     if (!inventoryData) return [];
     return inventoryData
@@ -61,306 +143,329 @@ export default function FocusPage() {
         const key = normCode(inv.wineCode);
         const props = winePropsMap.get(key);
         const price = priceMap.get(key) ?? inv.defaultPrice ?? 0;
-        return {
-          wineCode: inv.wineCode,
-          wineName: inv.wineName,
-          fullName: inv.wineName,   // raw name from RB1 (has producer prefix)
-          supplier: inv.supplier,
-          producer: props?.producer ?? '',
-          country: props?.country ?? '',
-          wineType: props?.wineType,
-          price,
-          qtySold: inv.qtySoldLast30Days ?? 0,
-          available: inv.bottlesOnHand,
-        };
+        return { ...inv, props, price, qtySold: inv.qtySoldLast30Days ?? 0 };
       })
       .sort((a, b) => b.qtySold - a.qtySold);
   }, [inventoryData, winePropsMap, priceMap]);
 
-  const repAccounts = useMemo(() => {
-    if (!rc5Data || !rep) return new Set<string>();
-    const s = new Set<string>();
-    for (const r of rc5Data.rows) {
-      if (r.primaryRep === rep) s.add(r.account.toLowerCase());
-    }
-    return s;
-  }, [rc5Data, rep]);
+  // ── Dormant reactivate list ──────────────────────────────────────────────────
 
-  // Build wine-level totals filtered to this rep's accounts.
-  // Requires RA25 rows that have wineName/wineCode — never uses importer as a wine name.
-  const wines = useMemo((): Ra25WineRow[] => {
-    if (!ra25Data) return [];
-    const { rows } = ra25Data;
-
-    const filteredMap = new Map<string, { wineName: string; importer: string; revenue: number; casesSold: number; accounts: Set<string> }>();
-
-    for (const row of rows) {
-      if (repAccounts.size > 0 && !repAccounts.has(row.account.toLowerCase())) continue;
-      // Only use actual wine name — skip rows with no wine identity
-      const rawName = row.wineName || '';
-      const key = row.wineCode ? normCode(row.wineCode) : rawName ? rawName.toUpperCase() : null;
-      if (!key) continue;
-      const ex = filteredMap.get(key);
-      if (ex) {
-        ex.revenue += row.totalRevenue;
-        ex.casesSold += row.totalQty;
-        ex.accounts.add(row.account);
-      } else {
-        filteredMap.set(key, {
-          wineName: rawName || row.wineCode || key,
-          importer: row.importer,
-          revenue: row.totalRevenue,
-          casesSold: row.totalQty,
-          accounts: new Set([row.account]),
-        });
-      }
-    }
-
-    return Array.from(filteredMap.entries())
-      .map(([key, v]) => ({
-        wineCode: key,
-        wineName: v.wineName,
-        importer: v.importer,
-        revenue: v.revenue,
-        casesSold: v.casesSold,
-        accountCount: v.accounts.size,
-      }))
-      .filter((w) => w.revenue > 0)
-      .sort((a, b) => b.revenue - a.revenue);
-  }, [ra25Data, repAccounts]);
-
-  // Dormant accounts with revenue history for reactivation
   const reactivateList = useMemo(() => {
     if (!rc5Data || !rep) return [];
     return rc5Data.rows
       .filter((r) => r.primaryRep === rep && r.isDormant && r.totalRevenue > 0)
-      .map((r) => ({
-        account: r.account,
-        lastActive: r.lastActiveMonth,
-        totalRevenue: r.totalRevenue,
-        threeMo: r.monthlyRevenue.slice(9, 12).reduce((s, v) => s + v, 0),
-      }))
+      .map((r) => ({ account: r.account, lastActive: r.lastActiveMonth, totalRevenue: r.totalRevenue, threeMo: r.monthlyRevenue.slice(9, 12).reduce((s, v) => s + v, 0) }))
       .sort((a, b) => b.totalRevenue - a.totalRevenue)
       .slice(0, 8);
   }, [rc5Data, rep]);
 
-  // Prefer RB1 velocity data; fall back to RA25 wine detail
-  const useRb1 = rb1Wines.length > 0;
+  // ── Layout logic ─────────────────────────────────────────────────────────────
 
-  // KPI calculations
-  const totalRevenue = wines.reduce((s, w) => s + w.revenue, 0);
-  const avgRevPerAcct = repAccounts.size > 0 ? totalRevenue / repAccounts.size : 0;
+  const hasRa21 = (ra21Data?.rows.length ?? 0) > 0;
+  const hasRb1  = rb1Wines.length > 0;
+  const noData  = !hasRa21 && !hasRb1 && !rep;
 
-  const pushList = wines.slice(0, 10);
-  const watchList = wines.slice(10, 20);
+  // ── Shared RA21 wine row ─────────────────────────────────────────────────────
 
-  const noData = (!ra25Data && !inventoryData) || !rep;
-  // RA25 loaded but rows have no wineName/wineCode — summary-level file only
-  const noWineDetail = !useRb1 && ra25Data && !noData && wines.length === 0 && ra25Data.rows.length > 0;
-
-  function WineRow({ item, idx }: { item: Ra25WineRow; idx: number }) {
-    const props = winePropsMap.get(item.wineCode);
-    const price = priceMap.get(item.wineCode);
-
+  function Ra21WineRow({ item, idx, showRev = true }: {
+    item: ReturnType<typeof enrichRa21>;
+    idx: number;
+    showRev?: boolean;
+  }) {
     return (
       <tr
-        style={{ borderTop: '1px solid #21262D', cursor: props ? 'pointer' : 'default' }}
-        onClick={() => props && router.push(`/portfolio/${encodeURIComponent(item.wineCode)}`)}
-        onMouseEnter={(e) => props && (e.currentTarget.style.backgroundColor = '#1C2128')}
+        style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
+        onClick={() => item.wineCode && router.push(`/portfolio/${encodeURIComponent(item.wineCode)}`)}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
       >
         <td style={{ padding: '9px 16px', color: '#7D8590', fontSize: 12, width: 32 }}>{idx + 1}</td>
         <td style={{ padding: '9px 16px', width: 80 }}>
-          {props ? (
-            <WineTypeBadge type={props.wineType} />
+          {item.props ? (
+            <WineTypeBadge type={item.props.wineType} />
           ) : (
             <span style={{ fontSize: 11, backgroundColor: '#21262D', color: '#7D8590', borderRadius: 4, padding: '2px 7px', fontWeight: 600 }}>—</span>
           )}
         </td>
-        <td style={{ padding: '9px 16px', maxWidth: 280 }}>
+        <td style={{ padding: '9px 16px', maxWidth: 260 }}>
           <div style={{ color: '#E6EDF3', fontWeight: 500, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {item.wineName}
+            {item.props?.wineName || item.wineName || item.wineCode}
           </div>
-          {props && (
-            <div style={{ color: '#7D8590', fontSize: 11, marginTop: 1 }}>
-              {props.producer}{props.country ? ` · ${props.country}` : ''}
-            </div>
-          )}
+          {item.props && <div style={{ color: '#7D8590', fontSize: 11, marginTop: 1 }}>{item.props.producer}{item.props.country ? ` · ${item.props.country}` : ''}</div>}
         </td>
-        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
-          {price && price > 0 ? `$${price.toFixed(2)}` : '—'}
+        <td style={{ padding: '9px 8px' }}>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {item.tps.map((tp, ti) => <TalkingPointChip key={ti} tp={tp} />)}
+          </div>
         </td>
-        <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>
-          {fmt$(item.revenue)}
-        </td>
-        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontVariantNumeric: 'tabular-nums' }}>
-          {item.casesSold > 0 ? `${Math.round(item.casesSold / 12)} cs` : '—'}
-        </td>
-        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontSize: 12 }}>
-          {item.accountCount} acct{item.accountCount !== 1 ? 's' : ''}
+        {showRev && (
+          <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color: '#E6EDF3', fontVariantNumeric: 'tabular-nums', width: 90 }}>
+            {item.revenue > 0 ? fmt$(item.revenue) : '—'}
+          </td>
+        )}
+        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontSize: 12, width: 60, fontVariantNumeric: 'tabular-nums' }}>
+          {item.price > 0 ? `$${item.price.toFixed(2)}` : '—'}
         </td>
       </tr>
     );
   }
 
-  function WineSection({ title, items, icon, color }: { title: string; items: Ra25WineRow[]; icon: React.ReactNode; color: string }) {
-    if (items.length === 0) return null;
+  function Section({ title, subtitle, icon, iconColor, count, children }: {
+    title: string; subtitle?: string; icon: React.ReactNode; iconColor: string; count: number; children: React.ReactNode;
+  }) {
     return (
       <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', marginBottom: 16 }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #30363D', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ color }}>{icon}</span>
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#E6EDF3' }}>{title}</h3>
-          <span style={{ fontSize: 12, color: '#7D8590' }}>({items.length})</span>
+          <span style={{ color: iconColor }}>{icon}</span>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#E6EDF3' }}>{title}</h3>
+            {subtitle && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7D8590' }}>{subtitle}</p>}
+          </div>
+          <span style={{ fontSize: 12, color: '#7D8590' }}>({count})</span>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead style={{ backgroundColor: '#1C2128' }}>
-            <tr>
-              <th style={{ width: 32, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>#</th>
-              <th style={{ width: 80, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Type</th>
-              <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
-              <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Price/btl</th>
-              <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Revenue</th>
-              <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Cases</th>
-              <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Accts</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((w, i) => <WineRow key={w.wineCode} item={w} idx={i} />)}
-          </tbody>
-        </table>
+        {children}
       </div>
     );
   }
 
   return (
     <Shell>
-      <div style={{ maxWidth: 900 }}>
+      <div style={{ maxWidth: 960 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: '0 0 4px' }}>Focus List</h1>
         <p style={{ fontSize: 13, color: '#7D8590', margin: '0 0 20px' }}>
           Top performing wines and accounts to prioritize.
         </p>
 
+        {/* Banner if RA23 missing */}
+        {!useStore((s) => s.ra23Data) && (
+          <div style={{ backgroundColor: '#1C1610', border: '1px solid #3D2B00', borderRadius: 8, padding: '12px 16px', marginBottom: 20, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <AlertCircle size={15} color="#E3B341" style={{ flexShrink: 0, marginTop: 2 }} />
+            <div>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#E3B341' }}>Upload RA23 to unlock full Focus detail</span>
+              <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7D8590' }}>
+                Account × Wine detail required for per-account drilling.{' '}
+                <Link href="/integrations" style={{ color: '#3FB950', textDecoration: 'none', fontWeight: 600 }}>Sync via Integrations →</Link>
+              </p>
+            </div>
+          </div>
+        )}
+
         {noData ? (
           <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 40, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
-            Upload RA25 data on the{' '}
-            <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload page</a> first.
-          </div>
-        ) : noWineDetail ? (
-          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #E3B341', padding: 32, color: '#7D8590', fontSize: 14 }}>
-            <div style={{ fontWeight: 700, color: '#E3B341', marginBottom: 8, fontSize: 15 }}>RA25 file is account-summary level — no per-wine rows detected</div>
-            <p style={{ margin: '0 0 8px' }}>
-              The uploaded RA25 has <strong style={{ color: '#E6EDF3' }}>{ra25Data?.rows.length.toLocaleString()} rows</strong> but none contain a wine name or wine code column.
-              Focus List requires a per-wine RA25 export from Vinosmith.
-            </p>
-            <p style={{ margin: 0 }}>
-              In Vinosmith: <strong style={{ color: '#E6EDF3' }}>Reports → RA25 → select "Detail" view</strong> and export with wine name/code columns included.
-              Check the <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload debug panel</a> to see which columns were detected.
-            </p>
+            Upload RA21 (Top Wines) or RB1 inventory on the{' '}
+            <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload page</a> to populate Focus List.
           </div>
         ) : (
           <>
-            {/* KPI cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
-              {(useRb1 ? [
-                { label: 'Active SKUs', value: rb1Wines.length.toLocaleString() },
-                { label: 'Btl Sold (30d)', value: rb1Wines.reduce((s, w) => s + w.qtySold, 0).toLocaleString() },
-                { label: 'Active Accounts', value: repAccounts.size > 0 ? repAccounts.size.toLocaleString() : '—' },
-                { label: 'In Stock', value: rb1Wines.filter(w => w.available > 0).length.toLocaleString() },
-              ] : [
-                { label: 'Wine SKUs', value: wines.length.toLocaleString() },
-                { label: 'Territory Revenue', value: totalRevenue > 0 ? fmt$(totalRevenue) : '—' },
-                { label: 'Active Accounts', value: repAccounts.size.toLocaleString() },
-                { label: 'Avg / Account', value: avgRevPerAcct > 0 ? fmt$(avgRevPerAcct) : '—' },
-              ]).map(({ label, value }) => (
-                <div key={label} style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 20px' }}>
-                  <div style={{ fontSize: 11, color: '#7D8590', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
-                    {label}
-                  </div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
-                </div>
-              ))}
-            </div>
-
-            {useRb1 ? (
-              /* ── RB1 velocity table ────────────────────────────────────────── */
-              <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', marginBottom: 16 }}>
-                <div style={{ padding: '14px 20px', borderBottom: '1px solid #30363D', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ color: '#3FB950' }}><TrendingUp size={16} /></span>
-                  <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#E6EDF3' }}>Top Movers — Last 30 Days</h3>
-                  <span style={{ fontSize: 12, color: '#7D8590' }}>({rb1Wines.length})</span>
-                  <span style={{ marginLeft: 'auto', fontSize: 11, color: '#484F58' }}>from RB1 inventory report</span>
-                </div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                  <thead style={{ backgroundColor: '#1C2128' }}>
-                    <tr>
-                      <th style={{ width: 32, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>#</th>
-                      <th style={{ width: 80, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Type</th>
-                      <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
-                      <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Price/btl</th>
-                      <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Sold (30d)</th>
-                      <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Available</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rb1Wines.map((w, i) => (
-                      <tr
-                        key={w.wineCode}
-                        style={{ borderTop: '1px solid #21262D', cursor: w.wineType ? 'pointer' : 'default' }}
-                        onClick={() => w.wineType && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
-                        onMouseEnter={(e) => w.wineType && (e.currentTarget.style.backgroundColor = '#1C2128')}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                      >
-                        <td style={{ padding: '9px 16px', color: '#7D8590', fontSize: 12 }}>{i + 1}</td>
-                        <td style={{ padding: '9px 16px' }}>
-                          {w.wineType ? (
-                            <WineTypeBadge type={w.wineType} />
-                          ) : (
-                            <span style={{ fontSize: 11, backgroundColor: '#21262D', color: '#7D8590', borderRadius: 4, padding: '2px 7px', fontWeight: 600 }}>—</span>
-                          )}
-                        </td>
-                        <td style={{ padding: '9px 16px', maxWidth: 300 }}>
-                          <div style={{ color: '#E6EDF3', fontWeight: 500, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {w.wineName || w.fullName}
-                          </div>
-                          {(w.producer || w.country) && (
-                            <div style={{ color: '#7D8590', fontSize: 11, marginTop: 1 }}>
-                              {w.producer}{w.country ? ` · ${w.country}` : ''}
-                            </div>
-                          )}
-                        </td>
-                        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
-                          {w.price > 0 ? `$${w.price.toFixed(2)}` : '—'}
-                        </td>
-                        <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color: '#3FB950', fontVariantNumeric: 'tabular-nums' }}>
-                          {w.qtySold} btl
-                        </td>
-                        <td style={{ padding: '9px 16px', textAlign: 'right', color: w.available > 0 ? '#E6EDF3' : '#484F58', fontVariantNumeric: 'tabular-nums' }}>
-                          {w.available > 0 ? `${w.available} btl` : '—'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : wines.length === 0 ? (
-              <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 40, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
-                No wine data found. Upload RB1 inventory to see velocity-based focus list.
-              </div>
-            ) : (
+            {hasRa21 ? (
               <>
-                <WineSection title="Expand These — Top Performers" items={pushList} icon={<TrendingUp size={16} />} color="#3FB950" />
-                <WineSection title="Next Tier — Build Placement" items={watchList} icon={<TrendingDown size={16} />} color="#E3B341" />
+                {/* KPI cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+                  {[
+                    { label: 'Ranked SKUs', value: ra21Data!.rows.length.toLocaleString() },
+                    { label: 'Top Wine Revenue', value: ra21Data!.rows[0]?.revenue ? fmt$(ra21Data!.rows[0].revenue) : '—' },
+                    { label: 'New Placements (90d)', value: (ra30Data?.recentPlacements.length ?? 0).toLocaleString() },
+                    { label: 'Declining SKUs', value: watchList.length.toLocaleString() },
+                  ].map(({ label, value }) => (
+                    <div key={label} style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 20px' }}>
+                      <div style={{ fontSize: 11, color: '#7D8590', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</div>
+                      <div style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Push These */}
+                {pushThese.length > 0 && (
+                  <Section title="Push These — Top Performers" subtitle="Ranked by revenue from RA21" icon={<TrendingUp size={16} />} iconColor="#3FB950" count={pushThese.length}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                      <thead style={{ backgroundColor: '#1C2128' }}>
+                        <tr>
+                          <th style={{ width: 32, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>#</th>
+                          <th style={{ width: 80, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Type</th>
+                          <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
+                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Talking Points</th>
+                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Revenue</th>
+                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Price/btl</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pushThese.map((w, i) => <Ra21WineRow key={w.wineCode || i} item={w} idx={i} />)}
+                      </tbody>
+                    </table>
+                  </Section>
+                )}
+
+                {/* Expand These */}
+                {expandThese.length > 0 && (
+                  <Section title="Expand These — High Revenue, Low Distribution" subtitle="High revenue but fewer than 10 accounts — opportunity to grow" icon={<Info size={16} />} iconColor="#79BAFF" count={expandThese.length}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                      <thead style={{ backgroundColor: '#1C2128' }}>
+                        <tr>
+                          <th style={{ width: 32, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>#</th>
+                          <th style={{ width: 80, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Type</th>
+                          <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
+                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Talking Points</th>
+                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Revenue</th>
+                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Price/btl</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {expandThese.map((w, i) => <Ra21WineRow key={w.wineCode || i} item={w} idx={i} />)}
+                      </tbody>
+                    </table>
+                  </Section>
+                )}
+
+                {/* New Placements */}
+                {newPlacements.length > 0 && (
+                  <Section title="New Placements — Last 90 Days" subtitle="First-time wine placements at accounts" icon={<TrendingUp size={16} />} iconColor="#58A6FF" count={newPlacements.length}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                      <thead style={{ backgroundColor: '#1C2128' }}>
+                        <tr>
+                          <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
+                          <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Account</th>
+                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Days Ago</th>
+                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Importer</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {newPlacements.map((p, i) => {
+                          const key = normCode(p.wineCode);
+                          const props = winePropsMap.get(key);
+                          return (
+                            <tr key={i} style={{ borderTop: '1px solid #21262D' }}>
+                              <td style={{ padding: '9px 16px', maxWidth: 240 }}>
+                                <div style={{ color: '#E6EDF3', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {props?.wineName || p.wineName || p.wineCode}
+                                </div>
+                                {props?.producer && <div style={{ fontSize: 11, color: '#7D8590', marginTop: 1 }}>{props.producer}</div>}
+                              </td>
+                              <td style={{ padding: '9px 16px', color: '#7D8590' }}>{p.account}</td>
+                              <td style={{ padding: '9px 16px', textAlign: 'right', color: '#58A6FF', fontWeight: 600 }}>
+                                {p.daysAgo !== null ? `${p.daysAgo}d ago` : '—'}
+                              </td>
+                              <td style={{ padding: '9px 16px', textAlign: 'right', color: '#484F58', fontSize: 12 }}>{p.importer || '—'}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </Section>
+                )}
+
+                {/* Watch List — Declines */}
+                {watchList.length > 0 && (
+                  <Section title="Watch List — Recent Declines" subtitle={`From RA3 period comparison · ${ra3Data?.currentPeriodLabel ?? 'current'} vs ${ra3Data?.priorPeriodLabel ?? 'prior'}`} icon={<TrendingDown size={16} />} iconColor="#F85149" count={watchList.length}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                      <thead style={{ backgroundColor: '#1C2128' }}>
+                        <tr>
+                          <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
+                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Current Rev</th>
+                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Prior Rev</th>
+                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Change</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {watchList.map((w, i) => {
+                          const props = winePropsMap.get(normCode(w.wineCode));
+                          const changePct = isFinite(w.changePct) ? w.changePct : 0;
+                          return (
+                            <tr
+                              key={i}
+                              style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
+                              onClick={() => w.wineCode && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
+                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
+                              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                            >
+                              <td style={{ padding: '9px 16px', maxWidth: 260 }}>
+                                <div style={{ color: '#E6EDF3', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {props?.wineName || w.wineName || w.wineCode}
+                                </div>
+                                {props?.producer && <div style={{ fontSize: 11, color: '#7D8590', marginTop: 1 }}>{props.producer}</div>}
+                              </td>
+                              <td style={{ padding: '9px 16px', textAlign: 'right', color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{fmt$(w.currentPeriodRevenue)}</td>
+                              <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontVariantNumeric: 'tabular-nums' }}>{fmt$(w.priorPeriodRevenue)}</td>
+                              <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 700, color: '#F85149', fontVariantNumeric: 'tabular-nums' }}>
+                                {changePct.toFixed(0)}%
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </Section>
+                )}
               </>
-            )}
+            ) : hasRb1 ? (
+              <>
+                {/* KPI cards (RB1 fallback) */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+                  {[
+                    { label: 'Active SKUs', value: rb1Wines.length.toLocaleString() },
+                    { label: 'Btl Sold (30d)', value: rb1Wines.reduce((s, w) => s + w.qtySold, 0).toLocaleString() },
+                    { label: 'Active Accounts', value: repAccounts.size > 0 ? repAccounts.size.toLocaleString() : '—' },
+                    { label: 'In Stock', value: rb1Wines.filter(w => w.bottlesOnHand > 0).length.toLocaleString() },
+                  ].map(({ label, value }) => (
+                    <div key={label} style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 20px' }}>
+                      <div style={{ fontSize: 11, color: '#7D8590', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</div>
+                      <div style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', marginBottom: 16 }}>
+                  <div style={{ padding: '14px 20px', borderBottom: '1px solid #30363D', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ color: '#3FB950' }}><TrendingUp size={16} /></span>
+                    <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#E6EDF3' }}>Top Movers — Last 30 Days</h3>
+                    <span style={{ fontSize: 12, color: '#7D8590' }}>({rb1Wines.length})</span>
+                    <span style={{ marginLeft: 'auto', fontSize: 11, color: '#484F58' }}>from RB1 · <Link href="/integrations" style={{ color: '#7D8590', textDecoration: 'none' }}>upload RA21 for full ranking →</Link></span>
+                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead style={{ backgroundColor: '#1C2128' }}>
+                      <tr>
+                        <th style={{ width: 32, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>#</th>
+                        <th style={{ width: 80, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Type</th>
+                        <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
+                        <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Sold (30d)</th>
+                        <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Available</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rb1Wines.map((w, i) => {
+                        const key = normCode(w.wineCode);
+                        const props = winePropsMap.get(key);
+                        return (
+                          <tr
+                            key={w.wineCode}
+                            style={{ borderTop: '1px solid #21262D', cursor: props ? 'pointer' : 'default' }}
+                            onClick={() => props && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
+                            onMouseEnter={(e) => props && (e.currentTarget.style.backgroundColor = '#1C2128')}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                          >
+                            <td style={{ padding: '9px 16px', color: '#7D8590', fontSize: 12 }}>{i + 1}</td>
+                            <td style={{ padding: '9px 16px' }}>
+                              {props ? <WineTypeBadge type={props.wineType} /> : <span style={{ fontSize: 11, backgroundColor: '#21262D', color: '#7D8590', borderRadius: 4, padding: '2px 7px' }}>—</span>}
+                            </td>
+                            <td style={{ padding: '9px 16px', maxWidth: 300 }}>
+                              <div style={{ color: '#E6EDF3', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{props?.wineName || w.wineName}</div>
+                              {props && <div style={{ fontSize: 11, color: '#7D8590', marginTop: 1 }}>{props.producer}{props.country ? ` · ${props.country}` : ''}</div>}
+                            </td>
+                            <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color: '#3FB950', fontVariantNumeric: 'tabular-nums' }}>{w.qtySold} btl</td>
+                            <td style={{ padding: '9px 16px', textAlign: 'right', color: w.bottlesOnHand > 0 ? '#E6EDF3' : '#484F58', fontVariantNumeric: 'tabular-nums' }}>
+                              {w.bottlesOnHand > 0 ? `${w.bottlesOnHand} btl` : '—'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : null}
 
             {/* Reactivate section */}
             {reactivateList.length > 0 && (
-              <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', marginBottom: 16 }}>
-                <div style={{ padding: '14px 20px', borderBottom: '1px solid #30363D', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ color: '#F85149' }}><RefreshCw size={16} /></span>
-                  <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#E6EDF3' }}>Reactivate — Dormant Accounts</h3>
-                  <span style={{ fontSize: 12, color: '#7D8590' }}>({reactivateList.length})</span>
-                </div>
+              <Section title="Reactivate — Dormant Accounts" icon={<RefreshCw size={16} />} iconColor="#F85149" count={reactivateList.length}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead style={{ backgroundColor: '#1C2128' }}>
                     <tr>
@@ -374,27 +479,20 @@ export default function FocusPage() {
                     {reactivateList.map((acct) => (
                       <tr
                         key={acct.account}
-                        style={{ borderTop: '1px solid #21262D' }}
+                        style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
                         onClick={() => router.push(`/accounts/${encodeURIComponent(acct.account)}`)}
                         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                        className="cursor-pointer"
                       >
                         <td style={{ padding: '9px 16px', color: '#E6EDF3', fontWeight: 500 }}>{acct.account}</td>
-                        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590' }}>
-                          {fmtMonth(acct.lastActive)}
-                        </td>
-                        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontVariantNumeric: 'tabular-nums' }}>
-                          {acct.threeMo > 0 ? fmt$(acct.threeMo) : '—'}
-                        </td>
-                        <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>
-                          {fmt$(acct.totalRevenue)}
-                        </td>
+                        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590' }}>{fmtMonth(acct.lastActive)}</td>
+                        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontVariantNumeric: 'tabular-nums' }}>{acct.threeMo > 0 ? fmt$(acct.threeMo) : '—'}</td>
+                        <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{fmt$(acct.totalRevenue)}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </Section>
             )}
           </>
         )}

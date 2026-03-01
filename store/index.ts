@@ -8,12 +8,23 @@ import {
   WinePropertyRow, PricingRow, AllocationRow, OpenPORow, InventoryRow,
   UploadKey, UploadMeta,
 } from '@/types';
+import {
+  Ra23Data, Ra21Data, Ra27Data, Rb6RepData, Ra30Data, Rc3Data, Ra3Data,
+} from '@/types/reports';
+import { RepSyncStatus } from '@/types/integrations';
 
 // ── Data Slice ─────────────────────────────────────────────────────────────────
 
 interface DataState {
   rc5Data: Rc5Data | null;
   ra25Data: Ra25Data | null;
+  ra23Data: Ra23Data | null;
+  ra21Data: Ra21Data | null;
+  ra27Data: Ra27Data | null;
+  rb6RepData: Rb6RepData | null;
+  ra30Data: Ra30Data | null;
+  rc3Data: Rc3Data | null;
+  ra3Data: Ra3Data | null;
   producersData: ProducersData | null;
   winePropertiesData: WinePropertyRow[] | null;
   pricingData: PricingRow[] | null;
@@ -21,17 +32,26 @@ interface DataState {
   allocationsData: AllocationRow[] | null;
   openPOData: OpenPORow[] | null;
   uploadMeta: Partial<Record<UploadKey, UploadMeta>>;
+  syncStatus: RepSyncStatus;
 }
 
 interface DataActions {
   setRc5Data: (data: Rc5Data, meta: UploadMeta) => void;
   setRa25Data: (data: Ra25Data, meta: UploadMeta) => void;
+  setRa23Data: (data: Ra23Data, meta: UploadMeta) => void;
+  setRa21Data: (data: Ra21Data, meta: UploadMeta) => void;
+  setRa27Data: (data: Ra27Data, meta: UploadMeta) => void;
+  setRb6RepData: (data: Rb6RepData, meta: UploadMeta) => void;
+  setRa30Data: (data: Ra30Data, meta: UploadMeta) => void;
+  setRc3Data: (data: Rc3Data, meta: UploadMeta) => void;
+  setRa3Data: (data: Ra3Data, meta: UploadMeta) => void;
   setProducersData: (data: ProducersData, meta: UploadMeta) => void;
   setWinePropertiesData: (data: WinePropertyRow[], meta: UploadMeta) => void;
   setPricingData: (data: PricingRow[], meta: UploadMeta) => void;
   setInventoryData: (data: InventoryRow[], meta: UploadMeta) => void;
   setAllocationsData: (data: AllocationRow[], meta: UploadMeta) => void;
   setOpenPOData: (data: OpenPORow[], meta: UploadMeta) => void;
+  setSyncStatus: (key: keyof RepSyncStatus, entry: RepSyncStatus[keyof RepSyncStatus]) => void;
   clearAllData: () => void;
 }
 
@@ -76,6 +96,13 @@ type Store = DataState & DataActions & SettingsState & SettingsActions & UiState
 const DATA_DEFAULTS: DataState = {
   rc5Data: null,
   ra25Data: null,
+  ra23Data: null,
+  ra21Data: null,
+  ra27Data: null,
+  rb6RepData: null,
+  ra30Data: null,
+  rc3Data: null,
+  ra3Data: null,
   producersData: null,
   winePropertiesData: null,
   pricingData: null,
@@ -83,6 +110,7 @@ const DATA_DEFAULTS: DataState = {
   allocationsData: null,
   openPOData: null,
   uploadMeta: {},
+  syncStatus: {},
 };
 
 const SETTINGS_DEFAULTS: SettingsState = {
@@ -106,6 +134,30 @@ export const useStore = create<Store>()(
 
       setRa25Data: (data, meta) =>
         set((s) => ({ ra25Data: data, uploadMeta: { ...s.uploadMeta, ra25: meta } })),
+
+      setRa23Data: (data, meta) =>
+        set((s) => ({ ra23Data: data, uploadMeta: { ...s.uploadMeta, ra23: meta } })),
+
+      setRa21Data: (data, meta) =>
+        set((s) => ({ ra21Data: data, uploadMeta: { ...s.uploadMeta, ra21: meta } })),
+
+      setRa27Data: (data, meta) =>
+        set((s) => ({ ra27Data: data, uploadMeta: { ...s.uploadMeta, ra27: meta } })),
+
+      setRb6RepData: (data, meta) =>
+        set((s) => ({ rb6RepData: data, uploadMeta: { ...s.uploadMeta, rb6: meta } })),
+
+      setRa30Data: (data, meta) =>
+        set((s) => ({ ra30Data: data, uploadMeta: { ...s.uploadMeta, ra30: meta } })),
+
+      setRc3Data: (data, meta) =>
+        set((s) => ({ rc3Data: data, uploadMeta: { ...s.uploadMeta, rc3: meta } })),
+
+      setRa3Data: (data, meta) =>
+        set((s) => ({ ra3Data: data, uploadMeta: { ...s.uploadMeta, ra3: meta } })),
+
+      setSyncStatus: (key, entry) =>
+        set((s) => ({ syncStatus: { ...s.syncStatus, [key]: entry } })),
 
       setProducersData: (data, meta) =>
         set((s) => ({ producersData: data, uploadMeta: { ...s.uploadMeta, producers: meta } })),
@@ -169,6 +221,13 @@ export const useStore = create<Store>()(
       partialize: (s): Omit<Store, keyof UiActions | keyof UiState> => ({
         rc5Data: s.rc5Data,
         ra25Data: s.ra25Data,
+        ra23Data: s.ra23Data,
+        ra21Data: s.ra21Data,
+        ra27Data: s.ra27Data,
+        rb6RepData: s.rb6RepData,
+        ra30Data: s.ra30Data,
+        rc3Data: s.rc3Data,
+        ra3Data: s.ra3Data,
         producersData: s.producersData,
         winePropertiesData: s.winePropertiesData,
         pricingData: s.pricingData,
@@ -176,6 +235,7 @@ export const useStore = create<Store>()(
         allocationsData: s.allocationsData,
         openPOData: s.openPOData,
         uploadMeta: s.uploadMeta,
+        syncStatus: s.syncStatus,
         btgThreshold: s.btgThreshold,
         goalMultiplier: s.goalMultiplier,
         monthlyGoal: s.monthlyGoal,
@@ -185,12 +245,20 @@ export const useStore = create<Store>()(
         contactedAccounts: s.contactedAccounts,
         setRc5Data: s.setRc5Data,
         setRa25Data: s.setRa25Data,
+        setRa23Data: s.setRa23Data,
+        setRa21Data: s.setRa21Data,
+        setRa27Data: s.setRa27Data,
+        setRb6RepData: s.setRb6RepData,
+        setRa30Data: s.setRa30Data,
+        setRc3Data: s.setRc3Data,
+        setRa3Data: s.setRa3Data,
         setProducersData: s.setProducersData,
         setWinePropertiesData: s.setWinePropertiesData,
         setPricingData: s.setPricingData,
         setInventoryData: s.setInventoryData,
         setAllocationsData: s.setAllocationsData,
         setOpenPOData: s.setOpenPOData,
+        setSyncStatus: s.setSyncStatus,
         clearAllData: s.clearAllData,
         setBtgThreshold: s.setBtgThreshold,
         setGoalMultiplier: s.setGoalMultiplier,
@@ -225,6 +293,13 @@ if (typeof window !== 'undefined') {
         useStore.setState({
           rc5Data: null,
           ra25Data: null,
+          ra23Data: null,
+          ra21Data: null,
+          ra27Data: null,
+          rb6RepData: null,
+          ra30Data: null,
+          rc3Data: null,
+          ra3Data: null,
           producersData: null,
           winePropertiesData: null,
           pricingData: null,

@@ -205,6 +205,13 @@ export interface PortfolioRow {
 export type UploadKey =
   | 'rc5'
   | 'ra25'
+  | 'ra23'
+  | 'ra21'
+  | 'ra27'
+  | 'rb6'
+  | 'ra30'
+  | 'rc3'
+  | 'ra3'
   | 'wineProperties'
   | 'pricing'
   | 'inventory'

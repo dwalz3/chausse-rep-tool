@@ -48,7 +48,9 @@ export default function AccountDetailPage() {
   const id = decodeURIComponent(String(params.id ?? ''));
 
   const rc5Data = useStore((s) => s.rc5Data);
+  const ra23Data = useStore((s) => s.ra23Data);
   const ra25Data = useStore((s) => s.ra25Data);
+  const ra21Data = useStore((s) => s.ra21Data);
   const winePropertiesData = useStore((s) => s.winePropertiesData);
   const pricingData = useStore((s) => s.pricingData);
 
@@ -79,33 +81,48 @@ export default function AccountDetailPage() {
   }, [pricingData]);
   void priceMap; // reserved for future use
 
+  // Prefer RA23 (account × wine detail); fall back to RA25
   const topWines = useMemo(() => {
-    if (!ra25Data || !account) return [];
+    if (!account) return [];
     const accountLower = account.account.toLowerCase();
     const wineMap = new Map<string, { wineName: string; wineCode: string; revenue: number; qty: number }>();
-    for (const row of ra25Data.rows) {
-      if (row.account.toLowerCase() !== accountLower) continue;
-      const rawName = row.wineName || row.importer || '';
-      if (!rawName) continue;
-      const key = row.wineCode ? normCode(row.wineCode) : rawName.toUpperCase();
-      const ex = wineMap.get(key);
-      if (ex) {
-        ex.revenue += row.totalRevenue;
-        ex.qty += row.totalQty;
-      } else {
-        wineMap.set(key, {
-          wineName: rawName,
-          wineCode: row.wineCode ? normCode(row.wineCode) : key,
-          revenue: row.totalRevenue,
-          qty: row.totalQty,
-        });
+
+    if (ra23Data && ra23Data.rows.length > 0) {
+      for (const row of ra23Data.rows) {
+        if (row.account.toLowerCase() !== accountLower) continue;
+        const rawName = row.wineName || row.wineCode || '';
+        if (!rawName) continue;
+        const key = row.wineCode ? normCode(row.wineCode) : rawName.toUpperCase();
+        const ex = wineMap.get(key);
+        if (ex) { ex.revenue += row.revenue; ex.qty += row.qty; }
+        else wineMap.set(key, { wineName: rawName, wineCode: row.wineCode ? normCode(row.wineCode) : key, revenue: row.revenue, qty: row.qty });
+      }
+    } else if (ra25Data) {
+      for (const row of ra25Data.rows) {
+        if (row.account.toLowerCase() !== accountLower) continue;
+        const rawName = row.wineName || '';
+        if (!rawName) continue;
+        const key = row.wineCode ? normCode(row.wineCode) : rawName.toUpperCase();
+        const ex = wineMap.get(key);
+        if (ex) { ex.revenue += row.totalRevenue; ex.qty += row.totalQty; }
+        else wineMap.set(key, { wineName: rawName, wineCode: row.wineCode ? normCode(row.wineCode) : key, revenue: row.totalRevenue, qty: row.totalQty });
       }
     }
+
     return Array.from(wineMap.values())
       .filter((w) => w.revenue > 0)
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 10);
-  }, [ra25Data, account]);
+  }, [ra23Data, ra25Data, account]);
+
+  // "Suggest These Next" — wines from RA21 not yet ordered by this account
+  const suggestNext = useMemo(() => {
+    if (!ra21Data || !account) return [];
+    const purchasedCodes = new Set(topWines.map((w) => normCode(w.wineCode)));
+    return ra21Data.rows
+      .filter((r) => r.wineCode && !purchasedCodes.has(normCode(r.wineCode)))
+      .slice(0, 5);
+  }, [ra21Data, topWines, account]);
 
   if (!rc5Data) {
     return (
@@ -207,7 +224,10 @@ export default function AccountDetailPage() {
 
             {topWines.length > 0 && (
               <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 20px' }}>
-                <h3 style={{ fontSize: 13, fontWeight: 700, color: '#E6EDF3', margin: '0 0 12px' }}>Top Wines Purchased</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <h3 style={{ fontSize: 13, fontWeight: 700, color: '#E6EDF3', margin: 0 }}>Top Wines Purchased</h3>
+                  {ra23Data && <span style={{ fontSize: 11, backgroundColor: '#0D2918', color: '#3FB950', borderRadius: 4, padding: '2px 6px', fontWeight: 600 }}>RA23</span>}
+                </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid #30363D' }}>
@@ -240,6 +260,42 @@ export default function AccountDetailPage() {
                           </td>
                           <td style={{ padding: '7px 0', textAlign: 'right', fontWeight: 600, color: '#E6EDF3' }}>{fmt$(w.revenue)}</td>
                           <td style={{ padding: '7px 0', textAlign: 'right', color: '#7D8590' }}>{cases > 0 ? `${cases} cs` : '—'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Suggest These Next */}
+            {suggestNext.length > 0 && (
+              <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 20px' }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: '#79BAFF', margin: '0 0 12px' }}>Suggest These Next</h3>
+                <p style={{ margin: '0 0 12px', fontSize: 12, color: '#7D8590' }}>Top wines this account hasn&apos;t ordered yet.</p>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <tbody>
+                    {suggestNext.map((w, i) => {
+                      const props = winePropsMap.get(normCode(w.wineCode));
+                      return (
+                        <tr
+                          key={i}
+                          style={{ borderBottom: '1px solid #21262D', cursor: 'pointer' }}
+                          onClick={() => w.wineCode && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                          <td style={{ padding: '7px 0', width: 20, color: '#484F58', fontSize: 12 }}>#{w.rank}</td>
+                          <td style={{ padding: '7px 8px' }}>
+                            {props && <WineTypeBadge type={props.wineType} />}
+                          </td>
+                          <td style={{ padding: '7px 0', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <div style={{ fontWeight: 500, color: '#E6EDF3' }}>{props?.wineName || w.wineName}</div>
+                            {props?.producer && <div style={{ fontSize: 11, color: '#7D8590' }}>{props.producer}</div>}
+                          </td>
+                          <td style={{ padding: '7px 0', textAlign: 'right', color: '#7D8590', fontVariantNumeric: 'tabular-nums' }}>
+                            {w.revenue > 0 ? fmt$(w.revenue) : '—'}
+                          </td>
                         </tr>
                       );
                     })}

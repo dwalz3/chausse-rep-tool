@@ -1,5 +1,34 @@
 # Changelog — Chausse Rep Field Tool
 
+## v1.0.0 — 2026-03-01
+Data Infrastructure Overhaul: 7 new report parsers, Integrations page, Territory Map, rewired Focus/Account Detail/Portfolio/Dormant pages, DataStatus sidebar widget.
+
+### Added
+- `types/reports.ts` — Ra23Data, Ra21Data, Ra27Data, Rb6RepData, Ra30Data, Rc3Data, Ra3Data interfaces (all 7 new report types)
+- `types/integrations.ts` — RepSyncKey, RepSyncEntry, RepSyncStatus interfaces
+- `lib/parsers/ra23Parser.ts` — RA23 "Account + Wine Detail" parser (row-level account × wine × revenue; the correct replacement for RA25 wine detail)
+- `lib/parsers/ra21Parser.ts` — RA21 "Top Wines Sold" ranked list parser; assigns rank from row order if no rank column
+- `lib/parsers/ra27Parser.ts` — RA27 "Points of Distribution" parser; builds byWineCode plain Record for localStorage compat
+- `lib/parsers/rb6RepParser.ts` — RB6 Velocity + Inventory parser; computes isLowStock (<12 btl), isCritical (<6 btl), isOutOfStock; builds byWineCode Record
+- `lib/parsers/ra30Parser.ts` — RA30 "New Placements" parser; computes daysAgo, recentPlacements (<=90d), byWineCode map
+- `lib/parsers/rc3Parser.ts` — RC3 "Unloved Accounts" parser; computes priorityScore = ltmRevenue / log(daysSinceOrder+1), sorted descending
+- `lib/parsers/ra3Parser.ts` — RA3 "Period Comparison" parser; computes trend (Growing/Stable/Declining/New/Lost), extracts period labels from header rows
+- `app/api/integrations/sync/route.ts` — server proxy for Vinosmith report downloads (VINOSMITH_UUID never reaches browser)
+- `app/integrations/page.tsx` — 9-card sync UI in 2-column grid; "Sync Now" + "Upload file" fallback per card; staleness indicators; RA25 legacy notice
+- `components/layout/DataStatus.tsx` — sidebar footer widget with 5 colored dots (RC5, RA23, RA21, RA27, RB6) + "Sync missing data →" link
+- `app/territory-map/page.tsx` — category heatmap: top 40 accounts × wine types; filled cell = ordered; sort by Revenue/Alpha/Gaps; category toggles; hover tooltip
+
+### Changed
+- `types/index.ts` — UploadKey union: added ra23, ra21, ra27, rb6, ra30, rc3, ra3
+- `store/index.ts` — DataState: 7 new data fields + syncStatus; 7 new setter actions + setSyncStatus; partialize + quota handler updated; imports from types/reports and types/integrations
+- `app/upload/page.tsx` — 8 primary report zones (RC5, RA23, RA21, RA27, RB6, RA30, RC3, RA3) + 6 reference data zones + RA25 moved to Legacy section with warning
+- `components/layout/Sidebar.tsx` — added Integrations and Territory Map nav items; added DataStatus widget above collapse toggle
+- `app/focus/page.tsx` — rewired to RA21 "Push These" + "Expand These" + RA30 "New Placements" + RA3 "Watch List" sections with TalkingPointChips; RB1 velocity table retained as fallback; amber banner when RA23 missing
+- `app/accounts/[id]/page.tsx` — Top Wines now prefers RA23 over RA25; added "Suggest These Next" section from RA21 (wines not yet ordered by this account, top 5 by rank)
+- `app/portfolio/page.tsx` — Accts column prefers RA27 byWineCode over RA25 accountCount; Inventory column uses RB6 color warnings (Out=red badge, Critical=red text, Low=amber text, Normal=green)
+- `app/dormant/page.tsx` — RC3 priority overlay on account names (VS High/Med badges); sort by RC3 priorityScore when RC3 data loaded; RC3-only accounts sub-section
+- `app/page.tsx` — Focus card enhanced with RA21 top wine name + revenue; New Placements card (RA30, last 90 days)
+
 ## v0.9.8 — 2026-02-28
 Focus List powered by RB1 velocity data (qty sold last 30 days).
 

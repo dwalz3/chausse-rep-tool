@@ -30,6 +30,8 @@ interface DormantRow {
   lastActiveMonth: string | null;
   monthsSinceLast: number;
   ltm: number;
+  rc3Priority: 'High' | 'Medium' | 'Low' | null;
+  rc3Score: number | null;
 }
 
 interface ModalProps {
@@ -125,6 +127,7 @@ function ReEngageModal({ row, onClose, onContacted }: ModalProps) {
 
 export default function DormantPage() {
   const rc5Data = useStore((s) => s.rc5Data);
+  const rc3Data = useStore((s) => s.rc3Data);
   const rep = useStore((s) => s.rep);
   const contactedAccounts = useStore((s) => s.contactedAccounts);
   const router = useRouter();
@@ -132,23 +135,51 @@ export default function DormantPage() {
   const [modalRow, setModalRow] = useState<DormantRow | null>(null);
   const [recentlyContacted, setRecentlyContacted] = useState<Set<string>>(new Set());
 
+  // Build RC3 lookup: accountName (lowercase) → { priorityScore, priority }
+  const rc3Map = useMemo(() => {
+    const map = new Map<string, { priorityScore: number; priority: 'High' | 'Medium' | 'Low' }>();
+    if (rc3Data) {
+      for (const r of rc3Data.rows) map.set(r.account.toLowerCase(), { priorityScore: r.priorityScore, priority: r.priority });
+    }
+    return map;
+  }, [rc3Data]);
+
   const dormant = useMemo(() => {
     if (!rc5Data || !rep) return [];
-    return rc5Data.rows
+    const rows = rc5Data.rows
       .filter((r) => r.primaryRep === rep && r.isDormant)
-      .map((r) => ({
-        account: r.account,
-        accountCode: r.accountCode,
-        accountType: r.accountType,
-        lastActiveMonth: r.lastActiveMonth,
-        monthsSinceLast: monthsSince(r.lastActiveMonth, rc5Data.monthLabels),
-        ltm: r.monthlyRevenue.slice(0, 10).reduce((s, v) => s + v, 0),
-      }))
-      .sort((a, b) => b.ltm - a.ltm);
-  }, [rc5Data, rep]);
+      .map((r) => {
+        const rc3Entry = rc3Map.get(r.account.toLowerCase());
+        return {
+          account: r.account,
+          accountCode: r.accountCode,
+          accountType: r.accountType,
+          lastActiveMonth: r.lastActiveMonth,
+          monthsSinceLast: monthsSince(r.lastActiveMonth, rc5Data.monthLabels),
+          ltm: r.monthlyRevenue.slice(0, 10).reduce((s, v) => s + v, 0),
+          rc3Priority: rc3Entry?.priority ?? null,
+          rc3Score: rc3Entry?.priorityScore ?? null,
+        };
+      });
+
+    // If RC3 data available, sort by priorityScore; otherwise sort by ltm
+    if (rc3Data) {
+      rows.sort((a, b) => (b.rc3Score ?? b.ltm) - (a.rc3Score ?? a.ltm));
+    } else {
+      rows.sort((a, b) => b.ltm - a.ltm);
+    }
+    return rows;
+  }, [rc5Data, rep, rc3Map, rc3Data]);
 
   const active = dormant.filter((r) => !recentlyContacted.has(r.account) && !contactedAccounts[r.account]);
   const contacted = dormant.filter((r) => recentlyContacted.has(r.account) || contactedAccounts[r.account]);
+
+  // RC3-only accounts: in RC3 but not in RC5 dormant list
+  const dormantAccountNames = useMemo(() => new Set(dormant.map((d) => d.account.toLowerCase())), [dormant]);
+  const rc3OnlyAccounts = useMemo(() => {
+    if (!rc3Data) return [];
+    return rc3Data.rows.filter((r) => !dormantAccountNames.has(r.account.toLowerCase()));
+  }, [rc3Data, dormantAccountNames]);
 
   const noData = !rc5Data || !rep;
 
@@ -161,8 +192,20 @@ export default function DormantPage() {
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
       >
         <td style={{ padding: '10px 16px', color: '#E6EDF3', fontWeight: 500 }}>
-          {r.account}
-          {r.accountType && <span style={{ marginLeft: 8, fontSize: 11, color: '#7D8590', fontWeight: 400 }}>{r.accountType}</span>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            {r.account}
+            {r.accountType && <span style={{ fontSize: 11, color: '#7D8590', fontWeight: 400 }}>{r.accountType}</span>}
+            {r.rc3Priority === 'High' && (
+              <span style={{ fontSize: 10, fontWeight: 700, backgroundColor: '#3D0000', color: '#F85149', borderRadius: 4, padding: '1px 5px' }}>
+                VS High
+              </span>
+            )}
+            {r.rc3Priority === 'Medium' && (
+              <span style={{ fontSize: 10, fontWeight: 700, backgroundColor: '#2D2000', color: '#E3B341', borderRadius: 4, padding: '1px 5px' }}>
+                VS Med
+              </span>
+            )}
+          </div>
         </td>
         <td style={{ padding: '10px 16px', textAlign: 'right', color: '#7D8590' }}>{fmtMonth(r.lastActiveMonth)}</td>
         <td style={{ padding: '10px 16px', textAlign: 'right', color: r.monthsSinceLast >= 6 ? '#F85149' : '#E3B341', fontWeight: 600 }}>
@@ -229,6 +272,41 @@ export default function DormantPage() {
                     {active.map((r) => <DormantRow key={r.accountCode || r.account} r={r} />)}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {/* RC3-only accounts */}
+            {rc3OnlyAccounts.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#7D8590', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>
+                  Other Unloved Accounts — from Vinosmith RC3 ({rc3OnlyAccounts.length})
+                </p>
+                <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', opacity: 0.8 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead style={{ backgroundColor: '#1C2128' }}>
+                      <tr>
+                        <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Account</th>
+                        <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Priority</th>
+                        <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>LTM Revenue</th>
+                        <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Days Inactive</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rc3OnlyAccounts.slice(0, 10).map((r) => (
+                        <tr key={r.account} style={{ borderTop: '1px solid #21262D' }}>
+                          <td style={{ padding: '8px 16px', color: '#E6EDF3' }}>{r.account}</td>
+                          <td style={{ padding: '8px 16px', textAlign: 'right' }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, borderRadius: 4, padding: '1px 6px', backgroundColor: r.priority === 'High' ? '#3D0000' : r.priority === 'Medium' ? '#2D2000' : '#21262D', color: r.priority === 'High' ? '#F85149' : r.priority === 'Medium' ? '#E3B341' : '#7D8590' }}>
+                              {r.priority}
+                            </span>
+                          </td>
+                          <td style={{ padding: '8px 16px', textAlign: 'right', color: '#7D8590', fontVariantNumeric: 'tabular-nums' }}>{fmt$(r.ltmRevenue)}</td>
+                          <td style={{ padding: '8px 16px', textAlign: 'right', color: '#E3B341', fontVariantNumeric: 'tabular-nums' }}>{r.daysSinceOrder ?? '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 

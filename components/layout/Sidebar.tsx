@@ -14,17 +14,22 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Zap,
+  Map,
 } from 'lucide-react';
+import DataStatus from '@/components/layout/DataStatus';
 
 const NAV = [
-  { href: '/',           label: 'Dashboard',  Icon: LayoutDashboard },
-  { href: '/accounts',   label: 'Accounts',   Icon: Users },
-  { href: '/dormant',    label: 'Dormant',    Icon: Clock, badgeKey: 'dormant' as const },
-  { href: '/portfolio',  label: 'Portfolio',  Icon: Wine },
-  { href: '/focus',      label: 'Focus',      Icon: Target },
-  { href: '/producers',  label: 'Producers',  Icon: Grape },
-  { href: '/upload',     label: 'Upload',     Icon: Upload },
-  { href: '/settings',   label: 'Settings',   Icon: Settings },
+  { href: '/',                label: 'Dashboard',    Icon: LayoutDashboard },
+  { href: '/accounts',        label: 'Accounts',     Icon: Users },
+  { href: '/dormant',         label: 'Dormant',      Icon: Clock, badgeKey: 'dormant' as const },
+  { href: '/portfolio',       label: 'Portfolio',    Icon: Wine },
+  { href: '/focus',           label: 'Focus',        Icon: Target },
+  { href: '/territory-map',   label: 'Territory Map',Icon: Map },
+  { href: '/producers',       label: 'Producers',    Icon: Grape },
+  { href: '/integrations',    label: 'Integrations', Icon: Zap },
+  { href: '/upload',          label: 'Upload',       Icon: Upload },
+  { href: '/settings',        label: 'Settings',     Icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -147,6 +152,9 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Data status widget */}
+      <DataStatus collapsed={isSidebarCollapsed} />
 
       {/* Collapse toggle */}
       <button

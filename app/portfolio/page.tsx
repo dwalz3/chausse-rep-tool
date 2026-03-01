@@ -88,6 +88,8 @@ function PortfolioInner() {
   const allocationsData = useStore((s) => s.allocationsData);
   const openPOData = useStore((s) => s.openPOData);
   const ra25Data = useStore((s) => s.ra25Data);
+  const ra27Data = useStore((s) => s.ra27Data);
+  const rb6RepData = useStore((s) => s.rb6RepData);
   const btgThreshold = useStore((s) => s.btgThreshold);
 
   const [activeView, setActiveView] = useState(searchParams.get('view') ?? 'all');
@@ -431,6 +433,9 @@ function PortfolioInner() {
                     <tbody>
                       {displayRows.map((row, idx) => {
                         const typeStyle = getWineTypeStyle(row.wineType);
+                        const normKey = row.wineCode.toUpperCase();
+                        const rb6Row = rb6RepData?.byWineCode?.[normKey];
+                        const ra27Count = ra27Data?.byWineCode?.[normKey] ?? null;
                         return (
                           <tr
                             key={row.wineCode}
@@ -506,35 +511,33 @@ function PortfolioInner() {
                               {fmt$(row.bottlePrice)}
                             </td>
 
-                            {/* Inventory */}
+                            {/* Inventory — color-coded via RB6 */}
                             <td style={{ borderTop: '1px solid #21262D', padding: '7px 12px', fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
-                              {row.inventoryTotalBottles > 0 || row.openPOCases > 0 ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                  {row.inventoryTotalBottles > 0 && (
-                                    <span style={{ color: '#3FB950', fontWeight: 600 }}>
-                                      {row.inventoryTotalBottles} btl
-                                    </span>
-                                  )}
-                                  {row.openPOCases > 0 && (
-                                    <span style={{ color: '#58A6FF' }}>
-                                      +{row.openPOCases} on order
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                <span style={{ color: '#484F58' }}>—</span>
-                              )}
+                              {(() => {
+                                const btl = rb6Row ? rb6Row.onHandBottles : row.inventoryTotalBottles;
+                                if (rb6Row?.isOutOfStock) return <span style={{ backgroundColor: '#3D0000', color: '#F85149', borderRadius: 4, padding: '1px 6px', fontWeight: 700, fontSize: 10 }}>Out</span>;
+                                if (btl > 0 || row.openPOCases > 0) {
+                                  const invColor = rb6Row?.isCritical ? '#F85149' : rb6Row?.isLowStock ? '#E3B341' : '#3FB950';
+                                  return (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                      {btl > 0 && <span style={{ color: invColor, fontWeight: 600 }}>{btl} btl</span>}
+                                      {row.openPOCases > 0 && <span style={{ color: '#58A6FF' }}>+{row.openPOCases} on order</span>}
+                                    </div>
+                                  );
+                                }
+                                return <span style={{ color: '#484F58' }}>—</span>;
+                              })()}
                             </td>
 
-                            {/* Accts */}
+                            {/* Accts — prefer RA27 over RA25 accountCount */}
                             <td style={{
                               borderTop: '1px solid #21262D',
                               padding: '8px 12px',
                               textAlign: 'right',
-                              color: row.accountCount > 0 ? '#E6EDF3' : '#484F58',
+                              color: (ra27Count ?? row.accountCount) > 0 ? '#E6EDF3' : '#484F58',
                               fontVariantNumeric: 'tabular-nums',
                             }}>
-                              {row.accountCount > 0 ? row.accountCount : '—'}
+                              {(ra27Count ?? row.accountCount) > 0 ? (ra27Count ?? row.accountCount) : '—'}
                             </td>
 
                             {/* Importer */}
