@@ -1,5 +1,17 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.9.0 — 2026-02-28
+Portfolio Explorer — Airtable-style spreadsheet table with sticky columns and resizable widths.
+
+### Added
+- `app/portfolio/page.tsx` — full table rewrite: row-# column (sticky left:0) + Name column (sticky left:44px, wine-type color left border); horizontal scroll container (`overflow: auto`, `maxHeight: calc(100vh - 230px)`); column resize via drag handle (direct `<col>` DOM mutation during drag, single React re-render on mouseup); hover sync on sticky cells via `data-sticky` attribute + `querySelectorAll`; `<colgroup>` with `tableLayout: fixed`; removed `WineTypeBadge` import (replaced by inline `WineTypePill` using `getWineTypeStyle`)
+- Column order: # | Name | Price | Accts | Importer | Region | Country | Type | Varietal | Farming
+
+### Changed
+- `types/index.ts` — `varietal: string` added to `WinePropertyRow` and `PortfolioRow`
+- `lib/parsers/winePropertiesParser.ts` — added `colVarietal` detection (keywords: varietal, grape variety, variety, blend, composition, grapes, grape); removed `varietal`/`grape` from type column search to avoid conflicts; `varietal` field emitted in each row
+- `lib/buildPortfolioRows.ts` — passes `varietal: w.varietal` through to `PortfolioRow`
+
 ## v0.8.4 — 2026-02-28
 Pricing join fully working. Debug panel on Upload page.
 

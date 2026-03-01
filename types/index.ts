@@ -122,6 +122,7 @@ export interface WinePropertyRow {
   region: string;
   wineType: WineType;
   vintage: string;
+  varietal: string;
   caseSize: string;
   bottleSize: string;
   isNatural: boolean;
@@ -168,6 +169,7 @@ export interface PortfolioRow {
   region: string;
   wineType: WineType;
   vintage: string;
+  varietal: string;
   caseSize: string;
   bottleSize: string;
   isNatural: boolean;

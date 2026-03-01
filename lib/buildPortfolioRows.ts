@@ -73,6 +73,7 @@ export function buildPortfolioRows(
       region: w.region,
       wineType: w.wineType,
       vintage: w.vintage,
+      varietal: w.varietal,
       caseSize: w.caseSize,
       bottleSize: w.bottleSize,
       isNatural: w.isNatural,
