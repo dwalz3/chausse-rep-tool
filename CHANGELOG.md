@@ -1,5 +1,14 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.9.6 — 2026-02-28
+Varietal column detection fix; sortable portfolio columns.
+
+### Fixed
+- `lib/parsers/winePropertiesParser.ts` — added `'varietal'` to VARIETAL column search keywords; dedupe guard (`colVarietalFinal`) already prevents it from clashing when the same column was matched by TYPE (e.g. old Vinosmith files where Varietal = Red/White)
+
+### Added
+- `app/portfolio/page.tsx` — sortable columns: click any column header to sort asc, click again for desc; active column gets green bottom border + ↑/↓ indicator; sort state: `sortKey`, `sortDir`; `displayRows` memo applies sort on top of filtered rows; resize-handle click blocked from triggering sort via `e.stopPropagation()`; `getSortValue()` helper + `SortKey` type added outside component
+
 ## v0.9.5 — 2026-02-28
 RB1 parser: fix inventory column to use "available"; pull default/fob price from same sheet.
 

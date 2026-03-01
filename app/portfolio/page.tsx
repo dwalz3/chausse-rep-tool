@@ -16,6 +16,23 @@ function fmt$(n: number) {
   return n > 0 ? '$' + n.toFixed(2) : '—';
 }
 
+type SortKey = typeof COL_DEFS[number]['key'];
+
+function getSortValue(row: PortfolioRow, key: SortKey): string | number {
+  switch (key) {
+    case 'name':      return (row.name || row.wineName).toLowerCase();
+    case 'price':     return row.bottlePrice;
+    case 'inventory': return row.inventoryTotalBottles;
+    case 'accts':     return row.accountCount;
+    case 'importer':  return row.importer.toLowerCase();
+    case 'region':    return row.region.toLowerCase();
+    case 'country':   return row.country.toLowerCase();
+    case 'type':      return row.wineType.toLowerCase();
+    case 'varietal':  return row.varietal.toLowerCase();
+    case 'farming':   return [row.isNatural, row.isBiodynamic, row.isDirect].filter(Boolean).length;
+  }
+}
+
 // Column definitions for resizable columns (excludes fixed row-# column)
 const COL_DEFS = [
   { key: 'name',      label: 'Wine',      defaultWidth: 240, sticky: true  },
@@ -78,6 +95,8 @@ function PortfolioInner() {
   const [selectedWine, setSelectedWine] = useState<PortfolioRow | null>(null);
   const [viewsCollapsed, setViewsCollapsed] = useState(false);
   const [showAllInventory, setShowAllInventory] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   // ── Resizable columns ──────────────────────────────────────────────────────
   const colWidthsRef = useRef<number[]>(COL_DEFS.map((c) => c.defaultWidth));
@@ -147,6 +166,27 @@ function PortfolioInner() {
     const matchCodes = new Set(fuseResults.map((r) => r.item.wineCode));
     return base.filter((r) => matchCodes.has(r.wineCode));
   }, [viewFiltered, fuse, search, showAllInventory, inventoryData]);
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  }
+
+  const displayRows = useMemo(() => {
+    if (!sortKey) return searchFiltered;
+    return [...searchFiltered].sort((a, b) => {
+      const va = getSortValue(a, sortKey);
+      const vb = getSortValue(b, sortKey);
+      const cmp = typeof va === 'string' && typeof vb === 'string'
+        ? va.localeCompare(vb)
+        : (va as number) - (vb as number);
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [searchFiltered, sortKey, sortDir]);
 
   const counts = useMemo(() => {
     const map: Record<string, number> = {};
@@ -260,7 +300,7 @@ function PortfolioInner() {
                 {/* Count + inventory toggle */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 8px' }}>
                   <p style={{ margin: 0, fontSize: 13, color: '#7D8590' }}>
-                    {searchFiltered.length.toLocaleString()} wines
+                    {displayRows.length.toLocaleString()} wines
                     {inventoryData && !showAllInventory && <span style={{ color: '#484F58' }}> · in stock</span>}
                   </p>
                   {inventoryData && (
@@ -325,9 +365,12 @@ function PortfolioInner() {
                           #
                         </th>
                         {/* Resizable column headers */}
-                        {COL_DEFS.map((col, i) => (
+                        {COL_DEFS.map((col, i) => {
+                          const isActive = sortKey === col.key;
+                          return (
                           <th
                             key={col.key}
+                            onClick={() => handleSort(col.key)}
                             style={{
                               position: 'sticky',
                               top: 0,
@@ -341,18 +384,24 @@ function PortfolioInner() {
                                 borderRight: '1px solid #21262D',
                               }),
                               backgroundColor: '#1C2128',
-                              borderBottom: '2px solid #30363D',
+                              borderBottom: `2px solid ${isActive ? '#3FB950' : '#30363D'}`,
                               padding: '8px 12px',
                               textAlign: col.key === 'price' || col.key === 'accts' ? 'right' : 'left',
-                              color: '#7D8590',
+                              color: isActive ? '#E6EDF3' : '#7D8590',
                               fontWeight: 500,
                               fontSize: 11,
                               userSelect: 'none',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
+                              cursor: 'pointer',
                             }}
                           >
                             {col.label}
+                            {isActive && (
+                              <span style={{ marginLeft: 4, fontSize: 10, color: '#3FB950' }}>
+                                {sortDir === 'asc' ? '↑' : '↓'}
+                              </span>
+                            )}
                             {/* Resize handle */}
                             <div
                               style={{
@@ -364,6 +413,7 @@ function PortfolioInner() {
                                 cursor: 'col-resize',
                                 zIndex: 1,
                               }}
+                              onClick={(e) => e.stopPropagation()}
                               onMouseDown={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
@@ -373,12 +423,13 @@ function PortfolioInner() {
                               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
                             />
                           </th>
-                        ))}
+                          );
+                        })}
                       </tr>
                     </thead>
 
                     <tbody>
-                      {searchFiltered.map((row, idx) => {
+                      {displayRows.map((row, idx) => {
                         const typeStyle = getWineTypeStyle(row.wineType);
                         return (
                           <tr
@@ -547,7 +598,7 @@ function PortfolioInner() {
                         );
                       })}
 
-                      {searchFiltered.length === 0 && (
+                      {displayRows.length === 0 && (
                         <tr>
                           <td colSpan={COL_DEFS.length + 1} style={{ padding: 32, textAlign: 'center', color: '#7D8590' }}>
                             No wines match your filters.

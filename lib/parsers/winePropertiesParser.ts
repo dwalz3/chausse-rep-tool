@@ -208,14 +208,14 @@ function resolveFromRows(
     'wine category', 'item type', 'product group', 'subcategory',
     'category', 'style', 'color', 'type', 'kind', 'varietal', 'grape'
   );
-  // Only columns unambiguously about the grape variety (not wine type)
+  // Grape variety column — 'varietal' added here; dedupe below prevents it from
+  // clashing when the same column was already claimed by colType
   const colVarietal = findCol(headers,
     'grape variety', 'grape varietal', 'variety', 'varieties',
-    'blend', 'composition', 'grapes'
+    'blend', 'composition', 'grapes', 'varietal'
   );
-  // If the same column was matched for both type and varietal, clear varietal
-  // (type takes priority — e.g. Vinosmith's "Varietal" column = Red/White/etc.)
-  // dedupe: if varietal matched same col as type, discard varietal match
+  // If colVarietal matched the same column as colType, discard varietal match
+  // (handles old Vinosmith files where "Varietal" = Red/White/etc.)
   const colVarietalFinal = (colVarietal >= 0 && colVarietal !== colType) ? colVarietal : -1;
   const colVintage = findCol(headers, 'vintage', 'vintage year', 'year', 'vy');
 
