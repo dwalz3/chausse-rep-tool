@@ -155,7 +155,9 @@ export interface InventoryRow {
   wineName: string;
   supplier: string;
   casesOnHand: number;    // full cases in warehouse
-  bottlesOnHand: number;  // loose bottles (not making a full case)
+  bottlesOnHand: number;  // loose bottles / direct bottle count (e.g. Vinosmith "available")
+  defaultPrice?: number;  // retail bottle price from RB1 (optional)
+  fobPrice?: number;      // FOB price from RB1 (optional)
 }
 
 // ── Open Purchase Orders ───────────────────────────────────────────────────────

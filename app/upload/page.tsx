@@ -19,6 +19,7 @@ type ZoneStatus = 'idle' | 'loading' | 'success' | 'error';
 interface ZoneDebug {
   detectedCodeCol?: string;
   detectedPriceCol?: string;
+  detectedInvCol?: string;   // inventory zone: shows "Inv col:" instead of "Price col:"
   sampleCodes?: string[];
   samplePrices?: number[];
   allHeaders?: string[];
@@ -36,7 +37,7 @@ const ZONES: { key: UploadKey; label: string; hint: string; accept: string }[] =
   { key: 'ra25',          label: 'RA25 — Account Summary',      hint: 'Accounts sheet',                  accept: '.xlsx,.xls' },
   { key: 'wineProperties',label: 'Wine Properties',             hint: 'CSV or XLSX — Wine Code, Name, Producer, Country, Type', accept: '.csv,.xlsx,.xls' },
   { key: 'pricing',       label: 'Pricing',                     hint: 'Wine Code, Default Price, FOB Price', accept: '.xlsx,.xls' },
-  { key: 'inventory',     label: 'RB1 — Inventory by Supplier', hint: 'Wine Code, Cases on Hand, Loose Bottles', accept: '.xlsx,.xls' },
+  { key: 'inventory',     label: 'RB1 — Inventory by Supplier', hint: 'Wine Code, Available (bottles), Default Price, FOB Price', accept: '.xlsx,.xls' },
   { key: 'allocations',   label: 'Allocations',                 hint: 'Wine Code, Account, Allocated Cases', accept: '.xlsx,.xls' },
   { key: 'openPO',        label: 'Open Purchase Orders',        hint: 'Wine Code, Cases, Expected Arrival',  accept: '.xlsx,.xls' },
   { key: 'producers',     label: 'Producers',                   hint: 'Producers sheet (Upload Type = producers)', accept: '.xlsx,.xls' },
@@ -112,7 +113,13 @@ export default function UploadPage() {
           status: 'success',
           message: `${rowCount.toLocaleString()} rows loaded`,
           rowCount,
-          debug: { detectedCodeCol: result.detectedCodeCol, detectedPriceCol: result.detectedCasesCol, sampleCodes: result.sampleCodes, allHeaders: result.allHeaders },
+          debug: {
+            detectedCodeCol: result.detectedCodeCol,
+            detectedInvCol: result.detectedCasesCol,
+            detectedPriceCol: result.detectedPriceCol !== '(not found)' ? result.detectedPriceCol : undefined,
+            sampleCodes: result.sampleCodes,
+            allHeaders: result.allHeaders,
+          },
         });
         return;
       } else if (key === 'allocations') {
@@ -227,6 +234,12 @@ export default function UploadPage() {
                 <span style={{ color: '#E3B341', fontFamily: 'monospace' }}>{debug.detectedCodeCol}</span>
               </div>
             )}
+            {debug.detectedInvCol && (
+              <div>
+                <span style={{ color: '#484F58' }}>Inv col: </span>
+                <span style={{ color: '#E3B341', fontFamily: 'monospace' }}>{debug.detectedInvCol}</span>
+              </div>
+            )}
             {debug.detectedPriceCol && (
               <div>
                 <span style={{ color: '#484F58' }}>Price col: </span>
@@ -260,9 +273,10 @@ export default function UploadPage() {
                 <span style={{ fontFamily: 'monospace' }}>
                   {debug.allHeaders.map((h, i) => {
                     const isPrice = h === debug.detectedPriceCol;
+                    const isInv = h === debug.detectedInvCol;
                     const isCode = h === debug.detectedCodeCol;
                     return (
-                      <span key={i} style={{ color: isPrice ? '#3FB950' : isCode ? '#E3B341' : '#484F58' }}>
+                      <span key={i} style={{ color: isPrice ? '#3FB950' : isInv ? '#22D3A5' : isCode ? '#E3B341' : '#484F58' }}>
                         {h}{i < (debug.allHeaders?.length ?? 0) - 1 ? ', ' : ''}
                       </span>
                     );

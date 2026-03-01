@@ -1,5 +1,16 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.9.5 — 2026-02-28
+RB1 parser: fix inventory column to use "available"; pull default/fob price from same sheet.
+
+### Fixed
+- `lib/parsers/rb1Parser.ts` — inventory column now prioritises `'available'` (Vinosmith's bottle-available column) over all other keywords; removed `'qty'` and `'quantity'` from column search (were matching `qty sold: last 30 days`); cases fallback also removes those broad terms; added `colDefaultPrice` (`default price`, `retail price`) and `colFobPrice` (`fob price`, `fob`) extraction; `detectedPriceCol` added to `Rb1ParseResult`; pricing fields stored as `defaultPrice?`/`fobPrice?` on each `InventoryRow`
+
+### Added
+- `types/index.ts` — `InventoryRow.defaultPrice?: number`, `InventoryRow.fobPrice?: number`
+- `lib/buildPortfolioRows.ts` — inventory map stores pricing fields; `bottlePrice` falls back to `inv?.defaultPrice` when no dedicated pricing file loaded; same for `fobPrice`
+- `app/upload/page.tsx` — RB1 debug panel now shows "Inv col:" (teal, formerly "Price col:") and "Price col:" separately when both detected; `allHeaders` highlights inv col in teal, price col in green, code col in yellow; updated zone hint text
+
 ## v0.9.4 — 2026-02-28
 Inventory shown in bottles; varietal detection fix; in-stock filter toggle.
 

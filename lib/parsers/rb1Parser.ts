@@ -1,9 +1,7 @@
 /**
- * RB1 — Inventory by Supplier parser
- * Columns: Item Code, Item Name/Description, Supplier/Producer, Cases on Hand, Bottles on Hand
- *
- * The report groups rows by supplier with subtotal rows in between.
- * Junk rows (subtotals, grand totals, blank codes) are filtered out.
+ * RB1 — Inventory by Supplier parser (Vinosmith format)
+ * Key columns: code, available (= current bottles on hand), default price, fob price
+ * Also handles older formats with cases/loose-bottles split.
  */
 
 import * as XLSX from 'xlsx';
@@ -66,10 +64,11 @@ export interface Rb1ParseResult {
   errors: string[];
   filename: string;
   detectedCodeCol: string;
-  detectedCasesCol: string;
-  detectedBottlesCol: string;
+  detectedCasesCol: string;   // the inventory column that was detected (available / on hand / etc.)
+  detectedBottlesCol: string; // kept for compat
+  detectedPriceCol: string;   // default price column if found
   sampleCodes: string[];
-  allHeaders: string[];   // every column from the header row — shown in upload debug panel
+  allHeaders: string[];       // every column from the header row — shown in upload debug panel
 }
 
 function resolveFromRows(
@@ -80,6 +79,7 @@ function resolveFromRows(
   const empty = (errors: string[]): Rb1ParseResult => ({
     rows: [], rowCount: 0, errors, filename,
     detectedCodeCol: '(none)', detectedCasesCol: '(none)', detectedBottlesCol: '(none)',
+    detectedPriceCol: '(none)',
     sampleCodes: [], allHeaders: [],
   });
 
@@ -105,27 +105,40 @@ function resolveFromRows(
     'supplier', 'producer', 'vendor', 'winery', 'brand', 'importer'
   );
 
-  // Total bottles column — if the file reports inventory as bottles directly (preferred)
-  const colTotalBottles = findCol(headers,
+  // ── Inventory column detection ──────────────────────────────────────────────
+  // Priority 1: "available" = Vinosmith's current-bottles-available column (exact keyword first)
+  // Priority 2: other direct-bottles column names
+  // Priority 3: cases fallback for non-Vinosmith formats
+  // Note: deliberately excludes 'qty', 'quantity' — too broad, matches velocity columns like
+  //       "qty sold: last 30 days"
+  const colAvailable = findCol(headers,
+    'available',
     'total bottles', 'btl on hand', 'bottles on hand', 'available btl',
     'avail btl', 'qty btl', 'bottle qty', 'total btl'
   );
 
-  // Cases on hand — full cases (used when no total-bottles col found)
+  // Cases fallback (non-Vinosmith formats)
   const colCases = findCol(headers,
     'cases on hand', 'avail cases', 'available cases', 'total cases',
     'cs on hand', 'cases avail', 'qty cases', 'case qty',
-    'cases', 'cs', 'qty', 'quantity', 'on hand', 'available', 'inventory'
+    'cases', 'cs', 'on hand', 'inventory'
   );
 
-  // Loose bottles (individual bottles not making a full case)
+  // Loose bottles (non-Vinosmith formats only)
   const colLooseBottles = findCol(headers,
-    'loose bottles', 'loose btl', 'btl', 'bottles', 'bots'
+    'loose bottles', 'loose btl', 'loose bots', 'partial case'
   );
 
+  // ── Pricing columns (Vinosmith includes these in the same report) ───────────
+  const colDefaultPrice = findCol(headers, 'default price', 'retail price', 'suggested retail');
+  const colFobPrice = findCol(headers, 'fob price', 'fob');
+
+  // For debug output
+  const activeInvCol = colAvailable >= 0 ? colAvailable : colCases;
   const detectedCodeCol = colCode >= 0 ? headers[colCode] : '(not found)';
-  const detectedCasesCol = colCases >= 0 ? headers[colCases] : '(not found)';
-  const detectedBottlesCol = colTotalBottles >= 0 ? headers[colTotalBottles] : '(not found)';
+  const detectedCasesCol = activeInvCol >= 0 ? headers[activeInvCol] : '(not found)';
+  const detectedBottlesCol = detectedCasesCol; // kept for compat
+  const detectedPriceCol = colDefaultPrice >= 0 ? headers[colDefaultPrice] : '(not found)';
 
   const rows: InventoryRow[] = [];
 
@@ -137,13 +150,13 @@ function resolveFromRows(
     const name = colName >= 0 ? String(r[colName] ?? '').trim() : '';
     if (isJunkRow(code, name)) continue;
 
-    // If the file has a dedicated "total bottles" col, use it directly as bottlesOnHand
-    // and leave casesOnHand = 0 (so buildPortfolioRows won't double-multiply)
     let casesOnHand = 0;
     let bottlesOnHand = 0;
-    if (colTotalBottles >= 0) {
-      bottlesOnHand = num(r[colTotalBottles]);
+    if (colAvailable >= 0) {
+      // Vinosmith: 'available' is bottles directly — no case multiplication needed
+      bottlesOnHand = num(r[colAvailable]);
     } else {
+      // Older formats: cases × caseSize + loose bottles (handled in buildPortfolioRows)
       casesOnHand = colCases >= 0 ? num(r[colCases]) : 0;
       bottlesOnHand = colLooseBottles >= 0 ? num(r[colLooseBottles]) : 0;
     }
@@ -154,6 +167,8 @@ function resolveFromRows(
       supplier: colSupplier >= 0 ? String(r[colSupplier] ?? '').trim() : '',
       casesOnHand,
       bottlesOnHand,
+      defaultPrice: colDefaultPrice >= 0 ? num(r[colDefaultPrice]) || undefined : undefined,
+      fobPrice: colFobPrice >= 0 ? num(r[colFobPrice]) || undefined : undefined,
     });
   }
 
@@ -163,12 +178,13 @@ function resolveFromRows(
     rows,
     rowCount: rows.length,
     errors: rows.length === 0
-      ? [`No inventory rows found — code col: "${detectedCodeCol}", cases col: "${detectedCasesCol}"`]
+      ? [`No inventory rows found — code col: "${detectedCodeCol}", inv col: "${detectedCasesCol}"`]
       : [],
     filename,
     detectedCodeCol,
     detectedCasesCol,
     detectedBottlesCol,
+    detectedPriceCol,
     sampleCodes,
     allHeaders: headers,
   });
@@ -180,7 +196,8 @@ export function parseRb1(file: File): Promise<Rb1ParseResult> {
 
     const fail = (msg: string) =>
       resolve({ rows: [], rowCount: 0, errors: [msg], filename: file.name,
-        detectedCodeCol: '(error)', detectedCasesCol: '(error)', detectedBottlesCol: '(error)', sampleCodes: [], allHeaders: [] });
+        detectedCodeCol: '(error)', detectedCasesCol: '(error)', detectedBottlesCol: '(error)',
+        detectedPriceCol: '(error)', sampleCodes: [], allHeaders: [] });
 
     reader.onload = (e) => {
       try {

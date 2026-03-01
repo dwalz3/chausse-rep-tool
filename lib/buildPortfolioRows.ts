@@ -30,7 +30,7 @@ export function buildPortfolioRows(
   }
 
   // Build inventory lookup map
-  const inventoryMap = new Map<string, { casesOnHand: number; bottlesOnHand: number }>();
+  const inventoryMap = new Map<string, { casesOnHand: number; bottlesOnHand: number; defaultPrice?: number; fobPrice?: number }>();
   if (inventoryData) {
     for (const inv of inventoryData) {
       const key = normCode(inv.wineCode);
@@ -38,8 +38,16 @@ export function buildPortfolioRows(
       if (existing) {
         existing.casesOnHand += inv.casesOnHand;
         existing.bottlesOnHand += inv.bottlesOnHand;
+        // Keep first non-zero price seen
+        if (!existing.defaultPrice && inv.defaultPrice) existing.defaultPrice = inv.defaultPrice;
+        if (!existing.fobPrice && inv.fobPrice) existing.fobPrice = inv.fobPrice;
       } else {
-        inventoryMap.set(key, { casesOnHand: inv.casesOnHand, bottlesOnHand: inv.bottlesOnHand });
+        inventoryMap.set(key, {
+          casesOnHand: inv.casesOnHand,
+          bottlesOnHand: inv.bottlesOnHand,
+          defaultPrice: inv.defaultPrice,
+          fobPrice: inv.fobPrice,
+        });
       }
     }
   }
@@ -97,8 +105,9 @@ export function buildPortfolioRows(
       isNatural: w.isNatural,
       isBiodynamic: w.isBiodynamic,
       isDirect: w.isDirect,
-      bottlePrice: price?.defaultPrice ?? 0,
-      fobPrice: price?.fobPrice ?? 0,
+      // Use dedicated pricing file first; fall back to pricing columns in RB1
+      bottlePrice: price?.defaultPrice ?? inv?.defaultPrice ?? 0,
+      fobPrice: price?.fobPrice ?? inv?.fobPrice ?? 0,
       inventoryCases: inv?.casesOnHand ?? 0,
       inventoryBottles: inv?.bottlesOnHand ?? 0,
       inventoryTotalBottles: inv ? inv.casesOnHand * csSize + inv.bottlesOnHand : 0,
