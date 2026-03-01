@@ -36,7 +36,7 @@ const CARDS: CardConfig[] = [
   { key: 'rb6',            label: 'RB6 — Velocity + Inventory', description: 'On-hand bottles and avg monthly velocity. Powers Portfolio inventory warnings.', frequency: 'Weekly', isCore: true },
   { key: 'wineProperties', label: 'Wine Properties', description: 'Wine code, name, producer, type, country, varietal, pricing. Master reference data.', frequency: 'Monthly', isCore: false },
   { key: 'ra30',           label: 'RA30 — New Placements', description: 'When wines were first placed at accounts. Powers Focus "New Placements" section.', frequency: 'Weekly', isCore: false },
-  { key: 'rc3',            label: 'RC3 — Unloved Accounts', description: 'Accounts inactive beyond threshold. Adds priority overlay to Dormant page.', frequency: 'Weekly', isCore: false },
+  { key: 'rc3',            label: 'RC3 — Unloved Accounts', description: 'Accounts inactive beyond threshold. Adds priority overlay to Dormant page. Exports as PDF only.', frequency: 'Weekly', isCore: false },
   { key: 'ra3',            label: 'RA3 — Period Comparison', description: 'Current vs prior period wine revenue. Powers Focus "Watch List" declining SKUs.', frequency: 'Monthly', isCore: false },
 ];
 
@@ -232,7 +232,7 @@ export default function IntegrationsPage() {
             Upload file
             <input
               type="file"
-              accept=".xlsx,.xls,.csv"
+              accept={card.key === 'rc3' ? '.pdf,.xlsx,.xls' : '.xlsx,.xls,.csv'}
               style={{ display: 'none' }}
               ref={(el) => { fileInputRefs.current[card.key] = el; }}
               onChange={async (e) => {

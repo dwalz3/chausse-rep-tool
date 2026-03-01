@@ -46,7 +46,7 @@ const PRIMARY_ZONES: { key: UploadKey; label: string; hint: string; accept: stri
   { key: 'ra27', label: 'RA27 — Points of Distribution',  hint: 'Account count per wine code', accept: '.xlsx,.xls' },
   { key: 'rb6',  label: 'RB6 — Velocity + Inventory',     hint: 'On-hand bottles, avg monthly velocity', accept: '.xlsx,.xls' },
   { key: 'ra30', label: 'RA30 — New Placements',          hint: 'First placement date per account × wine', accept: '.xlsx,.xls' },
-  { key: 'rc3',  label: 'RC3 — Unloved Accounts',         hint: 'Inactive accounts with days-since-order', accept: '.xlsx,.xls' },
+  { key: 'rc3',  label: 'RC3 — Unloved Accounts',         hint: 'Inactive accounts with days-since-order', accept: '.pdf,.xlsx,.xls' },
   { key: 'ra3',  label: 'RA3 — Period Comparison',        hint: 'Current vs prior period revenue per wine', accept: '.xlsx,.xls' },
 ];
 

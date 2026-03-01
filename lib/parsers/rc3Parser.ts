@@ -7,6 +7,7 @@
 
 import * as XLSX from 'xlsx';
 import { Rc3Data, Rc3Row } from '@/types/reports';
+import { extractTableFromPdf } from './pdfTableExtractor';
 
 function norm(s: unknown): string {
   return String(s ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -153,23 +154,33 @@ function resolveFromRows(
 }
 
 export function parseRc3(file: File): Promise<Rc3ParseResult> {
+  const fail = (msg: string): Rc3ParseResult => ({
+    data: { rows: [], rowCount: 0, parsedAt: new Date().toISOString() },
+    rowCount: 0, errors: [msg], filename: file.name, allHeaders: [],
+  });
+
+  const isPdf = file.name.toLowerCase().endsWith('.pdf');
+
   return new Promise((resolve) => {
     const reader = new FileReader();
-    const fail = (msg: string): Rc3ParseResult => ({
-      data: { rows: [], rowCount: 0, parsedAt: new Date().toISOString() },
-      rowCount: 0, errors: [msg], filename: file.name, allHeaders: [],
-    });
 
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
-        const workbook = XLSX.read(e.target?.result, { type: 'array' });
-        const sheetName =
-          workbook.SheetNames.find((n) => /rc3|unloved|dormant|inactive/i.test(n)) ??
-          workbook.SheetNames[0];
-        const raw: unknown[][] = XLSX.utils.sheet_to_json(
-          workbook.Sheets[sheetName], { header: 1, defval: '' }
-        );
-        resolveFromRows(raw, file.name, resolve);
+        const buffer = e.target?.result as ArrayBuffer;
+
+        if (isPdf) {
+          const raw = await extractTableFromPdf(buffer);
+          resolveFromRows(raw, file.name, resolve);
+        } else {
+          const workbook = XLSX.read(buffer, { type: 'array' });
+          const sheetName =
+            workbook.SheetNames.find((n) => /rc3|unloved|dormant|inactive/i.test(n)) ??
+            workbook.SheetNames[0];
+          const raw: unknown[][] = XLSX.utils.sheet_to_json(
+            workbook.Sheets[sheetName], { header: 1, defval: '' }
+          );
+          resolveFromRows(raw, file.name, resolve);
+        }
       } catch (err) {
         resolve(fail(err instanceof Error ? err.message : 'Parse error'));
       }

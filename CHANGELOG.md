@@ -1,5 +1,17 @@
 # Changelog — Chausse Rep Field Tool
 
+## v1.0.1 — 2026-03-01
+RC3 PDF support: Vinosmith RC3 exports as PDF only; parser now handles both PDF and XLSX.
+
+### Added
+- `lib/parsers/pdfTableExtractor.ts` — generic PDF → string[][] extractor using pdfjs-dist; groups text items by Y position (4px tolerance), sorts by X for column order
+- `pdfjs-dist@3.11.174` dependency
+
+### Changed
+- `lib/parsers/rc3Parser.ts` — detects `.pdf` extension; uses pdfTableExtractor for PDF files, XLSX path unchanged; CDN worker URL for pdfjs
+- `app/upload/page.tsx` — RC3 zone now accepts `.pdf,.xlsx,.xls`
+- `app/integrations/page.tsx` — RC3 description notes "Exports as PDF only"; upload input accept changed to `.pdf,.xlsx,.xls` for RC3 card
+
 ## v1.0.0 — 2026-03-01
 Data Infrastructure Overhaul: 7 new report parsers, Integrations page, Territory Map, rewired Focus/Account Detail/Portfolio/Dormant pages, DataStatus sidebar widget.
 
