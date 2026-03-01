@@ -6,6 +6,7 @@ import Shell from '@/components/layout/Shell';
 import { useStore } from '@/store';
 import { Rc5Row } from '@/types';
 import { ChevronUp, ChevronDown, Search } from 'lucide-react';
+import TrendSparkline from '@/components/ui/TrendSparkline';
 
 type SortKey = 'account' | 'lastActiveMonth' | 'three_mo' | 'ytd' | 'totalRevenue';
 type SortDir = 'asc' | 'desc';
@@ -47,18 +48,21 @@ function StatusPill({ status }: { status: ReturnType<typeof getStatus> }) {
   );
 }
 
-function TrendIndicator({ row }: { row: Rc5Row }) {
+function TrendCell({ row }: { row: Rc5Row }) {
   const recent = row.monthlyRevenue[10] + row.monthlyRevenue[11] + row.monthlyRevenue[12];
   const prior = row.monthlyRevenue[7] + row.monthlyRevenue[8] + row.monthlyRevenue[9];
-  if (prior === 0 && recent === 0) return <span style={{ color: '#a8a29e', fontSize: 12 }}>—</span>;
-  if (prior === 0) return <span style={{ color: '#16a34a', fontSize: 12, fontWeight: 600 }}>↑ New</span>;
-  const pct = ((recent - prior) / prior) * 100;
-  const color = pct >= 5 ? '#16a34a' : pct <= -5 ? '#dc2626' : '#a8a29e';
-  const arrow = pct >= 5 ? '↑' : pct <= -5 ? '↓' : '→';
+  const pct = prior > 0 ? ((recent - prior) / prior) * 100 : null;
+  const color = pct === null ? '#a8a29e' : pct >= 5 ? '#16a34a' : pct <= -5 ? '#dc2626' : '#a8a29e';
+  const label = pct === null
+    ? (recent > 0 ? '↑ New' : '—')
+    : `${pct >= 0 ? '+' : ''}${pct.toFixed(0)}%`;
   return (
-    <span style={{ color, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
-      {arrow} {Math.abs(pct).toFixed(0)}%
-    </span>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+      <TrendSparkline data={row.monthlyRevenue} width={48} height={18} />
+      <span style={{ color, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', minWidth: 36, textAlign: 'right' }}>
+        {label}
+      </span>
+    </div>
   );
 }
 
@@ -259,7 +263,7 @@ export default function AccountsPage() {
                       <td style={{ padding: '10px 16px', textAlign: 'right', color: '#1C1917' }}>{fmt$(ytd)}</td>
                       <td style={{ padding: '10px 16px', textAlign: 'right', color: '#1C1917' }}>{fmt$(row.totalRevenue)}</td>
                       <td style={{ padding: '10px 16px', textAlign: 'right' }}>
-                        <TrendIndicator row={row} />
+                        <TrendCell row={row} />
                       </td>
                       <td style={{ padding: '10px 16px', textAlign: 'center' }}>
                         <StatusPill status={status} />

@@ -1,11 +1,14 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import Shell from '@/components/layout/Shell';
 import { useStore } from '@/store';
-import WineTypeBadge from '@/components/portfolio/WineTypeBadge';
+import WineTypeBadge from '@/components/ui/WineTypeBadge';
+import TrendSparkline from '@/components/ui/TrendSparkline';
+import SidenoteField from '@/components/ui/SidenoteField';
+import AccountNotes from '@/components/ui/AccountNotes';
 import { ArrowLeft } from 'lucide-react';
 import { WineType } from '@/types';
 
@@ -20,6 +23,12 @@ function normCode(s: string) {
 
 function fmt$(n: number) {
   return n === 0 ? '—' : '$' + Math.round(n).toLocaleString();
+}
+
+function fmtMonth(ym: string | null) {
+  if (!ym) return '—';
+  const [y, m] = ym.split('-');
+  return new Date(Number(y), Number(m) - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
 }
 
 function StatusPill({ isDormant, isNew }: { isDormant: boolean; isNew: boolean }) {
@@ -42,25 +51,12 @@ export default function AccountDetailPage() {
   const ra25Data = useStore((s) => s.ra25Data);
   const winePropertiesData = useStore((s) => s.winePropertiesData);
   const pricingData = useStore((s) => s.pricingData);
-  const accountNotes = useStore((s) => s.accountNotes);
-  const setAccountNote = useStore((s) => s.setAccountNote);
-
-  const [noteText, setNoteText] = useState<string | null>(null);
 
   const account = useMemo(() => {
     if (!rc5Data) return null;
     return rc5Data.rows.find((r) => r.accountCode === id || r.account === id) ?? null;
   }, [rc5Data, id]);
 
-  const currentNote = noteText ?? (account ? (accountNotes[account.account] ?? '') : '');
-
-  const handleNoteBlur = useCallback(() => {
-    if (account && noteText !== null) {
-      setAccountNote(account.account, noteText);
-    }
-  }, [account, noteText, setAccountNote]);
-
-  // Wine properties and pricing lookups
   const winePropsMap = useMemo(() => {
     const map = new Map<string, { wineType: WineType; producer: string; wineName: string }>();
     if (winePropertiesData) {
@@ -71,6 +67,7 @@ export default function AccountDetailPage() {
     return map;
   }, [winePropertiesData]);
 
+  // priceMap used for potential future per-wine price display
   const priceMap = useMemo(() => {
     const map = new Map<string, number>();
     if (pricingData) {
@@ -80,14 +77,12 @@ export default function AccountDetailPage() {
     }
     return map;
   }, [pricingData]);
+  void priceMap; // reserved for future use
 
-  // Top wines: use RA25 wine-level rows filtered to this account, with wine props join
   const topWines = useMemo(() => {
     if (!ra25Data || !account) return [];
     const accountLower = account.account.toLowerCase();
-
-    // Aggregate wine-level rows for this account
-    const wineMap = new Map<string, { wineName: string; wineCode: string; revenue: number; qty: number; importer: string }>();
+    const wineMap = new Map<string, { wineName: string; wineCode: string; revenue: number; qty: number }>();
     for (const row of ra25Data.rows) {
       if (row.account.toLowerCase() !== accountLower) continue;
       const rawName = row.wineName || row.importer || '';
@@ -103,11 +98,9 @@ export default function AccountDetailPage() {
           wineCode: row.wineCode ? normCode(row.wineCode) : key,
           revenue: row.totalRevenue,
           qty: row.totalQty,
-          importer: row.importer,
         });
       }
     }
-
     return Array.from(wineMap.values())
       .filter((w) => w.revenue > 0)
       .sort((a, b) => b.revenue - a.revenue)
@@ -137,14 +130,13 @@ export default function AccountDetailPage() {
   const three_mo = account.monthlyRevenue[10] + account.monthlyRevenue[11] + account.monthlyRevenue[12];
   const ytd = account.monthlyRevenue.slice(1).reduce((s, v) => s + v, 0);
   const avgMonthly = account.activeMonths > 0 ? Math.round(account.totalRevenue / account.activeMonths) : 0;
-
-  // Prior 3-month period
   const prior3mo = account.monthlyRevenue[7] + account.monthlyRevenue[8] + account.monthlyRevenue[9];
   const trendPct = prior3mo > 0 ? ((three_mo - prior3mo) / prior3mo) * 100 : null;
+  const trendColor = trendPct !== null ? (trendPct >= 0 ? '#16a34a' : '#dc2626') : '#a8a29e';
 
   return (
     <Shell>
-      <div style={{ maxWidth: 800 }}>
+      <div style={{ maxWidth: 960 }}>
         {/* Back */}
         <button
           onClick={() => router.back()}
@@ -154,120 +146,132 @@ export default function AccountDetailPage() {
           Back to Accounts
         </button>
 
-        {/* Header */}
-        <div style={{ backgroundColor: '#FFFFFF', borderRadius: 12, border: '1px solid #E5E1DC', padding: '24px 28px', marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+        {/* Header card — full width */}
+        <div style={{ backgroundColor: '#FFFFFF', borderRadius: 12, border: '1px solid #E5E1DC', padding: '20px 24px', marginBottom: 20 }}>
+          {/* Name + sparkline row */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>
             <div>
               <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1C1917', margin: '0 0 8px' }}>
                 {account.account}
               </h1>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                 <StatusPill isDormant={account.isDormant} isNew={account.isNew} />
                 {account.accountType && (
-                  <span style={{ fontSize: 12, backgroundColor: '#F3F4F6', color: '#6B7280', borderRadius: 4, padding: '2px 8px', fontWeight: 500 }}>
+                  <span style={{ fontSize: 11, backgroundColor: '#F3F4F6', color: '#6B7280', borderRadius: 4, padding: '2px 7px', fontWeight: 500 }}>
                     {account.accountType}
                   </span>
                 )}
                 {account.region && (
-                  <span style={{ fontSize: 12, backgroundColor: '#EFF6FF', color: '#1D4ED8', borderRadius: 4, padding: '2px 8px', fontWeight: 500 }}>
+                  <span style={{ fontSize: 11, backgroundColor: '#EFF6FF', color: '#1D4ED8', borderRadius: 4, padding: '2px 7px', fontWeight: 500 }}>
                     {account.region}
                   </span>
                 )}
               </div>
             </div>
+            <TrendSparkline data={account.monthlyRevenue} width={80} height={28} />
           </div>
 
-          {/* KPI strip */}
-          <div style={{ display: 'flex', gap: 0, borderTop: '1px solid #F3F4F6', paddingTop: 16, flexWrap: 'wrap' }}>
+          {/* KPI grid — 4 columns */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderTop: '1px solid #F3F4F6', paddingTop: 16, gap: 0 }}>
             {[
-              { label: '3-Mo Revenue', value: fmt$(three_mo),
-                sub: trendPct !== null ? `${trendPct >= 0 ? '+' : ''}${trendPct.toFixed(0)}% vs prior` : undefined },
-              { label: 'YTD Revenue', value: fmt$(ytd) },
-              { label: 'All-Time', value: fmt$(account.totalRevenue) },
-              { label: 'Avg/Month', value: avgMonthly > 0 ? fmt$(avgMonthly) : '—', sub: `${account.activeMonths} active mo` },
-            ].map(({ label, value, sub }) => (
-              <div key={label} style={{ flex: 1, minWidth: 120, padding: '0 16px 0 0' }}>
-                <p style={{ margin: 0, fontSize: 11, color: '#a8a29e', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</p>
+              {
+                label: '3-Mo Revenue',
+                value: fmt$(three_mo),
+                sub: trendPct !== null ? `${trendPct >= 0 ? '+' : ''}${trendPct.toFixed(0)}% vs prior` : 'no prior period',
+                subColor: trendColor,
+              },
+              { label: 'YTD Revenue', value: fmt$(ytd), sub: 'calendar year', subColor: '#a8a29e' },
+              { label: 'All-Time', value: fmt$(account.totalRevenue), sub: `${account.activeMonths} mo active`, subColor: '#a8a29e' },
+              { label: 'Avg / Month', value: avgMonthly > 0 ? fmt$(avgMonthly) : '—', sub: 'active months only', subColor: '#a8a29e' },
+            ].map(({ label, value, sub, subColor }) => (
+              <div key={label} style={{ padding: '0 12px 0 0' }}>
+                <p style={{ margin: 0, fontSize: 10, color: '#a8a29e', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                  {label}
+                </p>
                 <p style={{ margin: '4px 0 2px', fontSize: 20, fontWeight: 700, color: '#1C1917' }}>{value}</p>
-                {sub && <p style={{ margin: 0, fontSize: 11, color: trendPct !== null && label === '3-Mo Revenue' ? (trendPct >= 0 ? '#16a34a' : '#dc2626') : '#a8a29e' }}>{sub}</p>}
+                <p style={{ margin: 0, fontSize: 11, color: subColor }}>{sub}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Revenue chart */}
-        <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: '16px 20px', marginBottom: 16 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#1C1917', margin: '0 0 12px' }}>Revenue by Month</h3>
-          <AccountRevenueChart monthlyRevenue={account.monthlyRevenue} monthLabels={account.monthLabels} />
-        </div>
+        {/* Two-column layout: main + sidenote sidebar */}
+        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
 
-        {/* Top wines */}
-        {topWines.length > 0 && (
-          <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: '16px 20px', marginBottom: 16 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#1C1917', margin: '0 0 12px' }}>Top Wines Purchased</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid #E5E1DC' }}>
-                  <th style={{ textAlign: 'left', padding: '6px 0', color: '#a8a29e', fontWeight: 500 }}>Wine</th>
-                  <th style={{ textAlign: 'left', padding: '6px 8px', color: '#a8a29e', fontWeight: 500 }}>Type</th>
-                  <th style={{ textAlign: 'right', padding: '6px 0', color: '#a8a29e', fontWeight: 500 }}>Revenue</th>
-                  <th style={{ textAlign: 'right', padding: '6px 0', color: '#a8a29e', fontWeight: 500 }}>Cases</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topWines.map((w, i) => {
-                  const props = winePropsMap.get(w.wineCode);
-                  const displayName = props?.wineName || w.wineName;
-                  const cases = w.qty > 0 ? Math.round(w.qty / 12) : 0;
-                  const canNavigate = !!props;
-                  return (
-                    <tr
-                      key={i}
-                      style={{ borderBottom: '1px solid #F3F4F6', cursor: canNavigate ? 'pointer' : 'default' }}
-                      onClick={() => canNavigate && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
-                      onMouseEnter={(e) => canNavigate && (e.currentTarget.style.backgroundColor = '#F9F9F9')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
-                      <td style={{ padding: '8px 0', color: '#1C1917', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        <div style={{ fontWeight: 500 }}>{displayName}</div>
-                        {props?.producer && <div style={{ fontSize: 11, color: '#a8a29e' }}>{props.producer}</div>}
-                      </td>
-                      <td style={{ padding: '8px 8px' }}>
-                        {props && <WineTypeBadge type={props.wineType as WineType} />}
-                      </td>
-                      <td style={{ padding: '8px 0', textAlign: 'right', fontWeight: 600, color: '#1C1917' }}>{fmt$(w.revenue)}</td>
-                      <td style={{ padding: '8px 0', textAlign: 'right', color: '#a8a29e' }}>{cases > 0 ? `${cases} cs` : '—'}</td>
+          {/* Main column — chart + top wines */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: '16px 20px', marginBottom: 16 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: '#1C1917', margin: '0 0 12px' }}>Revenue by Month</h3>
+              <AccountRevenueChart monthlyRevenue={account.monthlyRevenue} monthLabels={account.monthLabels} />
+            </div>
+
+            {topWines.length > 0 && (
+              <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: '16px 20px' }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: '#1C1917', margin: '0 0 12px' }}>Top Wines Purchased</h3>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #E5E1DC' }}>
+                      <th style={{ textAlign: 'left', padding: '5px 0', color: '#a8a29e', fontWeight: 500, fontSize: 11 }}>Wine</th>
+                      <th style={{ textAlign: 'left', padding: '5px 8px', color: '#a8a29e', fontWeight: 500, fontSize: 11 }}>Type</th>
+                      <th style={{ textAlign: 'right', padding: '5px 0', color: '#a8a29e', fontWeight: 500, fontSize: 11 }}>Revenue</th>
+                      <th style={{ textAlign: 'right', padding: '5px 0', color: '#a8a29e', fontWeight: 500, fontSize: 11 }}>Cases</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {topWines.map((w, i) => {
+                      const props = winePropsMap.get(w.wineCode);
+                      const displayName = props?.wineName || w.wineName;
+                      const cases = w.qty > 0 ? Math.round(w.qty / 12) : 0;
+                      const canNavigate = !!props;
+                      return (
+                        <tr
+                          key={i}
+                          style={{ borderBottom: '1px solid #F3F4F6', cursor: canNavigate ? 'pointer' : 'default' }}
+                          onClick={() => canNavigate && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
+                          onMouseEnter={(e) => canNavigate && (e.currentTarget.style.backgroundColor = '#F9F9F9')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                          <td style={{ padding: '7px 0', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <div style={{ fontWeight: 500, color: '#1C1917' }}>{displayName}</div>
+                            {props?.producer && <div style={{ fontSize: 11, color: '#a8a29e' }}>{props.producer}</div>}
+                          </td>
+                          <td style={{ padding: '7px 8px' }}>
+                            {props && <WineTypeBadge type={props.wineType} />}
+                          </td>
+                          <td style={{ padding: '7px 0', textAlign: 'right', fontWeight: 600, color: '#1C1917' }}>{fmt$(w.revenue)}</td>
+                          <td style={{ padding: '7px 0', textAlign: 'right', color: '#a8a29e' }}>{cases > 0 ? `${cases} cs` : '—'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Account Notes */}
-        <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: '16px 20px' }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#1C1917', margin: '0 0 10px' }}>Your Notes</h3>
-          <textarea
-            value={currentNote}
-            onChange={(e) => setNoteText(e.target.value)}
-            onBlur={handleNoteBlur}
-            placeholder="Add notes about this account — save on blur..."
-            rows={4}
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              border: '1px solid #E5E1DC',
-              borderRadius: 8,
-              fontSize: 13,
-              color: '#1C1917',
-              backgroundColor: '#F9F9F9',
-              resize: 'vertical',
-              outline: 'none',
-              fontFamily: 'inherit',
-              boxSizing: 'border-box',
-            }}
-          />
+          {/* Sidenote sidebar — metadata + notes */}
+          <div style={{ width: 220, flexShrink: 0 }}>
+            <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: '16px 18px', marginBottom: 16 }}>
+              {account.region && (
+                <SidenoteField label="Territory">{account.region}</SidenoteField>
+              )}
+              {account.accountType && (
+                <SidenoteField label="Account Type">{account.accountType}</SidenoteField>
+              )}
+              <SidenoteField label="Status">
+                <StatusPill isDormant={account.isDormant} isNew={account.isNew} />
+              </SidenoteField>
+              <SidenoteField label="Last Active">{fmtMonth(account.lastActiveMonth)}</SidenoteField>
+              {account.primaryRep && account.primaryRep !== 'unknown' && account.primaryRep !== 'shared' && (
+                <SidenoteField label="Primary Rep">
+                  <span style={{ textTransform: 'capitalize' }}>{account.primaryRep}</span>
+                </SidenoteField>
+              )}
+            </div>
+            <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: '16px 18px' }}>
+              <AccountNotes accountName={account.account} />
+            </div>
+          </div>
         </div>
       </div>
     </Shell>

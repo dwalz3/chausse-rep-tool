@@ -1,5 +1,19 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.6.1 — 2026-02-28
+Design addenda: TrendSparkline, unified wine type colors, Account Detail sidenotes layout.
+
+### Added
+- `lib/constants/wineColors.ts` — canonical `WINE_TYPE_STYLES` + `getWineTypeStyle()` used across all badge instances
+- `components/ui/WineTypeBadge.tsx` — unified badge (replaces portfolio version); `components/portfolio/WineTypeBadge.tsx` re-exports from here
+- `components/ui/TrendSparkline.tsx` — pure SVG sparkline (Tufte: max data, min ink); trims leading zeros, dots final value with trend color (green/red/gray)
+- `components/ui/SidenoteField.tsx` — compact label + value for metadata sidebars
+- `components/ui/AccountNotes.tsx` — auto-saving notes textarea (persists to Zustand on blur)
+
+### Changed
+- `app/accounts/page.tsx` — Trend column now shows TrendSparkline (48×18) + `±%` label; replaces pure text indicator
+- `app/accounts/[id]/page.tsx` — full sidenotes layout redesign: header (name + sparkline 80×28 + status badges) + KPI grid-cols-4 (3-Mo ±%, YTD, All-Time, Avg/Month) + two-column body (revenue chart + top wines left; metadata sidenote + account notes right)
+
 ## v0.6.0 — 2026-02-28
 Major fix and enhancement pass.
 
