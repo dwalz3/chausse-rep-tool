@@ -28,13 +28,15 @@ export interface PricingParseResult {
   detectedPriceCol: string;
   sampleCodes: string[];
   samplePrices: number[];  // first 5 prices — if all 0, price col is wrong
+  allHeaders: string[];    // every column header found — shown in debug panel so wrong columns are visible
 }
 
-const EMPTY_DEBUG: Pick<PricingParseResult, 'detectedCodeCol' | 'detectedPriceCol' | 'sampleCodes' | 'samplePrices'> = {
+const EMPTY_DEBUG: Pick<PricingParseResult, 'detectedCodeCol' | 'detectedPriceCol' | 'sampleCodes' | 'samplePrices' | 'allHeaders'> = {
   detectedCodeCol: '(none)',
   detectedPriceCol: '(none)',
   sampleCodes: [],
   samplePrices: [],
+  allHeaders: [],
 };
 
 function resolveFromRows(
@@ -131,6 +133,7 @@ function resolveFromRows(
     detectedPriceCol,
     sampleCodes,
     samplePrices,
+    allHeaders: headers,
   });
 }
 

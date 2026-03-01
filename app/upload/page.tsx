@@ -20,6 +20,7 @@ interface ZoneDebug {
   detectedPriceCol?: string;
   sampleCodes?: string[];
   samplePrices?: number[];
+  allHeaders?: string[];
 }
 
 interface ZoneState {
@@ -97,7 +98,7 @@ export default function UploadPage() {
           status: 'success',
           message: `${rowCount.toLocaleString()} rows loaded`,
           rowCount,
-          debug: { detectedCodeCol: result.detectedCodeCol, detectedPriceCol: result.detectedPriceCol, sampleCodes: result.sampleCodes, samplePrices: result.samplePrices },
+          debug: { detectedCodeCol: result.detectedCodeCol, detectedPriceCol: result.detectedPriceCol, sampleCodes: result.sampleCodes, samplePrices: result.samplePrices, allHeaders: result.allHeaders },
         });
         return;
       } else if (key === 'allocations') {
@@ -224,12 +225,34 @@ export default function UploadPage() {
                 <span style={{ color: '#79BAFF', fontFamily: 'monospace' }}>{debug.sampleCodes.join(', ')}</span>
               </div>
             )}
-            {debug.samplePrices && debug.samplePrices.length > 0 && (
-              <div>
-                <span style={{ color: '#484F58' }}>Sample prices: </span>
-                <span style={{ color: debug.samplePrices.some(p => p > 0) ? '#3FB950' : '#F85149', fontFamily: 'monospace' }}>
-                  {debug.samplePrices.map(p => p > 0 ? `$${p.toFixed(2)}` : '0').join(', ')}
-                  {debug.samplePrices.every(p => p === 0) && ' ← all zero! wrong price column'}
+            {debug.samplePrices && debug.samplePrices.length > 0 && (() => {
+              const avg = debug.samplePrices.reduce((a, b) => a + b, 0) / debug.samplePrices.filter(p => p > 0).length;
+              const allZero = debug.samplePrices.every(p => p === 0);
+              const tooLow = !allZero && avg < 10;
+              return (
+                <div>
+                  <span style={{ color: '#484F58' }}>Sample prices: </span>
+                  <span style={{ color: allZero ? '#F85149' : tooLow ? '#E3B341' : '#3FB950', fontFamily: 'monospace' }}>
+                    {debug.samplePrices.map(p => p > 0 ? `$${p.toFixed(2)}` : '0').join(', ')}
+                    {allZero && ' ← all zero! wrong price column'}
+                    {tooLow && ` ← avg $${avg.toFixed(2)} — may be FOB/cost, not retail`}
+                  </span>
+                </div>
+              );
+            })()}
+            {debug.allHeaders && debug.allHeaders.length > 0 && (
+              <div style={{ marginTop: 2 }}>
+                <span style={{ color: '#484F58' }}>All columns: </span>
+                <span style={{ fontFamily: 'monospace' }}>
+                  {debug.allHeaders.map((h, i) => {
+                    const isPrice = h === debug.detectedPriceCol;
+                    const isCode = h === debug.detectedCodeCol;
+                    return (
+                      <span key={i} style={{ color: isPrice ? '#3FB950' : isCode ? '#E3B341' : '#484F58' }}>
+                        {h}{i < (debug.allHeaders?.length ?? 0) - 1 ? ', ' : ''}
+                      </span>
+                    );
+                  })}
                 </span>
               </div>
             )}

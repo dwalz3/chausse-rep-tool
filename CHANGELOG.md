@@ -1,5 +1,13 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.9.2 — 2026-02-28
+Portfolio inventory column; pricing debug shows all file columns.
+
+### Added
+- `app/portfolio/page.tsx` — Inventory column after Price: shows `openPOCases` ("X cs on order", green) and `allocatedCases` ("Y alloc", amber); `—` when none
+- `lib/parsers/pricingParser.ts` — `allHeaders: string[]` added to `PricingParseResult` — emits every column header from the detected header row
+- `app/upload/page.tsx` — pricing debug panel now shows "All columns:" row listing every header; detected price col highlighted green, code col yellow; sample prices now warn amber if avg < $10 ("may be FOB/cost, not retail")
+
 ## v0.9.1 — 2026-02-28
 Portfolio table: rename "Name" column → "Wine"; reduce default width 280→240 for more column room.
 

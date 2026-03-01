@@ -18,15 +18,16 @@ function fmt$(n: number) {
 
 // Column definitions for resizable columns (excludes fixed row-# column)
 const COL_DEFS = [
-  { key: 'name',     label: 'Wine',     defaultWidth: 240, sticky: true  },
-  { key: 'price',    label: 'Price',    defaultWidth: 82,  sticky: false },
-  { key: 'accts',    label: 'Accts',    defaultWidth: 64,  sticky: false },
-  { key: 'importer', label: 'Importer', defaultWidth: 150, sticky: false },
-  { key: 'region',   label: 'Region',   defaultWidth: 120, sticky: false },
-  { key: 'country',  label: 'Country',  defaultWidth: 106, sticky: false },
-  { key: 'type',     label: 'Type',     defaultWidth: 96,  sticky: false },
-  { key: 'varietal', label: 'Varietal', defaultWidth: 140, sticky: false },
-  { key: 'farming',  label: 'Farming',  defaultWidth: 88,  sticky: false },
+  { key: 'name',      label: 'Wine',      defaultWidth: 240, sticky: true  },
+  { key: 'price',     label: 'Price',     defaultWidth: 82,  sticky: false },
+  { key: 'inventory', label: 'Inventory', defaultWidth: 110, sticky: false },
+  { key: 'accts',     label: 'Accts',     defaultWidth: 64,  sticky: false },
+  { key: 'importer',  label: 'Importer',  defaultWidth: 150, sticky: false },
+  { key: 'region',    label: 'Region',    defaultWidth: 120, sticky: false },
+  { key: 'country',   label: 'Country',   defaultWidth: 106, sticky: false },
+  { key: 'type',      label: 'Type',      defaultWidth: 96,  sticky: false },
+  { key: 'varietal',  label: 'Varietal',  defaultWidth: 140, sticky: false },
+  { key: 'farming',   label: 'Farming',   defaultWidth: 88,  sticky: false },
 ] as const;
 
 const ROW_NUM_WIDTH = 44;   // fixed, not resizable
@@ -424,6 +425,26 @@ function PortfolioInner() {
                               whiteSpace: 'nowrap',
                             }}>
                               {fmt$(row.bottlePrice)}
+                            </td>
+
+                            {/* Inventory */}
+                            <td style={{ borderTop: '1px solid #21262D', padding: '7px 12px' }}>
+                              {row.openPOCases > 0 || row.allocatedCases > 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, fontSize: 11 }}>
+                                  {row.openPOCases > 0 && (
+                                    <span style={{ color: '#3FB950', fontVariantNumeric: 'tabular-nums' }}>
+                                      {row.openPOCases} cs on order
+                                    </span>
+                                  )}
+                                  {row.allocatedCases > 0 && (
+                                    <span style={{ color: '#E3B341', fontVariantNumeric: 'tabular-nums' }}>
+                                      {row.allocatedCases} alloc
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span style={{ color: '#484F58' }}>—</span>
+                              )}
                             </td>
 
                             {/* Accts */}
