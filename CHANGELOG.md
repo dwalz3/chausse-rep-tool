@@ -1,5 +1,15 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.8.4 — 2026-02-28
+Pricing join fully working. Debug panel on Upload page.
+
+### Fixed
+- `lib/parsers/pricingParser.ts` — Vinosmith exports have a `Price Label` text column that was incorrectly matched by the `price` keyword; new `findPriceCol()` logic: (1) named keywords like `default price`/`retail price`, (2) `price` columns excluding `label`/`type`/`code`/`tier` variants, (3) standalone `default`/`retail`/`wholesale`, (4) numeric fallback — scans data rows for first column with >60% non-zero values. Also adds CSV support and `item` as last-resort code column keyword. Result: 744/747 pricing codes now join correctly.
+- `lib/parsers/winePropertiesParser.ts` — adds `detectedCodeCol` + `sampleCodes` to parse result for diagnostics
+
+### Added
+- `app/upload/page.tsx` — collapsible debug panel on each upload zone (collapsed by default, `›` to expand); shows detected code/price column names, sample codes, sample prices (red warning if all zero), and join check against wine properties (`X/Y pricing codes match`)
+
 ## v0.8.0 — 2026-02-28
 Parser fixes, portfolio enhancements, WineDrawer, Focus KPIs.
 
