@@ -18,7 +18,7 @@ function fmt$(n: number) {
 
 // Column definitions for resizable columns (excludes fixed row-# column)
 const COL_DEFS = [
-  { key: 'name',     label: 'Name',     defaultWidth: 280, sticky: true  },
+  { key: 'name',     label: 'Wine',     defaultWidth: 240, sticky: true  },
   { key: 'price',    label: 'Price',    defaultWidth: 82,  sticky: false },
   { key: 'accts',    label: 'Accts',    defaultWidth: 64,  sticky: false },
   { key: 'importer', label: 'Importer', defaultWidth: 150, sticky: false },

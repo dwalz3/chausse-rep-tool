@@ -1,5 +1,11 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.9.1 — 2026-02-28
+Portfolio table: rename "Name" column → "Wine"; reduce default width 280→240 for more column room.
+
+### Changed
+- `app/portfolio/page.tsx` — `label: 'Name'` → `label: 'Wine'`; `defaultWidth: 280` → `240`
+
 ## v0.9.0 — 2026-02-28
 Portfolio Explorer — Airtable-style spreadsheet table with sticky columns and resizable widths.
 
