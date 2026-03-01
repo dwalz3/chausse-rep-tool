@@ -118,7 +118,7 @@ export default function ProducersPage() {
                     )}
                     {wineCount > 0 && (
                       <span style={{ fontSize: 12, backgroundColor: '#F3F4F6', color: '#a8a29e', borderRadius: 10, padding: '1px 8px', fontWeight: 600, flexShrink: 0 }}>
-                        {wineCount} wines
+                        {wineCount} {wineCount === 1 ? 'wine' : 'wines'}
                       </span>
                     )}
                   </div>

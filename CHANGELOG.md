@@ -1,5 +1,24 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.6.0 — 2026-02-28
+Major fix and enhancement pass.
+
+### Fixed
+- `lib/parsers/winePropertiesParser.ts` — broader column name matching for wine code, type, producer; expanded `parseWineType()` with 30+ new aliases (pet nat, skin contact, cremant, etc.); fixes all types showing "Other"
+- `lib/parsers/ra25Parser.ts` — now reads wine name/code columns if present; builds `wineTotals` (wine-level aggregation); fixes Focus and Account Detail showing importers instead of individual wines
+- `app/focus/page.tsx` — rebuilt to use wine-level RA25 data with type badges, producer, price, account count; no longer groups by importer
+- `app/accounts/[id]/page.tsx` — Top Wines now shows individual wine SKUs with type badges and producer; wine rows link to portfolio detail
+- `app/page.tsx` — Goal Attainment capped at 999%; hides when no goal set and shows "Set a goal →" prompt; replaces Incoming Wines with Priority Actions (dormant/at-risk/focus cards)
+- `app/producers/page.tsx` — pluralization fixed ("1 wine" not "1 wines")
+
+### Added
+- `types/index.ts` — `Ra25Row.wineName?`, `Ra25Row.wineCode?`, `Ra25WineRow` interface, `Ra25Data.wineTotals`
+- `store/index.ts` — `monthlyGoal`, `accountNotes`, `contactedAccounts` state + setters (`setMonthlyGoal`, `setAccountNote`, `markContacted`, `unmarkContacted`)
+- `app/accounts/page.tsx` — territory filter (All/Oregon/Washington) + status filter chips (All/Active/At-Risk/Dormant/New); Trend column (H1 vs H2 ↑↓ %); At-Risk status (last month < 50% of 3-mo avg)
+- `app/accounts/[id]/page.tsx` — account notes textarea (auto-save on blur); prior-period trend on 3-Mo KPI; Avg/Month KPI; territory badge
+- `app/dormant/page.tsx` — Re-engage modal with account summary, pitch notes, Mark as Contacted; contacted accounts shown in sub-section
+- `app/settings/page.tsx` — Monthly Revenue Goal field (fixed goal overrides auto-target)
+
 ## v0.5.1 — 2026-02-28
 4-user auth: email-based login, Alejandra added.
 

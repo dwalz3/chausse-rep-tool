@@ -21,14 +21,42 @@ function findCol(headers: string[], ...keywords: string[]): number {
 
 function parseWineType(raw: string): WineType {
   const s = raw.trim().toLowerCase();
-  if (s.includes('sparkling') || s.includes('champagne') || s.includes('prosecco') || s.includes('cava') || s.includes('crémant'))
+  if (!s) return 'Other';
+  // Sparkling first — catches "sparkling red", "pét nat", etc.
+  if (s.includes('sparkling') || s.includes('champagne') || s.includes('prosecco') ||
+      s.includes('cava') || s.includes('crémant') || s.includes('cremant') ||
+      s.includes('pét nat') || s.includes('pet nat') || s.includes('pétillant') ||
+      s.includes('petillant') || s.includes('mousseux') || s.includes('frizzante') ||
+      s.includes('lambrusco') || s === 'sp' || s === 'bubbly')
     return 'Sparkling';
-  if (s.includes('orange')) return 'Orange';
-  if (s.includes('ros')) return 'Rosé';
-  if (s.includes('red') || s.includes('rouge') || s.includes('tinto') || s.includes('rosso')) return 'Red';
-  if (s.includes('white') || s.includes('blanc') || s.includes('bianco') || s.includes('blanco')) return 'White';
-  if (s.includes('vermouth') || s.includes('aperitif')) return 'Vermouth';
-  if (s.includes('tea') || s.includes('n/a') || s.includes('non-alc') || s.includes('dealc')) return 'Tea/NA';
+  // Orange / skin-contact before white
+  if (s.includes('orange') || s.includes('skin contact') || s.includes('skin-contact') ||
+      s.includes('amber') || s.includes('ramato') || s === 'sk')
+    return 'Orange';
+  // Rosé
+  if (s.includes('ros') || s === 'pink' || s === 'rz')
+    return 'Rosé';
+  // Vermouth / aperitif / fortified
+  if (s.includes('vermouth') || s.includes('aperitif') || s.includes('apéritif') ||
+      s.includes('amaro') || s.includes('liqueur') || s.includes('fortified') ||
+      s.includes('porto') || s.includes('sherry') || s.includes('madeira') ||
+      s.includes('sake') || s.includes('mead') || s.includes('cider'))
+    return 'Vermouth';
+  // Non-alcoholic
+  if (s.includes('tea') || s === 'n/a' || s === 'na' || s.includes('non-alc') ||
+      s.includes('dealc') || s.includes('non alcoholic') || s.includes('nonalcoholic') ||
+      s.includes('alcohol free') || s.includes('alcohol-free') || s.includes('kombucha') ||
+      s.includes('zero') || s === 'na wine')
+    return 'Tea/NA';
+  // Red — after orange/rosé checks
+  if (s.includes('red') || s.includes('rouge') || s.includes('tinto') || s.includes('rosso') ||
+      s.includes('nero') || s.includes('noir') || s === 'r' || s === 'rd')
+    return 'Red';
+  // White
+  if (s.includes('white') || s.includes('blanc') || s.includes('bianco') || s.includes('blanco') ||
+      s.includes('weiss') || s.includes('grüner') || s.includes('gruner') ||
+      s === 'w' || s === 'wh')
+    return 'White';
   return 'Other';
 }
 
@@ -121,15 +149,15 @@ function resolveFromRows(
   }
 
   const headers = (raw[0] as unknown[]).map(norm);
-  const colCode = findCol(headers, 'wine code', 'item code', 'code', 'sku');
-  const colName = findCol(headers, 'wine name', 'name', 'description', 'item name');
-  const colProducer = findCol(headers, 'producer', 'supplier', 'winery');
-  const colImporter = findCol(headers, 'importer');
-  const colCountry = findCol(headers, 'country', 'origin');
-  const colRegion = findCol(headers, 'region', 'area', 'appellation');
-  const colPallet = findCol(headers, 'cases/pallet', 'cases per pallet', 'pallet', 'cs/plt');
-  const colType = findCol(headers, 'category', 'type', 'product type', 'varietal type', 'wine type');
-  const colVintage = findCol(headers, 'vintage', 'year');
+  const colCode = findCol(headers, 'wine code', 'item code', 'item number', 'item no', 'product code', 'code', 'sku', 'item #');
+  const colName = findCol(headers, 'wine name', 'item name', 'item description', 'product name', 'product description', 'full name', 'name', 'description', 'item');
+  const colProducer = findCol(headers, 'producer', 'producer name', 'supplier', 'winery', 'estate', 'brand');
+  const colImporter = findCol(headers, 'importer', 'importer name', 'distributor', 'broker');
+  const colCountry = findCol(headers, 'country', 'country of origin', 'origin');
+  const colRegion = findCol(headers, 'region', 'appellation', 'area', 'sub-region', 'subregion');
+  const colPallet = findCol(headers, 'cases/pallet', 'cases per pallet', 'cs/plt', 'pallet');
+  const colType = findCol(headers, 'wine type', 'product type', 'varietal type', 'category', 'style', 'color', 'type', 'kind');
+  const colVintage = findCol(headers, 'vintage', 'vintage year', 'year', 'vy');
 
   const rows: WinePropertyRow[] = [];
 

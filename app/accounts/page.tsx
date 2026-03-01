@@ -9,6 +9,7 @@ import { ChevronUp, ChevronDown, Search } from 'lucide-react';
 
 type SortKey = 'account' | 'lastActiveMonth' | 'three_mo' | 'ytd' | 'totalRevenue';
 type SortDir = 'asc' | 'desc';
+type StatusFilter = 'all' | 'active' | 'at-risk' | 'dormant' | 'new';
 
 function fmt$(n: number) {
   if (n === 0) return '—';
@@ -21,23 +22,42 @@ function fmtMonth(ym: string | null) {
   return new Date(Number(y), Number(m) - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
 }
 
-function StatusPill({ isDormant, isNew }: { isDormant: boolean; isNew: boolean }) {
-  const label = isNew ? 'New' : isDormant ? 'Dormant' : 'Active';
-  const color = isNew ? '#2563eb' : isDormant ? '#d97706' : '#16a34a';
-  const bg = isNew ? '#dbeafe' : isDormant ? '#fef3c7' : '#dcfce7';
+function getStatus(row: Rc5Row): 'new' | 'dormant' | 'at-risk' | 'active' {
+  if (row.isNew) return 'new';
+  if (row.isDormant) return 'dormant';
+  // At-Risk: active account where last month < 50% of 3-month average
+  const lastMo = row.monthlyRevenue[12];
+  const avg3mo = (row.monthlyRevenue[10] + row.monthlyRevenue[11] + row.monthlyRevenue[12]) / 3;
+  if (avg3mo > 0 && lastMo < avg3mo * 0.5 && lastMo > 0) return 'at-risk';
+  return 'active';
+}
+
+function StatusPill({ status }: { status: ReturnType<typeof getStatus> }) {
+  const map = {
+    'new':     { label: 'New',     color: '#2563eb', bg: '#dbeafe' },
+    'dormant': { label: 'Dormant', color: '#d97706', bg: '#fef3c7' },
+    'at-risk': { label: 'At-Risk', color: '#b45309', bg: '#fef9c3' },
+    'active':  { label: 'Active',  color: '#16a34a', bg: '#dcfce7' },
+  };
+  const { label, color, bg } = map[status];
   return (
-    <span
-      style={{
-        backgroundColor: bg,
-        color,
-        borderRadius: 20,
-        fontSize: 11,
-        fontWeight: 600,
-        padding: '2px 8px',
-        whiteSpace: 'nowrap',
-      }}
-    >
+    <span style={{ backgroundColor: bg, color, borderRadius: 20, fontSize: 11, fontWeight: 600, padding: '2px 8px', whiteSpace: 'nowrap' }}>
       {label}
+    </span>
+  );
+}
+
+function TrendIndicator({ row }: { row: Rc5Row }) {
+  const recent = row.monthlyRevenue[10] + row.monthlyRevenue[11] + row.monthlyRevenue[12];
+  const prior = row.monthlyRevenue[7] + row.monthlyRevenue[8] + row.monthlyRevenue[9];
+  if (prior === 0 && recent === 0) return <span style={{ color: '#a8a29e', fontSize: 12 }}>—</span>;
+  if (prior === 0) return <span style={{ color: '#16a34a', fontSize: 12, fontWeight: 600 }}>↑ New</span>;
+  const pct = ((recent - prior) / prior) * 100;
+  const color = pct >= 5 ? '#16a34a' : pct <= -5 ? '#dc2626' : '#a8a29e';
+  const arrow = pct >= 5 ? '↑' : pct <= -5 ? '↓' : '→';
+  return (
+    <span style={{ color, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
+      {arrow} {Math.abs(pct).toFixed(0)}%
     </span>
   );
 }
@@ -47,6 +67,38 @@ function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; s
   return sortDir === 'asc' ? <ChevronUp size={12} color="#2D5A3D" /> : <ChevronDown size={12} color="#2D5A3D" />;
 }
 
+function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: '5px 12px',
+        borderRadius: 20,
+        border: '1px solid',
+        borderColor: active ? '#2D5A3D' : '#E5E1DC',
+        backgroundColor: active ? '#2D5A3D' : '#FFFFFF',
+        color: active ? '#FFFFFF' : '#1C1917',
+        fontSize: 12,
+        fontWeight: active ? 600 : 400,
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+// Territories: look for OR/WA in the region field
+const TERRITORY_FILTERS = ['All', 'Oregon', 'Washington'];
+const STATUS_FILTERS: { key: StatusFilter; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'active', label: 'Active' },
+  { key: 'at-risk', label: 'At-Risk' },
+  { key: 'dormant', label: 'Dormant' },
+  { key: 'new', label: 'New' },
+];
+
 export default function AccountsPage() {
   const rc5Data = useStore((s) => s.rc5Data);
   const rep = useStore((s) => s.rep);
@@ -55,6 +107,8 @@ export default function AccountsPage() {
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('totalRevenue');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [territory, setTerritory] = useState('All');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -71,9 +125,18 @@ export default function AccountsPage() {
   }, [rc5Data, rep]);
 
   const filtered = useMemo(() => {
+    let result = rows;
     const q = search.toLowerCase();
-    return q ? rows.filter((r) => r.account.toLowerCase().includes(q)) : rows;
-  }, [rows, search]);
+    if (q) result = result.filter((r) => r.account.toLowerCase().includes(q));
+    if (territory !== 'All') {
+      const t = territory.toLowerCase();
+      result = result.filter((r) => r.region.toLowerCase().includes(t) || (t === 'oregon' && r.region.toLowerCase().includes('or')) || (t === 'washington' && (r.region.toLowerCase().includes('wa') || r.region.toLowerCase().includes('wash'))));
+    }
+    if (statusFilter !== 'all') {
+      result = result.filter((r) => getStatus(r) === statusFilter);
+    }
+    return result;
+  }, [rows, search, territory, statusFilter]);
 
   const sorted = useMemo(() => {
     const mult = sortDir === 'asc' ? 1 : -1;
@@ -103,7 +166,7 @@ export default function AccountsPage() {
     <Shell>
       <div>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1C1917', margin: 0 }}>Accounts</h1>
             {!noData && (
@@ -112,8 +175,6 @@ export default function AccountsPage() {
               </p>
             )}
           </div>
-
-          {/* Search */}
           {!noData && (
             <div style={{ position: 'relative' }}>
               <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#a8a29e' }} />
@@ -122,23 +183,24 @@ export default function AccountsPage() {
                 placeholder="Search accounts…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{
-                  paddingLeft: 32,
-                  paddingRight: 12,
-                  paddingTop: 8,
-                  paddingBottom: 8,
-                  border: '1px solid #E5E1DC',
-                  borderRadius: 8,
-                  fontSize: 13,
-                  color: '#1C1917',
-                  backgroundColor: '#FFFFFF',
-                  outline: 'none',
-                  width: 220,
-                }}
+                style={{ paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, border: '1px solid #E5E1DC', borderRadius: 8, fontSize: 13, color: '#1C1917', backgroundColor: '#FFFFFF', outline: 'none', width: 220 }}
               />
             </div>
           )}
         </div>
+
+        {/* Filter strip */}
+        {!noData && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+            {TERRITORY_FILTERS.map((t) => (
+              <FilterChip key={t} label={t} active={territory === t} onClick={() => setTerritory(t)} />
+            ))}
+            <div style={{ width: 1, backgroundColor: '#E5E1DC', margin: '0 4px' }} />
+            {STATUS_FILTERS.map(({ key, label }) => (
+              <FilterChip key={key} label={label} active={statusFilter === key} onClick={() => setStatusFilter(key)} />
+            ))}
+          </div>
+        )}
 
         {noData ? (
           <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: 32, textAlign: 'center', color: '#a8a29e', fontSize: 14 }}>
@@ -159,15 +221,7 @@ export default function AccountsPage() {
                     <th
                       key={key}
                       onClick={() => toggleSort(key)}
-                      style={{
-                        textAlign: key === 'account' ? 'left' : 'right',
-                        padding: '10px 16px',
-                        color: '#a8a29e',
-                        fontWeight: 500,
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                        whiteSpace: 'nowrap',
-                      }}
+                      style={{ textAlign: key === 'account' ? 'left' : 'right', padding: '10px 16px', color: '#a8a29e', fontWeight: 500, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
                     >
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                         {label}
@@ -175,6 +229,7 @@ export default function AccountsPage() {
                       </span>
                     </th>
                   ))}
+                  <th style={{ padding: '10px 16px', color: '#a8a29e', fontWeight: 500, textAlign: 'right', width: 80 }}>Trend</th>
                   <th style={{ padding: '10px 16px', color: '#a8a29e', fontWeight: 500, textAlign: 'center' }}>Status</th>
                 </tr>
               </thead>
@@ -182,47 +237,40 @@ export default function AccountsPage() {
                 {sorted.map((row) => {
                   const three_mo = row.monthlyRevenue[10] + row.monthlyRevenue[11] + row.monthlyRevenue[12];
                   const ytd = row.monthlyRevenue.slice(1).reduce((s, v) => s + v, 0);
+                  const status = getStatus(row);
                   return (
                     <tr
                       key={row.accountCode || row.account}
                       onClick={() => router.push(`/accounts/${encodeURIComponent(row.accountCode || row.account)}`)}
-                      style={{
-                        borderTop: '1px solid #F3F4F6',
-                        cursor: 'pointer',
-                      }}
+                      style={{ borderTop: '1px solid #F3F4F6', cursor: 'pointer' }}
                       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F9F9F9')}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
                       <td style={{ padding: '10px 16px', color: '#1C1917', fontWeight: 500 }}>
                         {row.account}
                         {row.accountType && (
-                          <span style={{ marginLeft: 8, fontSize: 11, color: '#a8a29e', fontWeight: 400 }}>
-                            {row.accountType}
-                          </span>
+                          <span style={{ marginLeft: 8, fontSize: 11, color: '#a8a29e', fontWeight: 400 }}>{row.accountType}</span>
                         )}
                       </td>
                       <td style={{ padding: '10px 16px', textAlign: 'right', color: '#a8a29e' }}>
                         {fmtMonth(row.lastActiveMonth)}
                       </td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#1C1917' }}>
-                        {fmt$(three_mo)}
-                      </td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#1C1917' }}>
-                        {fmt$(ytd)}
-                      </td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#1C1917' }}>
-                        {fmt$(row.totalRevenue)}
+                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#1C1917' }}>{fmt$(three_mo)}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#1C1917' }}>{fmt$(ytd)}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#1C1917' }}>{fmt$(row.totalRevenue)}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+                        <TrendIndicator row={row} />
                       </td>
                       <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                        <StatusPill isDormant={row.isDormant} isNew={row.isNew} />
+                        <StatusPill status={status} />
                       </td>
                     </tr>
                   );
                 })}
                 {sorted.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ padding: 32, textAlign: 'center', color: '#a8a29e' }}>
-                      No accounts match your search.
+                    <td colSpan={7} style={{ padding: 32, textAlign: 'center', color: '#a8a29e' }}>
+                      No accounts match your filters.
                     </td>
                   </tr>
                 )}

@@ -38,15 +38,22 @@ interface DataActions {
 interface SettingsState {
   btgThreshold: number;      // default 22
   goalMultiplier: number;    // default 1.10
+  monthlyGoal: number;       // direct monthly revenue goal (0 = not set)
   manualGoals: SalesGoal[];
   rep: RepIdentity | null;   // identity after login
+  accountNotes: Record<string, string>;       // keyed by account name
+  contactedAccounts: Record<string, string>;  // keyed by account name, value = ISO date contacted
 }
 
 interface SettingsActions {
   setBtgThreshold: (v: number) => void;
   setGoalMultiplier: (v: number) => void;
+  setMonthlyGoal: (v: number) => void;
   upsertManualGoal: (goal: SalesGoal) => void;
   setRep: (rep: RepIdentity | null) => void;
+  setAccountNote: (account: string, note: string) => void;
+  markContacted: (account: string) => void;
+  unmarkContacted: (account: string) => void;
 }
 
 // ── UI Slice ───────────────────────────────────────────────────────────────────
@@ -78,8 +85,11 @@ const DATA_DEFAULTS: DataState = {
 const SETTINGS_DEFAULTS: SettingsState = {
   btgThreshold: 22,
   goalMultiplier: 1.10,
+  monthlyGoal: 0,
   manualGoals: [],
   rep: null,
+  accountNotes: {},
+  contactedAccounts: {},
 };
 
 export const useStore = create<Store>()(
@@ -116,6 +126,7 @@ export const useStore = create<Store>()(
 
       setBtgThreshold: (v) => set({ btgThreshold: v }),
       setGoalMultiplier: (v) => set({ goalMultiplier: v }),
+      setMonthlyGoal: (v) => set({ monthlyGoal: v }),
 
       upsertManualGoal: (goal) =>
         set((s) => {
@@ -126,6 +137,19 @@ export const useStore = create<Store>()(
         }),
 
       setRep: (rep) => set({ rep }),
+
+      setAccountNote: (account, note) =>
+        set((s) => ({ accountNotes: { ...s.accountNotes, [account]: note } })),
+
+      markContacted: (account) =>
+        set((s) => ({ contactedAccounts: { ...s.contactedAccounts, [account]: new Date().toISOString() } })),
+
+      unmarkContacted: (account) =>
+        set((s) => {
+          const next = { ...s.contactedAccounts };
+          delete next[account];
+          return { contactedAccounts: next };
+        }),
 
       // ── UI state ──────────────────────────────────────────────────────────────
       isSidebarCollapsed: false,
@@ -147,8 +171,11 @@ export const useStore = create<Store>()(
         uploadMeta: s.uploadMeta,
         btgThreshold: s.btgThreshold,
         goalMultiplier: s.goalMultiplier,
+        monthlyGoal: s.monthlyGoal,
         manualGoals: s.manualGoals,
         rep: s.rep,
+        accountNotes: s.accountNotes,
+        contactedAccounts: s.contactedAccounts,
         setRc5Data: s.setRc5Data,
         setRa25Data: s.setRa25Data,
         setProducersData: s.setProducersData,
@@ -159,8 +186,12 @@ export const useStore = create<Store>()(
         clearAllData: s.clearAllData,
         setBtgThreshold: s.setBtgThreshold,
         setGoalMultiplier: s.setGoalMultiplier,
+        setMonthlyGoal: s.setMonthlyGoal,
         upsertManualGoal: s.upsertManualGoal,
         setRep: s.setRep,
+        setAccountNote: s.setAccountNote,
+        markContacted: s.markContacted,
+        unmarkContacted: s.unmarkContacted,
       }),
       onRehydrateStorage: () => (state, error) => {
         if (error) {

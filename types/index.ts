@@ -46,6 +46,8 @@ export interface Ra25Row {
   salesRep: string;
   totalQty: number;
   totalRevenue: number;
+  wineName?: string;   // wine/item name if available in source file
+  wineCode?: string;   // wine/item code if available in source file
 }
 
 export interface Ra25AccountSummary {
@@ -58,9 +60,20 @@ export interface Ra25AccountSummary {
   cumulativeShare: number;
 }
 
+// Wine-level aggregation across all accounts
+export interface Ra25WineRow {
+  wineCode: string;    // normalized UPPERCASE or wineName key if no code
+  wineName: string;
+  importer: string;
+  revenue: number;
+  casesSold: number;
+  accountCount: number;
+}
+
 export interface Ra25Data {
   rows: Ra25Row[];
   accountTotals: Ra25AccountSummary[];
+  wineTotals: Ra25WineRow[];
   parsedAt: string;
 }
 

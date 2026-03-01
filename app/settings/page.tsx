@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Shell from '@/components/layout/Shell';
 import { useStore } from '@/store';
 
-const APP_VERSION = 'v0.1.0';
+const APP_VERSION = 'v0.2.0';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -54,6 +54,8 @@ export default function SettingsPage() {
   const setBtgThreshold = useStore((s) => s.setBtgThreshold);
   const goalMultiplier = useStore((s) => s.goalMultiplier);
   const setGoalMultiplier = useStore((s) => s.setGoalMultiplier);
+  const monthlyGoal = useStore((s) => s.monthlyGoal);
+  const setMonthlyGoal = useStore((s) => s.setMonthlyGoal);
   const clearAllData = useStore((s) => s.clearAllData);
   const rep = useStore((s) => s.rep);
 
@@ -94,8 +96,20 @@ export default function SettingsPage() {
         {/* Sales goal settings */}
         <Section title="Sales Goals">
           <FieldRow
-            label="Growth Multiplier"
-            description="Auto-target = same month last year × this multiplier. Default 1.10 = 10% growth."
+            label="Monthly Revenue Goal"
+            description="Set a fixed monthly target. Shown on Dashboard as goal attainment. Set to 0 to use auto-target instead."
+          >
+            <NumInput
+              value={monthlyGoal}
+              onChange={(v) => setMonthlyGoal(Math.max(0, v))}
+              min={0}
+              step={1000}
+              prefix="$"
+            />
+          </FieldRow>
+          <FieldRow
+            label="Auto-Target Multiplier"
+            description="When no fixed goal is set, auto-target = same month last year × this multiplier."
           >
             <NumInput
               value={goalMultiplier}
@@ -107,7 +121,10 @@ export default function SettingsPage() {
             />
           </FieldRow>
           <p style={{ fontSize: 13, color: '#a8a29e', margin: 0 }}>
-            Current multiplier: <strong>{goalMultiplier.toFixed(2)}×</strong> ({((goalMultiplier - 1) * 100).toFixed(0)}% growth target)
+            {monthlyGoal > 0
+              ? <>Fixed goal: <strong>${monthlyGoal.toLocaleString()}/mo</strong></>
+              : <>Auto-target active: <strong>{goalMultiplier.toFixed(2)}×</strong> of same month last year ({((goalMultiplier - 1) * 100).toFixed(0)}% growth)</>
+            }
           </p>
         </Section>
 

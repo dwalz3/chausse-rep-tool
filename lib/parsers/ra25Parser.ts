@@ -1,10 +1,14 @@
 import * as XLSX from 'xlsx';
-import { Ra25Row, Ra25Data, Ra25AccountSummary } from '@/types';
+import { Ra25Row, Ra25Data, Ra25AccountSummary, Ra25WineRow } from '@/types';
 
 function toNum(val: unknown): number {
   if (val == null) return 0;
   const n = Number(val);
   return isNaN(n) ? 0 : n;
+}
+
+function normCode(s: string): string {
+  return s.toString().trim().toUpperCase();
 }
 
 export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount: number; errors: string[]; filename: string }> {
@@ -16,7 +20,7 @@ export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount:
   const sheetName = wb.SheetNames.find((n) => n.trim().toLowerCase() === 'accounts');
   if (!sheetName) {
     return {
-      data: { rows: [], accountTotals: [], parsedAt: new Date().toISOString() },
+      data: { rows: [], accountTotals: [], wineTotals: [], parsedAt: new Date().toISOString() },
       rowCount: 0,
       errors: [`Sheet "Accounts" not found. Available sheets: ${wb.SheetNames.join(', ')}`],
       filename: file.name,
@@ -28,30 +32,42 @@ export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount:
 
   if (raw.length < 3) {
     return {
-      data: { rows: [], accountTotals: [], parsedAt: new Date().toISOString() },
+      data: { rows: [], accountTotals: [], wineTotals: [], parsedAt: new Date().toISOString() },
       rowCount: 0,
       errors: ['Sheet has fewer than 3 rows'],
       filename: file.name,
     };
   }
 
-  const headerRow = raw[1] as unknown[];
+  // Try row index 1 first, fall back to row 0
+  let headerRowIdx = 1;
+  const row0Normalized = (raw[0] as unknown[]).map((h) => String(h ?? '').trim().toLowerCase());
+  const row1Normalized = (raw[1] as unknown[]).map((h) => String(h ?? '').trim().toLowerCase());
+  if (row0Normalized.some((h) => h.includes('account') || h.includes('revenue') || h.includes('qty'))) {
+    headerRowIdx = 0;
+  }
+  const headerRow = raw[headerRowIdx] as unknown[];
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  void row1Normalized;
 
   function findCol(names: string[]): number {
     for (const name of names) {
       const idx = headerRow.findIndex(
-        (h) => typeof h === 'string' && h.trim().toLowerCase() === name.toLowerCase()
+        (h) => typeof h === 'string' && h.trim().toLowerCase().includes(name.toLowerCase())
       );
       if (idx !== -1) return idx;
     }
     return -1;
   }
 
-  const colAccount = findCol(['Account', 'Account Name']);
-  const colImporter = findCol(['Importer', 'Importer Name']);
-  const colRep = findCol(['Sales Rep', 'SalesRep', 'Rep']);
-  const colQty = findCol(['Total Qty', 'Qty', 'Quantity', 'Total Quantity']);
-  const colRevenue = findCol(['Total Revenue', 'Revenue', 'Total', 'Amount']);
+  const colAccount = findCol(['account name', 'account']);
+  const colImporter = findCol(['importer name', 'importer', 'supplier', 'vendor']);
+  const colRep = findCol(['sales rep', 'salesrep', 'rep']);
+  const colQty = findCol(['total qty', 'quantity', 'total quantity', 'qty', 'bottles']);
+  const colRevenue = findCol(['total revenue', 'revenue', 'total', 'amount', 'sales']);
+  // Wine/item columns — these may or may not exist
+  const colWineName = findCol(['wine name', 'item name', 'item description', 'description', 'product name', 'wine', 'item', 'product']);
+  const colWineCode = findCol(['wine code', 'item code', 'item number', 'item no', 'sku', 'product code', 'code']);
 
   if (colAccount === -1) {
     errors.push('Could not find "Account" column');
@@ -59,7 +75,7 @@ export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount:
 
   const rows: Ra25Row[] = [];
 
-  for (let r = 2; r < raw.length; r++) {
+  for (let r = headerRowIdx + 1; r < raw.length; r++) {
     const row = raw[r] as unknown[];
     if (!row || row.every((v) => v == null)) continue;
 
@@ -67,15 +83,28 @@ export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount:
     if (!account) continue;
     if (account.toLowerCase() === 'total') continue;
     if (/^\d+$/.test(account)) continue;
+    // Skip rows that look like importer sub-headers (no revenue and no qty)
+    const rev = colRevenue !== -1 ? toNum(row[colRevenue]) : 0;
+    const qty = colQty !== -1 ? toNum(row[colQty]) : 0;
+    if (rev === 0 && qty === 0) continue;
 
     const importer = colImporter !== -1 ? String(row[colImporter] ?? '').trim() : '';
     const salesRep = colRep !== -1 ? String(row[colRep] ?? '').trim() : '';
-    const totalQty = colQty !== -1 ? toNum(row[colQty]) : 0;
-    const totalRevenue = colRevenue !== -1 ? toNum(row[colRevenue]) : 0;
+    const wineName = colWineName !== -1 ? String(row[colWineName] ?? '').trim() : '';
+    const wineCode = colWineCode !== -1 ? String(row[colWineCode] ?? '').trim() : '';
 
-    rows.push({ account, importer, salesRep, totalQty, totalRevenue });
+    rows.push({
+      account,
+      importer,
+      salesRep,
+      totalQty: qty,
+      totalRevenue: rev,
+      ...(wineName ? { wineName } : {}),
+      ...(wineCode ? { wineCode } : {}),
+    });
   }
 
+  // ── Account-level aggregation ────────────────────────────────────────────────
   const accountMap = new Map<string, {
     totalRevenue: number;
     totalQty: number;
@@ -136,10 +165,75 @@ export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount:
     return { ...a, cumulativeShare: cumulative };
   });
 
+  // ── Wine-level aggregation ───────────────────────────────────────────────────
+  // Key: normalized wine code OR wine name (if no code)
+  const wineMap = new Map<string, {
+    wineName: string;
+    importer: string;
+    revenue: number;
+    casesSold: number;
+    accounts: Set<string>;
+  }>();
+
+  const hasWineData = rows.some((r) => r.wineName || r.wineCode);
+
+  if (hasWineData) {
+    for (const row of rows) {
+      const rawName = row.wineName || row.importer || '';
+      if (!rawName) continue;
+      const key = row.wineCode ? normCode(row.wineCode) : rawName.toUpperCase();
+      const ex = wineMap.get(key);
+      if (ex) {
+        ex.revenue += row.totalRevenue;
+        ex.casesSold += row.totalQty;
+        ex.accounts.add(row.account);
+      } else {
+        wineMap.set(key, {
+          wineName: rawName,
+          importer: row.importer,
+          revenue: row.totalRevenue,
+          casesSold: row.totalQty,
+          accounts: new Set([row.account]),
+        });
+      }
+    }
+  } else {
+    // Fall back: aggregate by importer as a proxy for wine grouping
+    for (const row of rows) {
+      const key = (row.importer || 'Unknown').toUpperCase();
+      const ex = wineMap.get(key);
+      if (ex) {
+        ex.revenue += row.totalRevenue;
+        ex.casesSold += row.totalQty;
+        ex.accounts.add(row.account);
+      } else {
+        wineMap.set(key, {
+          wineName: row.importer || 'Unknown',
+          importer: row.importer,
+          revenue: row.totalRevenue,
+          casesSold: row.totalQty,
+          accounts: new Set([row.account]),
+        });
+      }
+    }
+  }
+
+  const wineTotals: Ra25WineRow[] = Array.from(wineMap.entries())
+    .map(([key, v]) => ({
+      wineCode: key,
+      wineName: v.wineName,
+      importer: v.importer,
+      revenue: v.revenue,
+      casesSold: v.casesSold,
+      accountCount: v.accounts.size,
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+
   return {
     data: {
       rows,
       accountTotals,
+      wineTotals,
       parsedAt: new Date().toISOString(),
     },
     rowCount: rows.length,
