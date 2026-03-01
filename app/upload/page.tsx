@@ -11,14 +11,21 @@ import { parsePricingDetailed } from '@/lib/parsers/pricingParser';
 import { parseAllocations } from '@/lib/parsers/allocationsParser';
 import { parseOpenPOs } from '@/lib/parsers/openPOParser';
 import { UploadKey, UploadMeta } from '@/types';
-import { Upload, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { Upload, CheckCircle, AlertCircle, Loader, ChevronDown, ChevronRight } from 'lucide-react';
 
 type ZoneStatus = 'idle' | 'loading' | 'success' | 'error';
+
+interface ZoneDebug {
+  detectedCodeCol?: string;
+  detectedPriceCol?: string;
+  sampleCodes?: string[];
+}
 
 interface ZoneState {
   status: ZoneStatus;
   message: string;
   rowCount?: number;
+  debug?: ZoneDebug;
 }
 
 const ZONES: { key: UploadKey; label: string; hint: string; accept: string }[] = [
@@ -73,11 +80,25 @@ export default function UploadPage() {
         if (result.errors.length && !result.rowCount) throw new Error(result.errors[0]);
         store.setWinePropertiesData(result.rows, { ...meta, rowCount: result.rowCount });
         rowCount = result.rowCount;
+        setZone(key, {
+          status: 'success',
+          message: `${rowCount.toLocaleString()} rows loaded`,
+          rowCount,
+          debug: { detectedCodeCol: result.detectedCodeCol, sampleCodes: result.sampleCodes },
+        });
+        return;
       } else if (key === 'pricing') {
         const result = await parsePricingDetailed(file);
-        if (result.errors.length && !result.rowCount) throw new Error(result.errors[0]);
+        if (result.errors.length && !result.rowCount) throw new Error(result.errors[0] + ` (detected cols: ${result.detectedCodeCol} / ${result.detectedPriceCol})`);
         store.setPricingData(result.rows, { ...meta, rowCount: result.rowCount });
         rowCount = result.rowCount;
+        setZone(key, {
+          status: 'success',
+          message: `${rowCount.toLocaleString()} rows loaded`,
+          rowCount,
+          debug: { detectedCodeCol: result.detectedCodeCol, detectedPriceCol: result.detectedPriceCol, sampleCodes: result.sampleCodes },
+        });
+        return;
       } else if (key === 'allocations') {
         const result = await parseAllocations(file);
         if (result.errors.length && !result.rowCount) throw new Error(result.errors[0]);
@@ -98,78 +119,112 @@ export default function UploadPage() {
 
   function UploadZone({ zone }: { zone: typeof ZONES[0] }) {
     const inputRef = useRef<HTMLInputElement>(null);
+    const [showDebug, setShowDebug] = useState(false);
     const state = zones[zone.key];
     const meta = store.uploadMeta[zone.key];
-
-    const isDragging = false;
+    const debug = state?.debug;
 
     return (
-      <div
-        style={{
-          backgroundColor: '#161B22',
-          border: `2px dashed ${state?.status === 'error' ? '#F85149' : state?.status === 'success' ? '#3FB950' : '#30363D'}`,
-          borderRadius: 10,
-          padding: '20px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 16,
-          cursor: 'pointer',
-          transition: 'border-color 0.15s',
-        }}
-        onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); }}
-        onDrop={(e) => {
-          e.preventDefault();
-          const file = e.dataTransfer.files[0];
-          if (file) handleFile(zone.key, file);
-        }}
-      >
-        <input
-          ref={inputRef}
-          type="file"
-          accept={zone.accept}
-          style={{ display: 'none' }}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleFile(zone.key, file);
-            e.target.value = '';
+      <div style={{ borderRadius: 10, overflow: 'hidden', border: `2px solid ${state?.status === 'error' ? '#F85149' : state?.status === 'success' ? '#3FB950' : '#30363D'}`, transition: 'border-color 0.15s' }}>
+        <div
+          style={{
+            backgroundColor: '#161B22',
+            padding: '20px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            cursor: 'pointer',
           }}
-        />
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); }}
+          onDrop={(e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(zone.key, file);
+          }}
+        >
+          <input
+            ref={inputRef}
+            type="file"
+            accept={zone.accept}
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFile(zone.key, file);
+              e.target.value = '';
+            }}
+          />
 
-        {/* Icon */}
-        <div style={{ flexShrink: 0 }}>
-          {state?.status === 'loading' && <Loader size={22} color="#7D8590" style={{ animation: 'spin 1s linear infinite' }} />}
-          {state?.status === 'success' && <CheckCircle size={22} color="#3FB950" />}
-          {state?.status === 'error' && <AlertCircle size={22} color="#F85149" />}
-          {(!state || state.status === 'idle') && <Upload size={22} color="#7D8590" />}
+          {/* Icon */}
+          <div style={{ flexShrink: 0 }}>
+            {state?.status === 'loading' && <Loader size={22} color="#7D8590" style={{ animation: 'spin 1s linear infinite' }} />}
+            {state?.status === 'success' && <CheckCircle size={22} color="#3FB950" />}
+            {state?.status === 'error' && <AlertCircle size={22} color="#F85149" />}
+            {(!state || state.status === 'idle') && <Upload size={22} color="#7D8590" />}
+          </div>
+
+          {/* Text */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#E6EDF3' }}>{zone.label}</p>
+            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7D8590' }}>{zone.hint}</p>
+          </div>
+
+          {/* Status */}
+          <div style={{ flexShrink: 0, textAlign: 'right' }}>
+            {state?.status === 'loading' && (
+              <span style={{ fontSize: 12, color: '#7D8590' }}>Parsing…</span>
+            )}
+            {state?.status === 'success' && (
+              <span style={{ fontSize: 12, color: '#3FB950', fontWeight: 600 }}>{state.message}</span>
+            )}
+            {state?.status === 'error' && (
+              <span style={{ fontSize: 12, color: '#F85149' }}>{state.message}</span>
+            )}
+            {!state && meta && (
+              <span style={{ fontSize: 12, color: '#7D8590' }}>
+                {meta.rowCount.toLocaleString()} rows · {fmt(meta.date)}
+              </span>
+            )}
+            {!state && !meta && (
+              <span style={{ fontSize: 12, color: '#7D8590' }}>No data</span>
+            )}
+          </div>
+
+          {/* Debug toggle — only shows after a fresh parse with debug info */}
+          {debug && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowDebug((x) => !x); }}
+              style={{ background: 'none', border: 'none', color: '#484F58', cursor: 'pointer', padding: 2, lineHeight: 0, flexShrink: 0 }}
+              title="Show parse details"
+            >
+              {showDebug ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </button>
+          )}
         </div>
 
-        {/* Text */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#E6EDF3' }}>{zone.label}</p>
-          <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7D8590' }}>{zone.hint}</p>
-        </div>
-
-        {/* Status */}
-        <div style={{ flexShrink: 0, textAlign: 'right' }}>
-          {state?.status === 'loading' && (
-            <span style={{ fontSize: 12, color: '#7D8590' }}>Parsing…</span>
-          )}
-          {state?.status === 'success' && (
-            <span style={{ fontSize: 12, color: '#3FB950', fontWeight: 600 }}>{state.message}</span>
-          )}
-          {state?.status === 'error' && (
-            <span style={{ fontSize: 12, color: '#F85149' }}>{state.message}</span>
-          )}
-          {!state && meta && (
-            <span style={{ fontSize: 12, color: '#7D8590' }}>
-              {meta.rowCount.toLocaleString()} rows · {fmt(meta.date)}
-            </span>
-          )}
-          {!state && !meta && (
-            <span style={{ fontSize: 12, color: '#7D8590' }}>No data</span>
-          )}
-        </div>
+        {/* Debug panel */}
+        {debug && showDebug && (
+          <div style={{ backgroundColor: '#0D1117', borderTop: '1px solid #21262D', padding: '12px 24px', fontSize: 12, color: '#7D8590', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {debug.detectedCodeCol && (
+              <div>
+                <span style={{ color: '#484F58' }}>Code col: </span>
+                <span style={{ color: '#E3B341', fontFamily: 'monospace' }}>{debug.detectedCodeCol}</span>
+              </div>
+            )}
+            {debug.detectedPriceCol && (
+              <div>
+                <span style={{ color: '#484F58' }}>Price col: </span>
+                <span style={{ color: '#E3B341', fontFamily: 'monospace' }}>{debug.detectedPriceCol}</span>
+              </div>
+            )}
+            {debug.sampleCodes && debug.sampleCodes.length > 0 && (
+              <div>
+                <span style={{ color: '#484F58' }}>Sample codes: </span>
+                <span style={{ color: '#79BAFF', fontFamily: 'monospace' }}>{debug.sampleCodes.join(', ')}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   }

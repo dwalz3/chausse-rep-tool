@@ -114,6 +114,9 @@ export interface WinePropertiesParseResult {
   rowCount: number;
   errors: string[];
   filename: string;
+  // Debug: what was detected during parse
+  detectedCodeCol: string;
+  sampleCodes: string[];
 }
 
 export function parseWineProperties(file: File): Promise<WinePropertiesParseResult> {
@@ -136,7 +139,7 @@ export function parseWineProperties(file: File): Promise<WinePropertiesParseResu
           const text = data as string;
           const lines = text.split(/\r?\n/).filter((l) => l.trim());
           if (lines.length < 2) {
-            resolve({ rows: [], rowCount: 0, errors: ['File has no data rows'], filename: file.name });
+            resolve({ rows: [], rowCount: 0, errors: ['File has no data rows'], filename: file.name, detectedCodeCol: '(none)', sampleCodes: [] });
             return;
           }
           const firstLine = lines[0];
@@ -165,11 +168,13 @@ export function parseWineProperties(file: File): Promise<WinePropertiesParseResu
           rowCount: 0,
           errors: [err instanceof Error ? err.message : 'Parse error'],
           filename: file.name,
+          detectedCodeCol: '(error)',
+          sampleCodes: [],
         });
       }
     };
 
-    reader.onerror = () => resolve({ rows: [], rowCount: 0, errors: ['File read error'], filename: file.name });
+    reader.onerror = () => resolve({ rows: [], rowCount: 0, errors: ['File read error'], filename: file.name, detectedCodeCol: '(error)', sampleCodes: [] });
 
     if (file.name.match(/\.(xlsx|xls)$/i)) {
       reader.readAsArrayBuffer(file);
@@ -185,7 +190,7 @@ function resolveFromRows(
   resolve: (r: WinePropertiesParseResult) => void
 ): void {
   if (raw.length < 2) {
-    resolve({ rows: [], rowCount: 0, errors: ['File has no data rows'], filename });
+    resolve({ rows: [], rowCount: 0, errors: ['File has no data rows'], filename, detectedCodeCol: '(none)', sampleCodes: [] });
     return;
   }
 
@@ -245,5 +250,8 @@ function resolveFromRows(
     });
   }
 
-  resolve({ rows, rowCount: rows.length, errors: rows.length === 0 ? ['No data rows found'] : [], filename });
+  const detectedCodeCol = colCode >= 0 ? headers[colCode] : '(not found)';
+  const sampleCodes = rows.slice(0, 5).map((r) => r.wineCode);
+
+  resolve({ rows, rowCount: rows.length, errors: rows.length === 0 ? ['No data rows found'] : [], filename, detectedCodeCol, sampleCodes });
 }
