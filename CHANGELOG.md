@@ -1,5 +1,16 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.9.3 — 2026-02-28
+RB1 inventory upload; portfolio Inventory column shows real stock.
+
+### Added
+- `lib/parsers/rb1Parser.ts` — new parser for RB1 Inventory by Supplier Excel report; score-based header detection; detects item code, cases on hand, loose bottles columns; filters subtotal/grand total rows; emits `InventoryRow[]`
+- `types/index.ts` — `InventoryRow` interface; `inventoryCases`/`inventoryBottles` added to `PortfolioRow`; `'inventory'` added to `UploadKey`
+- `store/index.ts` — `inventoryData: InventoryRow[] | null` + `setInventoryData` action; wired into partialize + quota handler
+- `lib/buildPortfolioRows.ts` — optional `inventoryData` param; builds `inventoryMap`; `inventoryCases`/`inventoryBottles`/`stockCases` all resolve from RB1 data
+- `app/upload/page.tsx` — RB1 — Inventory by Supplier upload zone; uses rb1Parser; shows code col + cases col in debug panel
+- `app/portfolio/page.tsx` — Inventory cell shows real stock in green ("X cs + Y btl") from RB1, plus incoming open POs in blue ("+X on order")
+
 ## v0.9.2 — 2026-02-28
 Portfolio inventory column; pricing debug shows all file columns.
 

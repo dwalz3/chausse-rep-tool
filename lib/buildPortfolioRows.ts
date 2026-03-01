@@ -1,4 +1,4 @@
-import { WinePropertyRow, PricingRow, AllocationRow, OpenPORow, PortfolioRow, Ra25WineRow } from '@/types';
+import { WinePropertyRow, PricingRow, AllocationRow, OpenPORow, PortfolioRow, Ra25WineRow, InventoryRow } from '@/types';
 
 function normCode(s: string): string {
   return s.toString().trim().toUpperCase();
@@ -9,7 +9,8 @@ export function buildPortfolioRows(
   pricing: PricingRow[] | null,
   allocations: AllocationRow[] | null,
   openPOs: OpenPORow[] | null,
-  ra25WineTotals?: Ra25WineRow[] | null
+  ra25WineTotals?: Ra25WineRow[] | null,
+  inventoryData?: InventoryRow[] | null
 ): PortfolioRow[] {
   // Build lookup maps
   const priceMap = new Map<string, PricingRow>();
@@ -25,6 +26,21 @@ export function buildPortfolioRows(
     for (const a of allocations) {
       const key = normCode(a.wineCode);
       allocMap.set(key, (allocMap.get(key) ?? 0) + a.allocatedCases);
+    }
+  }
+
+  // Build inventory lookup map
+  const inventoryMap = new Map<string, { casesOnHand: number; bottlesOnHand: number }>();
+  if (inventoryData) {
+    for (const inv of inventoryData) {
+      const key = normCode(inv.wineCode);
+      const existing = inventoryMap.get(key);
+      if (existing) {
+        existing.casesOnHand += inv.casesOnHand;
+        existing.bottlesOnHand += inv.bottlesOnHand;
+      } else {
+        inventoryMap.set(key, { casesOnHand: inv.casesOnHand, bottlesOnHand: inv.bottlesOnHand });
+      }
     }
   }
 
@@ -81,10 +97,12 @@ export function buildPortfolioRows(
       isDirect: w.isDirect,
       bottlePrice: price?.defaultPrice ?? 0,
       fobPrice: price?.fobPrice ?? 0,
+      inventoryCases: inventoryMap.get(key)?.casesOnHand ?? 0,
+      inventoryBottles: inventoryMap.get(key)?.bottlesOnHand ?? 0,
       allocatedCases: allocMap.get(key) ?? 0,
       openPOCases: po?.openCases ?? 0,
       expectedArrival: po?.expectedArrival ?? null,
-      stockCases: po?.openCases ?? 0, // proxy until inventory data available
+      stockCases: inventoryMap.get(key)?.casesOnHand ?? po?.openCases ?? 0,
       accountCount: accountCountMap.get(key) ?? 0,
     };
   });

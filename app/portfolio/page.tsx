@@ -67,6 +67,7 @@ function PortfolioInner() {
 
   const winePropertiesData = useStore((s) => s.winePropertiesData);
   const pricingData = useStore((s) => s.pricingData);
+  const inventoryData = useStore((s) => s.inventoryData);
   const allocationsData = useStore((s) => s.allocationsData);
   const openPOData = useStore((s) => s.openPOData);
   const ra25Data = useStore((s) => s.ra25Data);
@@ -112,8 +113,8 @@ function PortfolioInner() {
   // ── Data ──────────────────────────────────────────────────────────────────
   const allRows = useMemo(() => {
     if (!winePropertiesData) return [];
-    return buildPortfolioRows(winePropertiesData, pricingData, allocationsData, openPOData, ra25Data?.wineTotals);
-  }, [winePropertiesData, pricingData, allocationsData, openPOData, ra25Data]);
+    return buildPortfolioRows(winePropertiesData, pricingData, allocationsData, openPOData, ra25Data?.wineTotals, inventoryData);
+  }, [winePropertiesData, pricingData, inventoryData, allocationsData, openPOData, ra25Data]);
 
   const fuse = useMemo(
     () =>
@@ -428,17 +429,21 @@ function PortfolioInner() {
                             </td>
 
                             {/* Inventory */}
-                            <td style={{ borderTop: '1px solid #21262D', padding: '7px 12px' }}>
-                              {row.openPOCases > 0 || row.allocatedCases > 0 ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, fontSize: 11 }}>
-                                  {row.openPOCases > 0 && (
-                                    <span style={{ color: '#3FB950', fontVariantNumeric: 'tabular-nums' }}>
-                                      {row.openPOCases} cs on order
+                            <td style={{ borderTop: '1px solid #21262D', padding: '7px 12px', fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
+                              {row.inventoryCases > 0 || row.inventoryBottles > 0 || row.openPOCases > 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                  {/* Real stock from RB1 */}
+                                  {(row.inventoryCases > 0 || row.inventoryBottles > 0) && (
+                                    <span style={{ color: '#3FB950', fontWeight: 600 }}>
+                                      {row.inventoryCases > 0 && `${row.inventoryCases} cs`}
+                                      {row.inventoryCases > 0 && row.inventoryBottles > 0 && ' + '}
+                                      {row.inventoryBottles > 0 && `${row.inventoryBottles} btl`}
                                     </span>
                                   )}
-                                  {row.allocatedCases > 0 && (
-                                    <span style={{ color: '#E3B341', fontVariantNumeric: 'tabular-nums' }}>
-                                      {row.allocatedCases} alloc
+                                  {/* Incoming from Open POs */}
+                                  {row.openPOCases > 0 && (
+                                    <span style={{ color: '#58A6FF' }}>
+                                      +{row.openPOCases} on order
                                     </span>
                                   )}
                                 </div>

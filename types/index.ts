@@ -148,6 +148,16 @@ export interface AllocationRow {
   deadline?: string;
 }
 
+// ── RB1 — Inventory by Supplier ────────────────────────────────────────────────
+
+export interface InventoryRow {
+  wineCode: string;
+  wineName: string;
+  supplier: string;
+  casesOnHand: number;    // full cases in warehouse
+  bottlesOnHand: number;  // loose bottles (not making a full case)
+}
+
 // ── Open Purchase Orders ───────────────────────────────────────────────────────
 
 export interface OpenPORow {
@@ -177,6 +187,8 @@ export interface PortfolioRow {
   isDirect: boolean;
   bottlePrice: number;
   fobPrice: number;
+  inventoryCases: number;   // from RB1 — actual cases in warehouse
+  inventoryBottles: number; // from RB1 — loose bottles
   allocatedCases: number;
   openPOCases: number;
   expectedArrival: Date | null;
@@ -191,6 +203,7 @@ export type UploadKey =
   | 'ra25'
   | 'wineProperties'
   | 'pricing'
+  | 'inventory'
   | 'allocations'
   | 'openPO'
   | 'producers';

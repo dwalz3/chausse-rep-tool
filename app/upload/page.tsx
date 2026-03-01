@@ -10,6 +10,7 @@ import { parseWineProperties } from '@/lib/parsers/winePropertiesParser';
 import { parsePricingDetailed } from '@/lib/parsers/pricingParser';
 import { parseAllocations } from '@/lib/parsers/allocationsParser';
 import { parseOpenPOs } from '@/lib/parsers/openPOParser';
+import { parseRb1 } from '@/lib/parsers/rb1Parser';
 import { UploadKey, UploadMeta } from '@/types';
 import { Upload, CheckCircle, AlertCircle, Loader, ChevronDown, ChevronRight } from 'lucide-react';
 
@@ -35,6 +36,7 @@ const ZONES: { key: UploadKey; label: string; hint: string; accept: string }[] =
   { key: 'ra25',          label: 'RA25 — Account Summary',      hint: 'Accounts sheet',                  accept: '.xlsx,.xls' },
   { key: 'wineProperties',label: 'Wine Properties',             hint: 'CSV or XLSX — Wine Code, Name, Producer, Country, Type', accept: '.csv,.xlsx,.xls' },
   { key: 'pricing',       label: 'Pricing',                     hint: 'Wine Code, Default Price, FOB Price', accept: '.xlsx,.xls' },
+  { key: 'inventory',     label: 'RB1 — Inventory by Supplier', hint: 'Wine Code, Cases on Hand, Loose Bottles', accept: '.xlsx,.xls' },
   { key: 'allocations',   label: 'Allocations',                 hint: 'Wine Code, Account, Allocated Cases', accept: '.xlsx,.xls' },
   { key: 'openPO',        label: 'Open Purchase Orders',        hint: 'Wine Code, Cases, Expected Arrival',  accept: '.xlsx,.xls' },
   { key: 'producers',     label: 'Producers',                   hint: 'Producers sheet (Upload Type = producers)', accept: '.xlsx,.xls' },
@@ -99,6 +101,18 @@ export default function UploadPage() {
           message: `${rowCount.toLocaleString()} rows loaded`,
           rowCount,
           debug: { detectedCodeCol: result.detectedCodeCol, detectedPriceCol: result.detectedPriceCol, sampleCodes: result.sampleCodes, samplePrices: result.samplePrices, allHeaders: result.allHeaders },
+        });
+        return;
+      } else if (key === 'inventory') {
+        const result = await parseRb1(file);
+        if (result.errors.length && !result.rowCount) throw new Error(result.errors[0]);
+        store.setInventoryData(result.rows, { ...meta, rowCount: result.rowCount });
+        rowCount = result.rowCount;
+        setZone(key, {
+          status: 'success',
+          message: `${rowCount.toLocaleString()} rows loaded`,
+          rowCount,
+          debug: { detectedCodeCol: result.detectedCodeCol, detectedPriceCol: result.detectedCasesCol, sampleCodes: result.sampleCodes },
         });
         return;
       } else if (key === 'allocations') {

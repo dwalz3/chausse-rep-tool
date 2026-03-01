@@ -5,7 +5,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import {
   RepIdentity, SalesGoal,
   Rc5Data, Ra25Data, ProducersData,
-  WinePropertyRow, PricingRow, AllocationRow, OpenPORow,
+  WinePropertyRow, PricingRow, AllocationRow, OpenPORow, InventoryRow,
   UploadKey, UploadMeta,
 } from '@/types';
 
@@ -17,6 +17,7 @@ interface DataState {
   producersData: ProducersData | null;
   winePropertiesData: WinePropertyRow[] | null;
   pricingData: PricingRow[] | null;
+  inventoryData: InventoryRow[] | null;
   allocationsData: AllocationRow[] | null;
   openPOData: OpenPORow[] | null;
   uploadMeta: Partial<Record<UploadKey, UploadMeta>>;
@@ -28,6 +29,7 @@ interface DataActions {
   setProducersData: (data: ProducersData, meta: UploadMeta) => void;
   setWinePropertiesData: (data: WinePropertyRow[], meta: UploadMeta) => void;
   setPricingData: (data: PricingRow[], meta: UploadMeta) => void;
+  setInventoryData: (data: InventoryRow[], meta: UploadMeta) => void;
   setAllocationsData: (data: AllocationRow[], meta: UploadMeta) => void;
   setOpenPOData: (data: OpenPORow[], meta: UploadMeta) => void;
   clearAllData: () => void;
@@ -77,6 +79,7 @@ const DATA_DEFAULTS: DataState = {
   producersData: null,
   winePropertiesData: null,
   pricingData: null,
+  inventoryData: null,
   allocationsData: null,
   openPOData: null,
   uploadMeta: {},
@@ -112,6 +115,9 @@ export const useStore = create<Store>()(
 
       setPricingData: (data, meta) =>
         set((s) => ({ pricingData: data, uploadMeta: { ...s.uploadMeta, pricing: meta } })),
+
+      setInventoryData: (data, meta) =>
+        set((s) => ({ inventoryData: data, uploadMeta: { ...s.uploadMeta, inventory: meta } })),
 
       setAllocationsData: (data, meta) =>
         set((s) => ({ allocationsData: data, uploadMeta: { ...s.uploadMeta, allocations: meta } })),
@@ -166,6 +172,7 @@ export const useStore = create<Store>()(
         producersData: s.producersData,
         winePropertiesData: s.winePropertiesData,
         pricingData: s.pricingData,
+        inventoryData: s.inventoryData,
         allocationsData: s.allocationsData,
         openPOData: s.openPOData,
         uploadMeta: s.uploadMeta,
@@ -181,6 +188,7 @@ export const useStore = create<Store>()(
         setProducersData: s.setProducersData,
         setWinePropertiesData: s.setWinePropertiesData,
         setPricingData: s.setPricingData,
+        setInventoryData: s.setInventoryData,
         setAllocationsData: s.setAllocationsData,
         setOpenPOData: s.setOpenPOData,
         clearAllData: s.clearAllData,
@@ -220,6 +228,7 @@ if (typeof window !== 'undefined') {
           producersData: null,
           winePropertiesData: null,
           pricingData: null,
+          inventoryData: null,
           allocationsData: null,
           openPOData: null,
         });
