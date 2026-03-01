@@ -8,7 +8,7 @@ import { Rc5Row } from '@/types';
 import { ChevronUp, ChevronDown, Search } from 'lucide-react';
 import TrendSparkline from '@/components/ui/TrendSparkline';
 
-type SortKey = 'account' | 'lastActiveMonth' | 'three_mo' | 'ytd' | 'totalRevenue';
+type SortKey = 'account' | 'lastActiveMonth' | 'three_mo' | 'latest_mo' | 'totalRevenue';
 type SortDir = 'asc' | 'desc';
 type StatusFilter = 'all' | 'active' | 'at-risk' | 'dormant' | 'new';
 
@@ -155,8 +155,8 @@ export default function AccountsPage() {
           const bSum = b.monthlyRevenue[10] + b.monthlyRevenue[11] + b.monthlyRevenue[12];
           return mult * (aSum - bSum);
         }
-        case 'ytd':
-          return mult * (a.monthlyRevenue.slice(1).reduce((s, v) => s + v, 0) - b.monthlyRevenue.slice(1).reduce((s, v) => s + v, 0));
+        case 'latest_mo':
+          return mult * (a.monthlyRevenue[12] - b.monthlyRevenue[12]);
         case 'totalRevenue':
         default:
           return mult * (a.totalRevenue - b.totalRevenue);
@@ -219,7 +219,7 @@ export default function AccountsPage() {
                     { key: 'account' as SortKey, label: 'Account' },
                     { key: 'lastActiveMonth' as SortKey, label: 'Last Active' },
                     { key: 'three_mo' as SortKey, label: '3-Mo Total' },
-                    { key: 'ytd' as SortKey, label: 'YTD' },
+                    { key: 'latest_mo' as SortKey, label: 'Latest Mo.' },
                     { key: 'totalRevenue' as SortKey, label: 'All-Time' },
                   ].map(({ key, label }) => (
                     <th
@@ -240,7 +240,7 @@ export default function AccountsPage() {
               <tbody>
                 {sorted.map((row) => {
                   const three_mo = row.monthlyRevenue[10] + row.monthlyRevenue[11] + row.monthlyRevenue[12];
-                  const ytd = row.monthlyRevenue.slice(1).reduce((s, v) => s + v, 0);
+                  const latest_mo = row.monthlyRevenue[12];
                   const status = getStatus(row);
                   return (
                     <tr
@@ -259,9 +259,9 @@ export default function AccountsPage() {
                       <td style={{ padding: '10px 16px', textAlign: 'right', color: '#7D8590' }}>
                         {fmtMonth(row.lastActiveMonth)}
                       </td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3' }}>{fmt$(three_mo)}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3' }}>{fmt$(ytd)}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3' }}>{fmt$(row.totalRevenue)}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{fmt$(three_mo)}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{fmt$(latest_mo)}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{fmt$(row.totalRevenue)}</td>
                       <td style={{ padding: '10px 16px', textAlign: 'right' }}>
                         <TrendCell row={row} />
                       </td>

@@ -179,6 +179,7 @@ export interface PortfolioRow {
   openPOCases: number;
   expectedArrival: Date | null;
   stockCases: number;
+  accountCount: number;
 }
 
 // ── Upload meta ────────────────────────────────────────────────────────────────

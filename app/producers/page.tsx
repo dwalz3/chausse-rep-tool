@@ -2,14 +2,82 @@
 
 import { useState, useMemo } from 'react';
 import Shell from '@/components/layout/Shell';
+import WineDrawer from '@/components/ui/WineDrawer';
 import { useStore } from '@/store';
+import { buildPortfolioRows } from '@/lib/buildPortfolioRows';
+import { PortfolioRow } from '@/types';
 import { Search, ChevronDown, ChevronRight } from 'lucide-react';
+
+function normCode(s: string) {
+  return s.toString().trim().toUpperCase();
+}
+
+const FARMING_LABELS: Record<string, { label: string; bg: string; color: string }> = {
+  biodynamic:        { label: 'Biodynamic',        bg: '#003730', color: '#22D3A5' },
+  biodynamique:      { label: 'Biodynamic',        bg: '#003730', color: '#22D3A5' },
+  demeter:           { label: 'Demeter',            bg: '#003730', color: '#22D3A5' },
+  natural:           { label: 'Natural',            bg: '#0D2918', color: '#3FB950' },
+  organic:           { label: 'Organic',            bg: '#0D2918', color: '#3FB950' },
+  sustainable:       { label: 'Sustainable',        bg: '#1C2640', color: '#79BAFF' },
+  'lutte raisonnée': { label: 'Lutte Raisonnée',   bg: '#1C2640', color: '#79BAFF' },
+  lutte:             { label: 'Lutte Raisonnée',   bg: '#1C2640', color: '#79BAFF' },
+};
+
+function FarmingBadge({ practice }: { practice: string }) {
+  const key = practice.toLowerCase();
+  // Try exact match, then prefix match
+  const style = FARMING_LABELS[key] ??
+    Object.entries(FARMING_LABELS).find(([k]) => key.includes(k))?.[1] ??
+    { label: practice, bg: '#21262D', color: '#7D8590' };
+  return (
+    <span style={{ fontSize: 11, backgroundColor: style.bg, color: style.color, borderRadius: 4, padding: '2px 7px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+      {style.label}
+    </span>
+  );
+}
+
+function BioSection({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const LIMIT = 160;
+  const short = text.length > LIMIT;
+  return (
+    <div style={{ fontSize: 12, color: '#7D8590', marginTop: 6, lineHeight: 1.55 }}>
+      {expanded || !short ? text : text.slice(0, LIMIT) + '…'}
+      {short && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setExpanded((x) => !x); }}
+          style={{ marginLeft: 6, background: 'none', border: 'none', color: '#3FB950', fontSize: 12, cursor: 'pointer', padding: 0 }}
+        >
+          {expanded ? 'Less' : 'Read More'}
+        </button>
+      )}
+    </div>
+  );
+}
 
 export default function ProducersPage() {
   const producersData = useStore((s) => s.producersData);
   const winePropertiesData = useStore((s) => s.winePropertiesData);
+  const pricingData = useStore((s) => s.pricingData);
+  const allocationsData = useStore((s) => s.allocationsData);
+  const openPOData = useStore((s) => s.openPOData);
+  const ra25Data = useStore((s) => s.ra25Data);
+
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [selectedWine, setSelectedWine] = useState<PortfolioRow | null>(null);
+
+  // Build portfolio map: normCode → PortfolioRow
+  const portfolioMap = useMemo(() => {
+    const map = new Map<string, PortfolioRow>();
+    if (winePropertiesData) {
+      const rows = buildPortfolioRows(winePropertiesData, pricingData, allocationsData, openPOData, ra25Data?.wineTotals);
+      for (const row of rows) {
+        map.set(normCode(row.wineCode), row);
+      }
+    }
+    return map;
+  }, [winePropertiesData, pricingData, allocationsData, openPOData, ra25Data]);
 
   // Count wines per producer
   const wineCountMap = useMemo(() => {
@@ -53,6 +121,7 @@ export default function ProducersPage() {
   const noData = !producersData;
 
   return (
+    <>
     <Shell>
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -95,44 +164,72 @@ export default function ProducersPage() {
                     onClick={() => wines.length > 0 && toggleExpand(p.name)}
                     style={{
                       display: 'flex',
-                      alignItems: 'center',
-                      padding: '12px 16px',
+                      alignItems: 'flex-start',
+                      padding: '14px 16px',
                       cursor: wines.length > 0 ? 'pointer' : 'default',
                       gap: 12,
                     }}
                     onMouseEnter={(e) => wines.length > 0 && (e.currentTarget.style.backgroundColor = '#1C2128')}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
-                    <span style={{ color: '#7D8590', width: 16, flexShrink: 0 }}>
+                    <span style={{ color: '#7D8590', width: 16, flexShrink: 0, marginTop: 2 }}>
                       {wines.length > 0 ? (isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />) : null}
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: '#E6EDF3' }}>{p.name}</span>
-                      {p.region && <span style={{ fontSize: 12, color: '#7D8590', marginLeft: 8 }}>{p.region}</span>}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: '#E6EDF3' }}>{p.name}</span>
+                        {p.region && <span style={{ fontSize: 12, color: '#7D8590' }}>{p.region}</span>}
+                      </div>
+                      {/* Farming badges */}
+                      {p.farmingPractices && p.farmingPractices.length > 0 && (
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                          {p.farmingPractices.map((f) => (
+                            <FarmingBadge key={f} practice={f} />
+                          ))}
+                        </div>
+                      )}
+                      {/* Bio */}
+                      {p.about && <BioSection text={p.about} />}
                     </div>
-                    <span style={{ fontSize: 13, color: '#7D8590', flexShrink: 0 }}>{p.country}</span>
-                    {p.isDirectImport && (
-                      <span style={{ fontSize: 11, backgroundColor: '#FEF3C7', color: '#92400E', borderRadius: 4, padding: '2px 7px', fontWeight: 600, flexShrink: 0 }}>
-                        Direct
-                      </span>
-                    )}
-                    {wineCount > 0 && (
-                      <span style={{ fontSize: 12, backgroundColor: '#21262D', color: '#7D8590', borderRadius: 10, padding: '1px 8px', fontWeight: 600, flexShrink: 0 }}>
-                        {wineCount} {wineCount === 1 ? 'wine' : 'wines'}
-                      </span>
-                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+                      <span style={{ fontSize: 13, color: '#7D8590' }}>{p.country}</span>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        {p.isDirectImport && (
+                          <span style={{ fontSize: 11, backgroundColor: '#2A2500', color: '#E3B341', borderRadius: 4, padding: '2px 7px', fontWeight: 600 }}>
+                            Direct
+                          </span>
+                        )}
+                        {wineCount > 0 && (
+                          <span style={{ fontSize: 12, backgroundColor: '#21262D', color: '#7D8590', borderRadius: 10, padding: '1px 8px', fontWeight: 600 }}>
+                            {wineCount} {wineCount === 1 ? 'wine' : 'wines'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Expanded wines */}
                   {isExpanded && wines.length > 0 && (
                     <div style={{ backgroundColor: '#1C2128', paddingLeft: 44, paddingRight: 16, paddingBottom: 8 }}>
-                      {wines.map((w) => (
-                        <div key={w.wineCode} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 0', borderBottom: '1px solid #21262D', fontSize: 13 }}>
-                          <span style={{ color: '#E6EDF3' }}>{w.wineName || w.name}</span>
-                          {w.vintage && <span style={{ color: '#7D8590' }}>{w.vintage}</span>}
-                          <span style={{ marginLeft: 'auto', color: '#7D8590', fontSize: 11 }}>{w.wineCode}</span>
-                        </div>
-                      ))}
+                      {wines.map((w) => {
+                        const portfolioRow = portfolioMap.get(normCode(w.wineCode));
+                        return (
+                          <div
+                            key={w.wineCode}
+                            onClick={(e) => { e.stopPropagation(); if (portfolioRow) setSelectedWine(portfolioRow); }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '7px 0', borderBottom: '1px solid #21262D', fontSize: 13, cursor: portfolioRow ? 'pointer' : 'default' }}
+                            onMouseEnter={(e) => portfolioRow && (e.currentTarget.style.backgroundColor = '#21262D')}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                          >
+                            <span style={{ color: '#E6EDF3' }}>{w.wineName || w.name}</span>
+                            {w.vintage && <span style={{ color: '#7D8590' }}>{w.vintage}</span>}
+                            {portfolioRow && portfolioRow.bottlePrice > 0 && (
+                              <span style={{ color: '#7D8590', fontSize: 12 }}>${portfolioRow.bottlePrice.toFixed(2)}</span>
+                            )}
+                            <span style={{ marginLeft: 'auto', color: '#484F58', fontSize: 11 }}>{w.wineCode}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -147,5 +244,7 @@ export default function ProducersPage() {
         )}
       </div>
     </Shell>
+    <WineDrawer wine={selectedWine} onClose={() => setSelectedWine(null)} />
+    </>
   );
 }

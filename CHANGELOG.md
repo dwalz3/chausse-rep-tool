@@ -1,5 +1,22 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.8.0 — 2026-02-28
+Parser fixes, portfolio enhancements, WineDrawer, Focus KPIs.
+
+### Fixed
+- `lib/parsers/winePropertiesParser.ts` — smart header row detection (scores rows 0–5 instead of always using row 0); 7 additional type column name variants (`beverage type`, `wine category`, `item type`, `product group`, `subcategory`, `varietal`, `grape`); added `pét-nat` / `pet-nat` (hyphenated) to Sparkling detection; added `isJunkRow()` filter (delivery fees, freight, surcharges skipped)
+- `lib/parsers/pricingParser.ts` — removed overly broad `'item'` keyword from code column search; replaced with `'item number'`, `'item no'`, `'item #'`, `'product code'` — prevents matching "Item Description" as the code column
+- `app/accounts/page.tsx` — replaced YTD column with "Latest Mo." (most recent month revenue); tabular-nums on numeric cells
+
+### Added
+- `types/index.ts` — `PortfolioRow.accountCount: number`
+- `lib/buildPortfolioRows.ts` — accepts optional `ra25WineTotals` parameter; computes `accountCount` from wine-level RA25 data
+- `components/ui/WineDrawer.tsx` — slide-in drawer (position: fixed right, 420px); shows type badge, wine identity, farming attributes, 10-field detail grid, portfolio link
+- `components/portfolio/SavedViewChips.tsx` — added Champagne view (French sparkling + region/producer match) and Burgundy view (France + region Burgundy/Bourgogne); 19 total views
+- `app/portfolio/page.tsx` — WineDrawer wired (click row → drawer instead of navigate); Farming column (N/B/D badges); Accounts column replaces PO Cases; passes `ra25Data.wineTotals` to `buildPortfolioRows`
+- `app/producers/page.tsx` — farming practice badges with color coding; producer bio with Read More/Less toggle; wine rows clickable → WineDrawer; bottle price shown in expanded wine list; WineDrawer wired
+- `app/focus/page.tsx` — KPI card row (Wine SKUs, Territory Revenue, Active Accounts, Avg/Account); sections renamed to "Expand These — Top Performers" / "Next Tier — Build Placement"; new Reactivate section (dormant accounts sorted by lifetime revenue with Last Active + Peak 3-Mo columns); tabular-nums on all numeric cells
+
 ## v0.6.1 — 2026-02-28
 Design addenda: TrendSparkline, unified wine type colors, Account Detail sidenotes layout.
 

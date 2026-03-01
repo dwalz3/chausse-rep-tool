@@ -1,4 +1,4 @@
-import { WinePropertyRow, PricingRow, AllocationRow, OpenPORow, PortfolioRow } from '@/types';
+import { WinePropertyRow, PricingRow, AllocationRow, OpenPORow, PortfolioRow, Ra25WineRow } from '@/types';
 
 function normCode(s: string): string {
   return s.toString().trim().toUpperCase();
@@ -8,7 +8,8 @@ export function buildPortfolioRows(
   wineProps: WinePropertyRow[],
   pricing: PricingRow[] | null,
   allocations: AllocationRow[] | null,
-  openPOs: OpenPORow[] | null
+  openPOs: OpenPORow[] | null,
+  ra25WineTotals?: Ra25WineRow[] | null
 ): PortfolioRow[] {
   // Build lookup maps
   const priceMap = new Map<string, PricingRow>();
@@ -24,6 +25,14 @@ export function buildPortfolioRows(
     for (const a of allocations) {
       const key = normCode(a.wineCode);
       allocMap.set(key, (allocMap.get(key) ?? 0) + a.allocatedCases);
+    }
+  }
+
+  // Aggregate RA25 account counts by wine code
+  const accountCountMap = new Map<string, number>();
+  if (ra25WineTotals) {
+    for (const w of ra25WineTotals) {
+      accountCountMap.set(normCode(w.wineCode), w.accountCount);
     }
   }
 
@@ -75,6 +84,7 @@ export function buildPortfolioRows(
       openPOCases: po?.openCases ?? 0,
       expectedArrival: po?.expectedArrival ?? null,
       stockCases: po?.openCases ?? 0, // proxy until inventory data available
+      accountCount: accountCountMap.get(key) ?? 0,
     };
   });
 }

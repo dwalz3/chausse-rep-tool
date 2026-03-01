@@ -19,13 +19,54 @@ function findCol(headers: string[], ...keywords: string[]): number {
   return -1;
 }
 
+// Score-based header row detection: try rows 0-5, pick the one with most recognized column keywords
+const HEADER_SCORE_KEYWORDS = [
+  'wine code', 'item code', 'code', 'sku',
+  'wine name', 'item name', 'name', 'description',
+  'producer', 'supplier', 'importer',
+  'country', 'region', 'vintage',
+  'wine type', 'product type', 'type', 'category',
+  'price', 'cost',
+];
+
+function findHeaderRow(raw: unknown[][]): number {
+  let bestRow = 0;
+  let bestScore = -1;
+  for (let i = 0; i < Math.min(6, raw.length); i++) {
+    const row = (raw[i] as unknown[]).map(norm);
+    let score = 0;
+    for (const h of row) {
+      if (h && HEADER_SCORE_KEYWORDS.some((kw) => h.includes(kw))) score++;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestRow = i;
+    }
+  }
+  return bestRow;
+}
+
+function isJunkRow(code: string, name: string): boolean {
+  const s = (code + ' ' + name).toLowerCase();
+  return (
+    s.includes('delivery fee') ||
+    s.includes('freight') ||
+    s.includes('surcharge') ||
+    s.includes('handling fee') ||
+    s.includes('under minimum') ||
+    s.includes('minimum order') ||
+    s.includes('service fee') ||
+    /^[-=*#]+$/.test(code.trim())
+  );
+}
+
 function parseWineType(raw: string): WineType {
   const s = raw.trim().toLowerCase();
   if (!s) return 'Other';
   // Sparkling first — catches "sparkling red", "pét nat", etc.
   if (s.includes('sparkling') || s.includes('champagne') || s.includes('prosecco') ||
       s.includes('cava') || s.includes('crémant') || s.includes('cremant') ||
-      s.includes('pét nat') || s.includes('pet nat') || s.includes('pétillant') ||
+      s.includes('pét nat') || s.includes('pét-nat') || s.includes('pet nat') || s.includes('pet-nat') || s.includes('pétillant') ||
       s.includes('petillant') || s.includes('mousseux') || s.includes('frizzante') ||
       s.includes('lambrusco') || s === 'sp' || s === 'bubbly')
     return 'Sparkling';
@@ -148,7 +189,8 @@ function resolveFromRows(
     return;
   }
 
-  const headers = (raw[0] as unknown[]).map(norm);
+  const headerRowIdx = findHeaderRow(raw);
+  const headers = (raw[headerRowIdx] as unknown[]).map(norm);
   const colCode = findCol(headers, 'wine code', 'item code', 'item number', 'item no', 'product code', 'code', 'sku', 'item #');
   const colName = findCol(headers, 'wine name', 'item name', 'item description', 'product name', 'product description', 'full name', 'name', 'description', 'item');
   const colProducer = findCol(headers, 'producer', 'producer name', 'supplier', 'winery', 'estate', 'brand');
@@ -156,15 +198,19 @@ function resolveFromRows(
   const colCountry = findCol(headers, 'country', 'country of origin', 'origin');
   const colRegion = findCol(headers, 'region', 'appellation', 'area', 'sub-region', 'subregion');
   const colPallet = findCol(headers, 'cases/pallet', 'cases per pallet', 'cs/plt', 'pallet');
-  const colType = findCol(headers, 'wine type', 'product type', 'varietal type', 'category', 'style', 'color', 'type', 'kind');
+  const colType = findCol(headers,
+    'wine type', 'product type', 'varietal type', 'beverage type',
+    'wine category', 'item type', 'product group', 'subcategory',
+    'category', 'style', 'color', 'type', 'kind', 'varietal', 'grape'
+  );
   const colVintage = findCol(headers, 'vintage', 'vintage year', 'year', 'vy');
 
   const rows: WinePropertyRow[] = [];
 
-  for (let i = 1; i < raw.length; i++) {
+  for (let i = headerRowIdx + 1; i < raw.length; i++) {
     const r = raw[i] as unknown[];
     const wineCode = colCode >= 0 ? String(r[colCode] ?? '').trim() : '';
-    if (!wineCode) continue;
+    if (!wineCode || isJunkRow(wineCode, colName >= 0 ? String(r[colName] ?? '') : '')) continue;
 
     const rawName = colName >= 0 ? String(r[colName] ?? '').trim() : '';
     const parsed = parseWineName(rawName);

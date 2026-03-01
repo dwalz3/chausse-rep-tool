@@ -1,11 +1,12 @@
 'use client';
 
 import { useMemo, useState, useCallback, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Fuse from 'fuse.js';
 import Shell from '@/components/layout/Shell';
 import SavedViewChips, { SAVED_VIEWS } from '@/components/portfolio/SavedViewChips';
 import WineTypeBadge from '@/components/portfolio/WineTypeBadge';
+import WineDrawer from '@/components/ui/WineDrawer';
 import { useStore } from '@/store';
 import { buildPortfolioRows } from '@/lib/buildPortfolioRows';
 import { PortfolioRow } from '@/types';
@@ -23,15 +24,17 @@ function PortfolioInner() {
   const pricingData = useStore((s) => s.pricingData);
   const allocationsData = useStore((s) => s.allocationsData);
   const openPOData = useStore((s) => s.openPOData);
+  const ra25Data = useStore((s) => s.ra25Data);
   const btgThreshold = useStore((s) => s.btgThreshold);
 
   const [activeView, setActiveView] = useState(searchParams.get('view') ?? 'all');
   const [search, setSearch] = useState(searchParams.get('q') ?? '');
+  const [selectedWine, setSelectedWine] = useState<PortfolioRow | null>(null);
 
   const allRows = useMemo(() => {
     if (!winePropertiesData) return [];
-    return buildPortfolioRows(winePropertiesData, pricingData, allocationsData, openPOData);
-  }, [winePropertiesData, pricingData, allocationsData, openPOData]);
+    return buildPortfolioRows(winePropertiesData, pricingData, allocationsData, openPOData, ra25Data?.wineTotals);
+  }, [winePropertiesData, pricingData, allocationsData, openPOData, ra25Data]);
 
   const fuse = useMemo(
     () =>
@@ -86,6 +89,7 @@ function PortfolioInner() {
   const noData = !winePropertiesData;
 
   return (
+    <>
     <Shell>
       <div>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: '0 0 20px' }}>
@@ -154,15 +158,16 @@ function PortfolioInner() {
                       <th style={{ textAlign: 'left', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
                       <th style={{ textAlign: 'left', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Vintage</th>
                       <th style={{ textAlign: 'left', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Country</th>
+                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Farming</th>
                       <th style={{ textAlign: 'right', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Price</th>
-                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>PO Cases</th>
+                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Accts</th>
                     </tr>
                   </thead>
                   <tbody>
                     {searchFiltered.map((row) => (
                       <tr
                         key={row.wineCode}
-                        onClick={() => router.push(`/portfolio/${encodeURIComponent(row.wineCode)}`)}
+                        onClick={() => setSelectedWine(row)}
                         style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
                         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
@@ -170,29 +175,45 @@ function PortfolioInner() {
                         <td style={{ padding: '9px 16px' }}>
                           <WineTypeBadge type={row.wineType} />
                         </td>
-                        <td style={{ padding: '9px 16px', color: '#7D8590', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <td style={{ padding: '9px 16px', color: '#7D8590', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {row.producer}
                         </td>
                         <td style={{ padding: '9px 16px', color: '#E6EDF3', fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {row.wineName || row.name}
                         </td>
-                        <td style={{ padding: '9px 16px', color: '#7D8590' }}>
+                        <td style={{ padding: '9px 16px', color: '#7D8590', whiteSpace: 'nowrap' }}>
                           {row.vintage || '—'}
                         </td>
-                        <td style={{ padding: '9px 16px', color: '#7D8590' }}>
+                        <td style={{ padding: '9px 16px', color: '#7D8590', whiteSpace: 'nowrap' }}>
                           {row.country || '—'}
                         </td>
-                        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#E6EDF3', fontWeight: 600 }}>
+                        <td style={{ padding: '9px 16px' }}>
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            {row.isNatural && (
+                              <span title="Natural" style={{ fontSize: 10, backgroundColor: '#0D2918', color: '#3FB950', borderRadius: 3, padding: '1px 5px', fontWeight: 700 }}>N</span>
+                            )}
+                            {row.isBiodynamic && (
+                              <span title="Biodynamic" style={{ fontSize: 10, backgroundColor: '#003730', color: '#22D3A5', borderRadius: 3, padding: '1px 5px', fontWeight: 700 }}>B</span>
+                            )}
+                            {row.isDirect && (
+                              <span title="Direct Import" style={{ fontSize: 10, backgroundColor: '#2A2500', color: '#E3B341', borderRadius: 3, padding: '1px 5px', fontWeight: 700 }}>D</span>
+                            )}
+                            {!row.isNatural && !row.isBiodynamic && !row.isDirect && (
+                              <span style={{ color: '#484F58' }}>—</span>
+                            )}
+                          </div>
+                        </td>
+                        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#E6EDF3', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
                           {fmt$(row.bottlePrice)}
                         </td>
-                        <td style={{ padding: '9px 16px', textAlign: 'right', color: row.openPOCases > 0 ? '#3FB950' : '#7D8590' }}>
-                          {row.openPOCases > 0 ? row.openPOCases : '—'}
+                        <td style={{ padding: '9px 16px', textAlign: 'right', color: row.accountCount > 0 ? '#E6EDF3' : '#7D8590', fontVariantNumeric: 'tabular-nums' }}>
+                          {row.accountCount > 0 ? row.accountCount : '—'}
                         </td>
                       </tr>
                     ))}
                     {searchFiltered.length === 0 && (
                       <tr>
-                        <td colSpan={7} style={{ padding: 32, textAlign: 'center', color: '#7D8590' }}>
+                        <td colSpan={8} style={{ padding: 32, textAlign: 'center', color: '#7D8590' }}>
                           No wines match your filters.
                         </td>
                       </tr>
@@ -205,6 +226,8 @@ function PortfolioInner() {
         )}
       </div>
     </Shell>
+    <WineDrawer wine={selectedWine} onClose={() => setSelectedWine(null)} />
+    </>
   );
 }
 

@@ -54,7 +54,7 @@ export function parsePricingDetailed(file: File): Promise<PricingParseResult> {
         }
 
         const headers = (raw[headerRowIdx] as unknown[]).map(norm);
-        const colCode = findCol(headers, 'wine code', 'item code', 'code', 'sku', 'item');
+        const colCode = findCol(headers, 'wine code', 'item code', 'item number', 'item no', 'item #', 'product code', 'code', 'sku');
         const colDefault = findCol(headers, 'default price', 'retail price', 'price', 'unit price');
         const colFob = findCol(headers, 'fob price', 'fob', 'laid-in', 'laid in', 'cost');
 
