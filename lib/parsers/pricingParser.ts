@@ -27,12 +27,14 @@ export interface PricingParseResult {
   detectedCodeCol: string;
   detectedPriceCol: string;
   sampleCodes: string[];
+  samplePrices: number[];  // first 5 prices — if all 0, price col is wrong
 }
 
-const EMPTY_DEBUG: Pick<PricingParseResult, 'detectedCodeCol' | 'detectedPriceCol' | 'sampleCodes'> = {
+const EMPTY_DEBUG: Pick<PricingParseResult, 'detectedCodeCol' | 'detectedPriceCol' | 'sampleCodes' | 'samplePrices'> = {
   detectedCodeCol: '(none)',
   detectedPriceCol: '(none)',
   sampleCodes: [],
+  samplePrices: [],
 };
 
 function resolveFromRows(
@@ -118,6 +120,7 @@ function resolveFromRows(
   }
 
   const sampleCodes = rows.slice(0, 5).map((r) => r.wineCode);
+  const samplePrices = rows.slice(0, 5).map((r) => r.defaultPrice);
 
   resolve({
     rows,
@@ -127,6 +130,7 @@ function resolveFromRows(
     detectedCodeCol,
     detectedPriceCol,
     sampleCodes,
+    samplePrices,
   });
 }
 

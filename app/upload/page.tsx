@@ -19,6 +19,7 @@ interface ZoneDebug {
   detectedCodeCol?: string;
   detectedPriceCol?: string;
   sampleCodes?: string[];
+  samplePrices?: number[];
 }
 
 interface ZoneState {
@@ -96,7 +97,7 @@ export default function UploadPage() {
           status: 'success',
           message: `${rowCount.toLocaleString()} rows loaded`,
           rowCount,
-          debug: { detectedCodeCol: result.detectedCodeCol, detectedPriceCol: result.detectedPriceCol, sampleCodes: result.sampleCodes },
+          debug: { detectedCodeCol: result.detectedCodeCol, detectedPriceCol: result.detectedPriceCol, sampleCodes: result.sampleCodes, samplePrices: result.samplePrices },
         });
         return;
       } else if (key === 'allocations') {
@@ -223,6 +224,37 @@ export default function UploadPage() {
                 <span style={{ color: '#79BAFF', fontFamily: 'monospace' }}>{debug.sampleCodes.join(', ')}</span>
               </div>
             )}
+            {debug.samplePrices && debug.samplePrices.length > 0 && (
+              <div>
+                <span style={{ color: '#484F58' }}>Sample prices: </span>
+                <span style={{ color: debug.samplePrices.some(p => p > 0) ? '#3FB950' : '#F85149', fontFamily: 'monospace' }}>
+                  {debug.samplePrices.map(p => p > 0 ? `$${p.toFixed(2)}` : '0').join(', ')}
+                  {debug.samplePrices.every(p => p === 0) && ' ← all zero! wrong price column'}
+                </span>
+              </div>
+            )}
+            {/* Join check: how many pricing codes appear in wine properties */}
+            {zone.key === 'pricing' && debug.sampleCodes && store.winePropertiesData && (() => {
+              const wCodes = new Set(store.winePropertiesData.map(w => w.wineCode.trim().toUpperCase()));
+              const pCodes = (store.pricingData ?? []).map(p => p.wineCode.trim().toUpperCase());
+              const matches = pCodes.filter(c => wCodes.has(c)).length;
+              const matchColor = matches === 0 ? '#F85149' : matches < pCodes.length * 0.5 ? '#E3B341' : '#3FB950';
+              return (
+                <div style={{ marginTop: 4, paddingTop: 6, borderTop: '1px solid #21262D' }}>
+                  <span style={{ color: '#484F58' }}>Join check: </span>
+                  <span style={{ color: matchColor, fontWeight: 600 }}>
+                    {matches}/{pCodes.length} pricing codes match wine properties
+                  </span>
+                  {matches === 0 && store.winePropertiesData.length > 0 && (
+                    <span style={{ color: '#7D8590' }}>
+                      {' '}— wine props sample: <span style={{ fontFamily: 'monospace', color: '#79BAFF' }}>
+                        {store.winePropertiesData.slice(0, 3).map(w => w.wineCode).join(', ')}
+                      </span>
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>
