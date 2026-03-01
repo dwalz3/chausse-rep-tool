@@ -1,5 +1,15 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.9.8 — 2026-02-28
+Focus List powered by RB1 velocity data (qty sold last 30 days).
+
+### Changed
+- `app/focus/page.tsx` — when RB1 inventory is uploaded, Focus List shows "Top Movers — Last 30 Days" table driven by `qtySoldLast30Days`; columns: #, Type, Wine (name + producer/country sub-row), Price/btl, Sold (30d), Available; KPIs: Active SKUs, Btl Sold (30d), Active Accounts, In Stock; falls back to RA25 wine-detail path if RB1 not loaded
+
+### Added
+- `types/index.ts` — `InventoryRow.qtySoldLast30Days?: number`
+- `lib/parsers/rb1Parser.ts` — detects and extracts `'qty sold: last 30 days'` column as `qtySoldLast30Days` on each `InventoryRow`
+
 ## v0.9.7 — 2026-02-28
 Focus List: stop showing importers as wines; RA25 debug panel; diagnostic message for summary-only files.
 

@@ -133,6 +133,10 @@ function resolveFromRows(
   const colDefaultPrice = findCol(headers, 'default price', 'retail price', 'suggested retail');
   const colFobPrice = findCol(headers, 'fob price', 'fob');
 
+  // ── Velocity: bottles sold in last 30 days ───────────────────────────────────
+  // Use exact phrase match first to avoid accidentally matching other "qty" columns
+  const colQtySold = findCol(headers, 'qty sold: last 30 days', 'qty sold last 30', 'sold last 30', 'qty sold');
+
   // For debug output
   const activeInvCol = colAvailable >= 0 ? colAvailable : colCases;
   const detectedCodeCol = colCode >= 0 ? headers[colCode] : '(not found)';
@@ -169,6 +173,7 @@ function resolveFromRows(
       bottlesOnHand,
       defaultPrice: colDefaultPrice >= 0 ? num(r[colDefaultPrice]) || undefined : undefined,
       fobPrice: colFobPrice >= 0 ? num(r[colFobPrice]) || undefined : undefined,
+      qtySoldLast30Days: colQtySold >= 0 ? num(r[colQtySold]) || undefined : undefined,
     });
   }
 

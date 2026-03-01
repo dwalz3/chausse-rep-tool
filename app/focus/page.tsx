@@ -28,6 +28,7 @@ export default function FocusPage() {
   const ra25Data = useStore((s) => s.ra25Data);
   const winePropertiesData = useStore((s) => s.winePropertiesData);
   const pricingData = useStore((s) => s.pricingData);
+  const inventoryData = useStore((s) => s.inventoryData);
   const rep = useStore((s) => s.rep);
 
   const winePropsMap = useMemo(() => {
@@ -49,6 +50,32 @@ export default function FocusPage() {
     }
     return map;
   }, [pricingData]);
+
+  // RB1-based focus: join inventory velocity with wine properties
+  // This is the preferred data source when available — shows what's actually selling now
+  const rb1Wines = useMemo(() => {
+    if (!inventoryData) return [];
+    return inventoryData
+      .filter((inv) => (inv.qtySoldLast30Days ?? 0) > 0)
+      .map((inv) => {
+        const key = normCode(inv.wineCode);
+        const props = winePropsMap.get(key);
+        const price = priceMap.get(key) ?? inv.defaultPrice ?? 0;
+        return {
+          wineCode: inv.wineCode,
+          wineName: inv.wineName,
+          fullName: inv.wineName,   // raw name from RB1 (has producer prefix)
+          supplier: inv.supplier,
+          producer: props?.producer ?? '',
+          country: props?.country ?? '',
+          wineType: props?.wineType,
+          price,
+          qtySold: inv.qtySoldLast30Days ?? 0,
+          available: inv.bottlesOnHand,
+        };
+      })
+      .sort((a, b) => b.qtySold - a.qtySold);
+  }, [inventoryData, winePropsMap, priceMap]);
 
   const repAccounts = useMemo(() => {
     if (!rc5Data || !rep) return new Set<string>();
@@ -117,6 +144,9 @@ export default function FocusPage() {
       .slice(0, 8);
   }, [rc5Data, rep]);
 
+  // Prefer RB1 velocity data; fall back to RA25 wine detail
+  const useRb1 = rb1Wines.length > 0;
+
   // KPI calculations
   const totalRevenue = wines.reduce((s, w) => s + w.revenue, 0);
   const avgRevPerAcct = repAccounts.size > 0 ? totalRevenue / repAccounts.size : 0;
@@ -124,9 +154,9 @@ export default function FocusPage() {
   const pushList = wines.slice(0, 10);
   const watchList = wines.slice(10, 20);
 
-  const noData = !ra25Data || !rep;
+  const noData = (!ra25Data && !inventoryData) || !rep;
   // RA25 loaded but rows have no wineName/wineCode — summary-level file only
-  const noWineDetail = ra25Data && !noData && wines.length === 0 && ra25Data.rows.length > 0;
+  const noWineDetail = !useRb1 && ra25Data && !noData && wines.length === 0 && ra25Data.rows.length > 0;
 
   function WineRow({ item, idx }: { item: Ra25WineRow; idx: number }) {
     const props = winePropsMap.get(item.wineCode);
@@ -231,12 +261,17 @@ export default function FocusPage() {
           <>
             {/* KPI cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
-              {[
+              {(useRb1 ? [
+                { label: 'Active SKUs', value: rb1Wines.length.toLocaleString() },
+                { label: 'Btl Sold (30d)', value: rb1Wines.reduce((s, w) => s + w.qtySold, 0).toLocaleString() },
+                { label: 'Active Accounts', value: repAccounts.size > 0 ? repAccounts.size.toLocaleString() : '—' },
+                { label: 'In Stock', value: rb1Wines.filter(w => w.available > 0).length.toLocaleString() },
+              ] : [
                 { label: 'Wine SKUs', value: wines.length.toLocaleString() },
                 { label: 'Territory Revenue', value: totalRevenue > 0 ? fmt$(totalRevenue) : '—' },
                 { label: 'Active Accounts', value: repAccounts.size.toLocaleString() },
                 { label: 'Avg / Account', value: avgRevPerAcct > 0 ? fmt$(avgRevPerAcct) : '—' },
-              ].map(({ label, value }) => (
+              ]).map(({ label, value }) => (
                 <div key={label} style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 20px' }}>
                   <div style={{ fontSize: 11, color: '#7D8590', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
                     {label}
@@ -246,9 +281,70 @@ export default function FocusPage() {
               ))}
             </div>
 
-            {wines.length === 0 ? (
+            {useRb1 ? (
+              /* ── RB1 velocity table ────────────────────────────────────────── */
+              <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', marginBottom: 16 }}>
+                <div style={{ padding: '14px 20px', borderBottom: '1px solid #30363D', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ color: '#3FB950' }}><TrendingUp size={16} /></span>
+                  <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#E6EDF3' }}>Top Movers — Last 30 Days</h3>
+                  <span style={{ fontSize: 12, color: '#7D8590' }}>({rb1Wines.length})</span>
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: '#484F58' }}>from RB1 inventory report</span>
+                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead style={{ backgroundColor: '#1C2128' }}>
+                    <tr>
+                      <th style={{ width: 32, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>#</th>
+                      <th style={{ width: 80, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Type</th>
+                      <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
+                      <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Price/btl</th>
+                      <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Sold (30d)</th>
+                      <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Available</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rb1Wines.map((w, i) => (
+                      <tr
+                        key={w.wineCode}
+                        style={{ borderTop: '1px solid #21262D', cursor: w.wineType ? 'pointer' : 'default' }}
+                        onClick={() => w.wineType && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
+                        onMouseEnter={(e) => w.wineType && (e.currentTarget.style.backgroundColor = '#1C2128')}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                      >
+                        <td style={{ padding: '9px 16px', color: '#7D8590', fontSize: 12 }}>{i + 1}</td>
+                        <td style={{ padding: '9px 16px' }}>
+                          {w.wineType ? (
+                            <WineTypeBadge type={w.wineType} />
+                          ) : (
+                            <span style={{ fontSize: 11, backgroundColor: '#21262D', color: '#7D8590', borderRadius: 4, padding: '2px 7px', fontWeight: 600 }}>—</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '9px 16px', maxWidth: 300 }}>
+                          <div style={{ color: '#E6EDF3', fontWeight: 500, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {w.wineName || w.fullName}
+                          </div>
+                          {(w.producer || w.country) && (
+                            <div style={{ color: '#7D8590', fontSize: 11, marginTop: 1 }}>
+                              {w.producer}{w.country ? ` · ${w.country}` : ''}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
+                          {w.price > 0 ? `$${w.price.toFixed(2)}` : '—'}
+                        </td>
+                        <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color: '#3FB950', fontVariantNumeric: 'tabular-nums' }}>
+                          {w.qtySold} btl
+                        </td>
+                        <td style={{ padding: '9px 16px', textAlign: 'right', color: w.available > 0 ? '#E6EDF3' : '#484F58', fontVariantNumeric: 'tabular-nums' }}>
+                          {w.available > 0 ? `${w.available} btl` : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : wines.length === 0 ? (
               <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 40, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
-                No wine data found for your accounts.
+                No wine data found. Upload RB1 inventory to see velocity-based focus list.
               </div>
             ) : (
               <>
