@@ -8,8 +8,8 @@ const APP_VERSION = 'v0.2.0';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: '20px 24px', marginBottom: 16 }}>
-      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#1C1917', margin: '0 0 16px' }}>{title}</h3>
+    <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '20px 24px', marginBottom: 16 }}>
+      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#E6EDF3', margin: '0 0 16px' }}>{title}</h3>
       {children}
     </div>
   );
@@ -17,10 +17,10 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function FieldRow({ label, description, children }: { label: string; description?: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid #F3F4F6' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid #21262D' }}>
       <div style={{ flex: 1 }}>
-        <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#1C1917' }}>{label}</p>
-        {description && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#a8a29e' }}>{description}</p>}
+        <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#E6EDF3' }}>{label}</p>
+        {description && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7D8590' }}>{description}</p>}
       </div>
       <div style={{ flexShrink: 0 }}>{children}</div>
     </div>
@@ -33,8 +33,8 @@ function NumInput({ value, onChange, min, max, step, prefix, suffix }: {
   prefix?: string; suffix?: string;
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 4, border: '1px solid #E5E1DC', borderRadius: 8, overflow: 'hidden', backgroundColor: '#F9F9F9' }}>
-      {prefix && <span style={{ paddingLeft: 10, fontSize: 13, color: '#a8a29e' }}>{prefix}</span>}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4, border: '1px solid #30363D', borderRadius: 8, overflow: 'hidden', backgroundColor: '#1C2128' }}>
+      {prefix && <span style={{ paddingLeft: 10, fontSize: 13, color: '#7D8590' }}>{prefix}</span>}
       <input
         type="number"
         value={value}
@@ -42,9 +42,9 @@ function NumInput({ value, onChange, min, max, step, prefix, suffix }: {
         max={max}
         step={step ?? 1}
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-        style={{ width: 80, padding: '8px 10px', border: 'none', outline: 'none', fontSize: 14, backgroundColor: '#F9F9F9', color: '#1C1917', textAlign: 'right' }}
+        style={{ width: 80, padding: '8px 10px', border: 'none', outline: 'none', fontSize: 14, backgroundColor: '#1C2128', color: '#E6EDF3', textAlign: 'right' }}
       />
-      {suffix && <span style={{ paddingRight: 10, fontSize: 13, color: '#a8a29e' }}>{suffix}</span>}
+      {suffix && <span style={{ paddingRight: 10, fontSize: 13, color: '#7D8590' }}>{suffix}</span>}
     </div>
   );
 }
@@ -73,7 +73,7 @@ export default function SettingsPage() {
   return (
     <Shell>
       <div style={{ maxWidth: 640 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1C1917', margin: '0 0 20px' }}>Settings</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: '0 0 20px' }}>Settings</h1>
 
         {/* Portfolio settings */}
         <Section title="Portfolio">
@@ -120,7 +120,7 @@ export default function SettingsPage() {
               suffix="×"
             />
           </FieldRow>
-          <p style={{ fontSize: 13, color: '#a8a29e', margin: 0 }}>
+          <p style={{ fontSize: 13, color: '#7D8590', margin: 0 }}>
             {monthlyGoal > 0
               ? <>Fixed goal: <strong>${monthlyGoal.toLocaleString()}/mo</strong></>
               : <>Auto-target active: <strong>{goalMultiplier.toFixed(2)}×</strong> of same month last year ({((goalMultiplier - 1) * 100).toFixed(0)}% growth)</>
@@ -137,9 +137,9 @@ export default function SettingsPage() {
             <button
               onClick={handleClear}
               style={{
-                backgroundColor: confirmClear ? '#dc2626' : '#FFFFFF',
-                color: confirmClear ? '#FFFFFF' : '#dc2626',
-                border: '1px solid #dc2626',
+                backgroundColor: confirmClear ? '#F85149' : '#161B22',
+                color: confirmClear ? '#FFFFFF' : '#F85149',
+                border: '1px solid #F85149',
                 borderRadius: 8,
                 padding: '8px 16px',
                 fontSize: 13,
@@ -154,7 +154,7 @@ export default function SettingsPage() {
           {confirmClear && (
             <button
               onClick={() => setConfirmClear(false)}
-              style={{ backgroundColor: 'transparent', border: 'none', fontSize: 12, color: '#a8a29e', cursor: 'pointer', padding: 0 }}
+              style={{ backgroundColor: 'transparent', border: 'none', fontSize: 12, color: '#7D8590', cursor: 'pointer', padding: 0 }}
             >
               Cancel
             </button>
@@ -163,14 +163,14 @@ export default function SettingsPage() {
 
         {/* About */}
         <Section title="About">
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#a8a29e' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#7D8590' }}>
             <span>Chausse Rep Field Tool</span>
-            <span style={{ fontWeight: 600, color: '#1C1917' }}>{APP_VERSION}</span>
+            <span style={{ fontWeight: 600, color: '#E6EDF3' }}>{APP_VERSION}</span>
           </div>
           {rep && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#a8a29e', marginTop: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#7D8590', marginTop: 8 }}>
               <span>Signed in as</span>
-              <span style={{ fontWeight: 600, color: '#1C1917', textTransform: 'capitalize' }}>{rep}</span>
+              <span style={{ fontWeight: 600, color: '#E6EDF3', textTransform: 'capitalize' }}>{rep}</span>
             </div>
           )}
         </Section>

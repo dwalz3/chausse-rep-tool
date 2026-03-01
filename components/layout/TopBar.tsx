@@ -27,8 +27,8 @@ export default function TopBar() {
   return (
     <header
       style={{
-        backgroundColor: '#FFFFFF',
-        borderBottom: '1px solid #E5E1DC',
+        backgroundColor: '#161B22',
+        borderBottom: '1px solid #30363D',
         padding: '0 24px',
         height: 56,
         display: 'flex',
@@ -37,7 +37,7 @@ export default function TopBar() {
         flexShrink: 0,
       }}
     >
-      <p style={{ margin: 0, fontSize: 15, color: '#1C1917' }}>
+      <p style={{ margin: 0, fontSize: 15, color: '#E6EDF3' }}>
         {greeting()}{repName ? `, ${repName}` : ''}
       </p>
 
@@ -48,10 +48,10 @@ export default function TopBar() {
           alignItems: 'center',
           gap: 6,
           backgroundColor: 'transparent',
-          border: '1px solid #E5E1DC',
+          border: '1px solid #30363D',
           borderRadius: 8,
           padding: '6px 12px',
-          color: '#a8a29e',
+          color: '#7D8590',
           fontSize: 13,
           cursor: 'pointer',
         }}

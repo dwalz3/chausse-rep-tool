@@ -14,14 +14,14 @@ export default function SidenoteField({ label, children }: SidenoteFieldProps) {
           margin: '0 0 3px',
           fontSize: 10,
           fontWeight: 600,
-          color: '#a8a29e',
+          color: '#7D8590',
           textTransform: 'uppercase',
           letterSpacing: '0.07em',
         }}
       >
         {label}
       </p>
-      <div style={{ fontSize: 13, color: '#1C1917', fontWeight: 500 }}>{children}</div>
+      <div style={{ fontSize: 13, color: '#E6EDF3', fontWeight: 500 }}>{children}</div>
     </div>
   );
 }

@@ -56,32 +56,32 @@ function ReEngageModal({ row, onClose, onContacted }: ModalProps) {
       style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div style={{ backgroundColor: '#FFFFFF', borderRadius: 12, border: '1px solid #E5E1DC', width: '100%', maxWidth: 480, padding: '24px 28px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+      <div style={{ backgroundColor: '#161B22', borderRadius: 12, border: '1px solid #30363D', width: '100%', maxWidth: 480, padding: '24px 28px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
-            <h2 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 700, color: '#1C1917' }}>Re-engage</h2>
-            <p style={{ margin: 0, fontSize: 14, color: '#a8a29e' }}>{row.account}</p>
+            <h2 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 700, color: '#E6EDF3' }}>Re-engage</h2>
+            <p style={{ margin: 0, fontSize: 14, color: '#7D8590' }}>{row.account}</p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#a8a29e' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#7D8590' }}>
             <X size={18} />
           </button>
         </div>
 
         {/* Account summary */}
-        <div style={{ backgroundColor: '#F9F9F9', borderRadius: 8, padding: '12px 16px', marginBottom: 20 }}>
+        <div style={{ backgroundColor: '#1C2128', borderRadius: 8, padding: '12px 16px', marginBottom: 20 }}>
           <div style={{ display: 'flex', gap: 24, fontSize: 13 }}>
             <div>
-              <span style={{ color: '#a8a29e' }}>Last active</span>
-              <p style={{ margin: '2px 0 0', fontWeight: 600, color: '#1C1917' }}>{fmtMonth(row.lastActiveMonth)}</p>
+              <span style={{ color: '#7D8590' }}>Last active</span>
+              <p style={{ margin: '2px 0 0', fontWeight: 600, color: '#E6EDF3' }}>{fmtMonth(row.lastActiveMonth)}</p>
             </div>
             <div>
-              <span style={{ color: '#a8a29e' }}>LTM revenue</span>
-              <p style={{ margin: '2px 0 0', fontWeight: 600, color: '#1C1917' }}>{fmt$(row.ltm)}</p>
+              <span style={{ color: '#7D8590' }}>LTM revenue</span>
+              <p style={{ margin: '2px 0 0', fontWeight: 600, color: '#E6EDF3' }}>{fmt$(row.ltm)}</p>
             </div>
             <div>
-              <span style={{ color: '#a8a29e' }}>Months since order</span>
-              <p style={{ margin: '2px 0 0', fontWeight: 600, color: row.monthsSinceLast >= 6 ? '#dc2626' : '#d97706' }}>
+              <span style={{ color: '#7D8590' }}>Months since order</span>
+              <p style={{ margin: '2px 0 0', fontWeight: 600, color: row.monthsSinceLast >= 6 ? '#F85149' : '#E3B341' }}>
                 {row.monthsSinceLast}
               </p>
             </div>
@@ -90,7 +90,7 @@ function ReEngageModal({ row, onClose, onContacted }: ModalProps) {
 
         {/* Notes */}
         <div style={{ marginBottom: 20 }}>
-          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#1C1917', marginBottom: 6 }}>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#E6EDF3', marginBottom: 6 }}>
             What will you say?
           </label>
           <textarea
@@ -98,7 +98,7 @@ function ReEngageModal({ row, onClose, onContacted }: ModalProps) {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Your pitch notes for this account..."
             rows={3}
-            style={{ width: '100%', padding: '10px 12px', border: '1px solid #E5E1DC', borderRadius: 8, fontSize: 13, color: '#1C1917', backgroundColor: '#F9F9F9', resize: 'vertical', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '10px 12px', border: '1px solid #30363D', borderRadius: 8, fontSize: 13, color: '#E6EDF3', backgroundColor: '#1C2128', resize: 'vertical', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
           />
         </div>
 
@@ -106,13 +106,13 @@ function ReEngageModal({ row, onClose, onContacted }: ModalProps) {
         <div style={{ display: 'flex', gap: 10 }}>
           <button
             onClick={handleMarkContacted}
-            style={{ flex: 1, backgroundColor: '#2D5A3D', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '10px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            style={{ flex: 1, backgroundColor: '#3FB950', color: '#161B22', border: 'none', borderRadius: 8, padding: '10px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
           >
             Mark as Contacted
           </button>
           <button
             onClick={() => { onClose(); router.push(`/accounts/${encodeURIComponent(row.accountCode || row.account)}`); }}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, backgroundColor: '#FFFFFF', color: '#1C1917', border: '1px solid #E5E1DC', borderRadius: 8, padding: '10px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, backgroundColor: '#161B22', color: '#E6EDF3', border: '1px solid #30363D', borderRadius: 8, padding: '10px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
           >
             <ExternalLink size={13} />
             Open Account
@@ -156,19 +156,19 @@ export default function DormantPage() {
     return (
       <tr
         onClick={() => router.push(`/accounts/${encodeURIComponent(r.accountCode || r.account)}`)}
-        style={{ borderTop: '1px solid #F3F4F6', cursor: 'pointer' }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F9F9F9')}
+        style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
       >
-        <td style={{ padding: '10px 16px', color: '#1C1917', fontWeight: 500 }}>
+        <td style={{ padding: '10px 16px', color: '#E6EDF3', fontWeight: 500 }}>
           {r.account}
-          {r.accountType && <span style={{ marginLeft: 8, fontSize: 11, color: '#a8a29e', fontWeight: 400 }}>{r.accountType}</span>}
+          {r.accountType && <span style={{ marginLeft: 8, fontSize: 11, color: '#7D8590', fontWeight: 400 }}>{r.accountType}</span>}
         </td>
-        <td style={{ padding: '10px 16px', textAlign: 'right', color: '#a8a29e' }}>{fmtMonth(r.lastActiveMonth)}</td>
-        <td style={{ padding: '10px 16px', textAlign: 'right', color: r.monthsSinceLast >= 6 ? '#dc2626' : '#d97706', fontWeight: 600 }}>
+        <td style={{ padding: '10px 16px', textAlign: 'right', color: '#7D8590' }}>{fmtMonth(r.lastActiveMonth)}</td>
+        <td style={{ padding: '10px 16px', textAlign: 'right', color: r.monthsSinceLast >= 6 ? '#F85149' : '#E3B341', fontWeight: 600 }}>
           {r.monthsSinceLast}
         </td>
-        <td style={{ padding: '10px 16px', textAlign: 'right', color: '#1C1917', fontWeight: 600 }}>{fmt$(r.ltm)}</td>
+        <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3', fontWeight: 600 }}>{fmt$(r.ltm)}</td>
         <td style={{ padding: '10px 16px' }} onClick={(e) => e.stopPropagation()}>
           <span
             onClick={() => setModalRow(r)}
@@ -194,35 +194,35 @@ export default function DormantPage() {
 
       <div>
         <div style={{ marginBottom: 20 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1C1917', margin: 0 }}>Dormant Accounts</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: 0 }}>Dormant Accounts</h1>
           {!noData && (
-            <p style={{ fontSize: 13, color: '#a8a29e', margin: '4px 0 0' }}>
+            <p style={{ fontSize: 13, color: '#7D8590', margin: '4px 0 0' }}>
               {active.length} accounts with no revenue in last 3 months · sorted by historical value
             </p>
           )}
         </div>
 
         {noData ? (
-          <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: 32, textAlign: 'center', color: '#a8a29e', fontSize: 14 }}>
-            Upload RC5 data on the <a href="/upload" style={{ color: '#2D5A3D', fontWeight: 600 }}>Upload page</a> first.
+          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 32, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
+            Upload RC5 data on the <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload page</a> first.
           </div>
         ) : dormant.length === 0 ? (
-          <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: 32, textAlign: 'center', color: '#16a34a', fontSize: 14, fontWeight: 600 }}>
+          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 32, textAlign: 'center', color: '#3FB950', fontSize: 14, fontWeight: 600 }}>
             No dormant accounts — great work!
           </div>
         ) : (
           <>
             {/* Active dormant */}
             {active.length > 0 && (
-              <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', overflow: 'hidden', marginBottom: 16 }}>
+              <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', marginBottom: 16 }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                  <thead style={{ backgroundColor: '#F9F9F9' }}>
+                  <thead style={{ backgroundColor: '#1C2128' }}>
                     <tr>
-                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#a8a29e', fontWeight: 500 }}>Account</th>
-                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#a8a29e', fontWeight: 500 }}>Last Active</th>
-                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#a8a29e', fontWeight: 500 }}>Months Ago</th>
-                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#a8a29e', fontWeight: 500 }}>LTM Revenue</th>
-                      <th style={{ padding: '10px 16px', color: '#a8a29e', fontWeight: 500 }} />
+                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Account</th>
+                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Last Active</th>
+                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Months Ago</th>
+                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>LTM Revenue</th>
+                      <th style={{ padding: '10px 16px', color: '#7D8590', fontWeight: 500 }} />
                     </tr>
                   </thead>
                   <tbody>
@@ -235,25 +235,25 @@ export default function DormantPage() {
             {/* Contacted section */}
             {contacted.length > 0 && (
               <div>
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#a8a29e', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#7D8590', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>
                   Contacted — Awaiting Response ({contacted.length})
                 </p>
-                <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', overflow: 'hidden', opacity: 0.7 }}>
+                <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', opacity: 0.7 }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                     <tbody>
                       {contacted.map((r) => (
                         <tr
                           key={r.accountCode || r.account}
                           onClick={() => router.push(`/accounts/${encodeURIComponent(r.accountCode || r.account)}`)}
-                          style={{ borderTop: '1px solid #F3F4F6', cursor: 'pointer' }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F9F9F9')}
+                          style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                         >
-                          <td style={{ padding: '10px 16px', color: '#a8a29e', fontWeight: 500, textDecoration: 'line-through' }}>{r.account}</td>
-                          <td style={{ padding: '10px 16px', textAlign: 'right', color: '#a8a29e' }}>{fmtMonth(r.lastActiveMonth)}</td>
-                          <td style={{ padding: '10px 16px', textAlign: 'right', color: '#a8a29e' }}>{fmt$(r.ltm)}</td>
+                          <td style={{ padding: '10px 16px', color: '#7D8590', fontWeight: 500, textDecoration: 'line-through' }}>{r.account}</td>
+                          <td style={{ padding: '10px 16px', textAlign: 'right', color: '#7D8590' }}>{fmtMonth(r.lastActiveMonth)}</td>
+                          <td style={{ padding: '10px 16px', textAlign: 'right', color: '#7D8590' }}>{fmt$(r.ltm)}</td>
                           <td style={{ padding: '10px 16px' }}>
-                            <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 600 }}>✓ Contacted</span>
+                            <span style={{ fontSize: 11, color: '#3FB950', fontWeight: 600 }}>✓ Contacted</span>
                           </td>
                         </tr>
                       ))}

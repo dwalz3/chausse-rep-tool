@@ -6,15 +6,16 @@ export interface WineTypeStyle {
   dot: string; // solid dot color for sparklines and spectrum indicators
 }
 
+// Dark-mode wine type palette — rich jewel tones on near-black backgrounds
 export const WINE_TYPE_STYLES: Record<WineType, WineTypeStyle> = {
-  Red:       { bg: '#FEE2E2', text: '#991B1B', dot: '#DC2626' },
-  White:     { bg: '#FEF9C3', text: '#854D0E', dot: '#CA8A04' },
-  Sparkling: { bg: '#DBEAFE', text: '#1E40AF', dot: '#2563EB' },
-  Orange:    { bg: '#FFEDD5', text: '#9A3412', dot: '#EA580C' },
-  'Rosé':    { bg: '#FCE7F3', text: '#9D174D', dot: '#DB2777' },
-  'Tea/NA':  { bg: '#CCFBF1', text: '#134E4A', dot: '#0D9488' },
-  Vermouth:  { bg: '#EDE9FE', text: '#5B21B6', dot: '#7C3AED' },
-  Other:     { bg: '#F3F4F6', text: '#6B7280', dot: '#9CA3AF' },
+  Red:       { bg: '#3B1212', text: '#F47067', dot: '#F85149' },
+  White:     { bg: '#2A2500', text: '#E3B341', dot: '#E3B341' },
+  Sparkling: { bg: '#0D2245', text: '#79BAFF', dot: '#58A6FF' },
+  Orange:    { bg: '#2D1500', text: '#FFB067', dot: '#FF8C3B' },
+  'Rosé':    { bg: '#2D0A1E', text: '#FF93D1', dot: '#E879B1' },
+  'Tea/NA':  { bg: '#003730', text: '#22D3A5', dot: '#14B8A6' },
+  Vermouth:  { bg: '#1A0D3B', text: '#C084FC', dot: '#A855F7' },
+  Other:     { bg: '#21262D', text: '#8B949E', dot: '#9CA3AF' },
 };
 
 export function getWineTypeStyle(type: WineType | string): WineTypeStyle {

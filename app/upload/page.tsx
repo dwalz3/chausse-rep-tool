@@ -106,8 +106,8 @@ export default function UploadPage() {
     return (
       <div
         style={{
-          backgroundColor: '#FFFFFF',
-          border: `2px dashed ${state?.status === 'error' ? '#dc2626' : state?.status === 'success' ? '#16a34a' : '#E5E1DC'}`,
+          backgroundColor: '#161B22',
+          border: `2px dashed ${state?.status === 'error' ? '#F85149' : state?.status === 'success' ? '#3FB950' : '#30363D'}`,
           borderRadius: 10,
           padding: '20px 24px',
           display: 'flex',
@@ -138,36 +138,36 @@ export default function UploadPage() {
 
         {/* Icon */}
         <div style={{ flexShrink: 0 }}>
-          {state?.status === 'loading' && <Loader size={22} color="#a8a29e" style={{ animation: 'spin 1s linear infinite' }} />}
-          {state?.status === 'success' && <CheckCircle size={22} color="#16a34a" />}
-          {state?.status === 'error' && <AlertCircle size={22} color="#dc2626" />}
-          {(!state || state.status === 'idle') && <Upload size={22} color="#a8a29e" />}
+          {state?.status === 'loading' && <Loader size={22} color="#7D8590" style={{ animation: 'spin 1s linear infinite' }} />}
+          {state?.status === 'success' && <CheckCircle size={22} color="#3FB950" />}
+          {state?.status === 'error' && <AlertCircle size={22} color="#F85149" />}
+          {(!state || state.status === 'idle') && <Upload size={22} color="#7D8590" />}
         </div>
 
         {/* Text */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#1C1917' }}>{zone.label}</p>
-          <p style={{ margin: '2px 0 0', fontSize: 12, color: '#a8a29e' }}>{zone.hint}</p>
+          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#E6EDF3' }}>{zone.label}</p>
+          <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7D8590' }}>{zone.hint}</p>
         </div>
 
         {/* Status */}
         <div style={{ flexShrink: 0, textAlign: 'right' }}>
           {state?.status === 'loading' && (
-            <span style={{ fontSize: 12, color: '#a8a29e' }}>Parsing…</span>
+            <span style={{ fontSize: 12, color: '#7D8590' }}>Parsing…</span>
           )}
           {state?.status === 'success' && (
-            <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 600 }}>{state.message}</span>
+            <span style={{ fontSize: 12, color: '#3FB950', fontWeight: 600 }}>{state.message}</span>
           )}
           {state?.status === 'error' && (
-            <span style={{ fontSize: 12, color: '#dc2626' }}>{state.message}</span>
+            <span style={{ fontSize: 12, color: '#F85149' }}>{state.message}</span>
           )}
           {!state && meta && (
-            <span style={{ fontSize: 12, color: '#a8a29e' }}>
+            <span style={{ fontSize: 12, color: '#7D8590' }}>
               {meta.rowCount.toLocaleString()} rows · {fmt(meta.date)}
             </span>
           )}
           {!state && !meta && (
-            <span style={{ fontSize: 12, color: '#a8a29e' }}>No data</span>
+            <span style={{ fontSize: 12, color: '#7D8590' }}>No data</span>
           )}
         </div>
       </div>
@@ -177,10 +177,10 @@ export default function UploadPage() {
   return (
     <Shell>
       <div style={{ maxWidth: 700 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1C1917', margin: '0 0 4px' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: '0 0 4px' }}>
           Upload Data
         </h1>
-        <p style={{ fontSize: 14, color: '#a8a29e', margin: '0 0 28px' }}>
+        <p style={{ fontSize: 14, color: '#7D8590', margin: '0 0 28px' }}>
           Drop or click each zone to load a dataset. Data is stored locally in your browser.
         </p>
 

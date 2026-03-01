@@ -34,25 +34,25 @@ export default function RepRevenueChart({ rc5Data, rep }: Props) {
         <AreaChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id="repGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#2D5A3D" stopOpacity={0.2} />
-              <stop offset="95%" stopColor="#2D5A3D" stopOpacity={0} />
+              <stop offset="5%" stopColor="#3FB950" stopOpacity={0.2} />
+              <stop offset="95%" stopColor="#3FB950" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E1DC" vertical={false} />
-          <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#a8a29e' }} axisLine={false} tickLine={false} />
-          <YAxis tickFormatter={fmtDollar} tick={{ fontSize: 11, fill: '#a8a29e' }} axisLine={false} tickLine={false} width={52} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#30363D" vertical={false} />
+          <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#7D8590' }} axisLine={false} tickLine={false} />
+          <YAxis tickFormatter={fmtDollar} tick={{ fontSize: 11, fill: '#7D8590' }} axisLine={false} tickLine={false} width={52} />
           <Tooltip
             formatter={(v: number | undefined) => ['$' + (v ?? 0).toLocaleString(), 'Revenue']}
-            contentStyle={{ borderRadius: 8, border: '1px solid #E5E1DC', fontSize: 13 }}
+            contentStyle={{ borderRadius: 8, border: '1px solid #30363D', fontSize: 13 }}
           />
           <Area
             type="monotone"
             dataKey="revenue"
-            stroke="#2D5A3D"
+            stroke="#3FB950"
             strokeWidth={2}
             fill="url(#repGrad)"
             dot={false}
-            activeDot={{ r: 4, fill: '#2D5A3D' }}
+            activeDot={{ r: 4, fill: '#3FB950' }}
           />
         </AreaChart>
       </ResponsiveContainer>

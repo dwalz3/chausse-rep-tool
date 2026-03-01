@@ -33,8 +33,8 @@ function fmtMonth(ym: string | null) {
 
 function StatusPill({ isDormant, isNew }: { isDormant: boolean; isNew: boolean }) {
   const label = isNew ? 'New' : isDormant ? 'Dormant' : 'Active';
-  const color = isNew ? '#2563eb' : isDormant ? '#d97706' : '#16a34a';
-  const bg = isNew ? '#dbeafe' : isDormant ? '#fef3c7' : '#dcfce7';
+  const color = isNew ? '#58A6FF' : isDormant ? '#E3B341' : '#3FB950';
+  const bg = isNew ? '#031D41' : isDormant ? '#2D2000' : '#0D2918';
   return (
     <span style={{ backgroundColor: bg, color, borderRadius: 20, fontSize: 12, fontWeight: 600, padding: '3px 10px' }}>
       {label}
@@ -110,7 +110,7 @@ export default function AccountDetailPage() {
   if (!rc5Data) {
     return (
       <Shell>
-        <div style={{ padding: 32, textAlign: 'center', color: '#a8a29e', fontSize: 14 }}>
+        <div style={{ padding: 32, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
           Upload RC5 data first.
         </div>
       </Shell>
@@ -120,7 +120,7 @@ export default function AccountDetailPage() {
   if (!account) {
     return (
       <Shell>
-        <div style={{ padding: 32, textAlign: 'center', color: '#a8a29e', fontSize: 14 }}>
+        <div style={{ padding: 32, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
           Account not found: <strong>{id}</strong>
         </div>
       </Shell>
@@ -132,7 +132,7 @@ export default function AccountDetailPage() {
   const avgMonthly = account.activeMonths > 0 ? Math.round(account.totalRevenue / account.activeMonths) : 0;
   const prior3mo = account.monthlyRevenue[7] + account.monthlyRevenue[8] + account.monthlyRevenue[9];
   const trendPct = prior3mo > 0 ? ((three_mo - prior3mo) / prior3mo) * 100 : null;
-  const trendColor = trendPct !== null ? (trendPct >= 0 ? '#16a34a' : '#dc2626') : '#a8a29e';
+  const trendColor = trendPct !== null ? (trendPct >= 0 ? '#3FB950' : '#F85149') : '#7D8590';
 
   return (
     <Shell>
@@ -140,29 +140,29 @@ export default function AccountDetailPage() {
         {/* Back */}
         <button
           onClick={() => router.back()}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: '#a8a29e', fontSize: 13, marginBottom: 20, padding: 0 }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: '#7D8590', fontSize: 13, marginBottom: 20, padding: 0 }}
         >
           <ArrowLeft size={14} />
           Back to Accounts
         </button>
 
         {/* Header card — full width */}
-        <div style={{ backgroundColor: '#FFFFFF', borderRadius: 12, border: '1px solid #E5E1DC', padding: '20px 24px', marginBottom: 20 }}>
+        <div style={{ backgroundColor: '#161B22', borderRadius: 12, border: '1px solid #30363D', padding: '20px 24px', marginBottom: 20 }}>
           {/* Name + sparkline row */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>
             <div>
-              <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1C1917', margin: '0 0 8px' }}>
+              <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: '0 0 8px' }}>
                 {account.account}
               </h1>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                 <StatusPill isDormant={account.isDormant} isNew={account.isNew} />
                 {account.accountType && (
-                  <span style={{ fontSize: 11, backgroundColor: '#F3F4F6', color: '#6B7280', borderRadius: 4, padding: '2px 7px', fontWeight: 500 }}>
+                  <span style={{ fontSize: 11, backgroundColor: '#21262D', color: '#8B949E', borderRadius: 4, padding: '2px 7px', fontWeight: 500 }}>
                     {account.accountType}
                   </span>
                 )}
                 {account.region && (
-                  <span style={{ fontSize: 11, backgroundColor: '#EFF6FF', color: '#1D4ED8', borderRadius: 4, padding: '2px 7px', fontWeight: 500 }}>
+                  <span style={{ fontSize: 11, backgroundColor: '#031D41', color: '#58A6FF', borderRadius: 4, padding: '2px 7px', fontWeight: 500 }}>
                     {account.region}
                   </span>
                 )}
@@ -172,7 +172,7 @@ export default function AccountDetailPage() {
           </div>
 
           {/* KPI grid — 4 columns */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderTop: '1px solid #F3F4F6', paddingTop: 16, gap: 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderTop: '1px solid #21262D', paddingTop: 16, gap: 0 }}>
             {[
               {
                 label: '3-Mo Revenue',
@@ -180,15 +180,15 @@ export default function AccountDetailPage() {
                 sub: trendPct !== null ? `${trendPct >= 0 ? '+' : ''}${trendPct.toFixed(0)}% vs prior` : 'no prior period',
                 subColor: trendColor,
               },
-              { label: 'YTD Revenue', value: fmt$(ytd), sub: 'calendar year', subColor: '#a8a29e' },
-              { label: 'All-Time', value: fmt$(account.totalRevenue), sub: `${account.activeMonths} mo active`, subColor: '#a8a29e' },
-              { label: 'Avg / Month', value: avgMonthly > 0 ? fmt$(avgMonthly) : '—', sub: 'active months only', subColor: '#a8a29e' },
+              { label: 'YTD Revenue', value: fmt$(ytd), sub: 'calendar year', subColor: '#7D8590' },
+              { label: 'All-Time', value: fmt$(account.totalRevenue), sub: `${account.activeMonths} mo active`, subColor: '#7D8590' },
+              { label: 'Avg / Month', value: avgMonthly > 0 ? fmt$(avgMonthly) : '—', sub: 'active months only', subColor: '#7D8590' },
             ].map(({ label, value, sub, subColor }) => (
               <div key={label} style={{ padding: '0 12px 0 0' }}>
-                <p style={{ margin: 0, fontSize: 10, color: '#a8a29e', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                <p style={{ margin: 0, fontSize: 10, color: '#7D8590', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                   {label}
                 </p>
-                <p style={{ margin: '4px 0 2px', fontSize: 20, fontWeight: 700, color: '#1C1917' }}>{value}</p>
+                <p style={{ margin: '4px 0 2px', fontSize: 20, fontWeight: 700, color: '#E6EDF3' }}>{value}</p>
                 <p style={{ margin: 0, fontSize: 11, color: subColor }}>{sub}</p>
               </div>
             ))}
@@ -200,21 +200,21 @@ export default function AccountDetailPage() {
 
           {/* Main column — chart + top wines */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: '16px 20px', marginBottom: 16 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: '#1C1917', margin: '0 0 12px' }}>Revenue by Month</h3>
+            <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 20px', marginBottom: 16 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: '#E6EDF3', margin: '0 0 12px' }}>Revenue by Month</h3>
               <AccountRevenueChart monthlyRevenue={account.monthlyRevenue} monthLabels={account.monthLabels} />
             </div>
 
             {topWines.length > 0 && (
-              <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: '16px 20px' }}>
-                <h3 style={{ fontSize: 13, fontWeight: 700, color: '#1C1917', margin: '0 0 12px' }}>Top Wines Purchased</h3>
+              <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 20px' }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: '#E6EDF3', margin: '0 0 12px' }}>Top Wines Purchased</h3>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #E5E1DC' }}>
-                      <th style={{ textAlign: 'left', padding: '5px 0', color: '#a8a29e', fontWeight: 500, fontSize: 11 }}>Wine</th>
-                      <th style={{ textAlign: 'left', padding: '5px 8px', color: '#a8a29e', fontWeight: 500, fontSize: 11 }}>Type</th>
-                      <th style={{ textAlign: 'right', padding: '5px 0', color: '#a8a29e', fontWeight: 500, fontSize: 11 }}>Revenue</th>
-                      <th style={{ textAlign: 'right', padding: '5px 0', color: '#a8a29e', fontWeight: 500, fontSize: 11 }}>Cases</th>
+                    <tr style={{ borderBottom: '1px solid #30363D' }}>
+                      <th style={{ textAlign: 'left', padding: '5px 0', color: '#7D8590', fontWeight: 500, fontSize: 11 }}>Wine</th>
+                      <th style={{ textAlign: 'left', padding: '5px 8px', color: '#7D8590', fontWeight: 500, fontSize: 11 }}>Type</th>
+                      <th style={{ textAlign: 'right', padding: '5px 0', color: '#7D8590', fontWeight: 500, fontSize: 11 }}>Revenue</th>
+                      <th style={{ textAlign: 'right', padding: '5px 0', color: '#7D8590', fontWeight: 500, fontSize: 11 }}>Cases</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -226,20 +226,20 @@ export default function AccountDetailPage() {
                       return (
                         <tr
                           key={i}
-                          style={{ borderBottom: '1px solid #F3F4F6', cursor: canNavigate ? 'pointer' : 'default' }}
+                          style={{ borderBottom: '1px solid #21262D', cursor: canNavigate ? 'pointer' : 'default' }}
                           onClick={() => canNavigate && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
-                          onMouseEnter={(e) => canNavigate && (e.currentTarget.style.backgroundColor = '#F9F9F9')}
+                          onMouseEnter={(e) => canNavigate && (e.currentTarget.style.backgroundColor = '#1C2128')}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                         >
                           <td style={{ padding: '7px 0', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            <div style={{ fontWeight: 500, color: '#1C1917' }}>{displayName}</div>
-                            {props?.producer && <div style={{ fontSize: 11, color: '#a8a29e' }}>{props.producer}</div>}
+                            <div style={{ fontWeight: 500, color: '#E6EDF3' }}>{displayName}</div>
+                            {props?.producer && <div style={{ fontSize: 11, color: '#7D8590' }}>{props.producer}</div>}
                           </td>
                           <td style={{ padding: '7px 8px' }}>
                             {props && <WineTypeBadge type={props.wineType} />}
                           </td>
-                          <td style={{ padding: '7px 0', textAlign: 'right', fontWeight: 600, color: '#1C1917' }}>{fmt$(w.revenue)}</td>
-                          <td style={{ padding: '7px 0', textAlign: 'right', color: '#a8a29e' }}>{cases > 0 ? `${cases} cs` : '—'}</td>
+                          <td style={{ padding: '7px 0', textAlign: 'right', fontWeight: 600, color: '#E6EDF3' }}>{fmt$(w.revenue)}</td>
+                          <td style={{ padding: '7px 0', textAlign: 'right', color: '#7D8590' }}>{cases > 0 ? `${cases} cs` : '—'}</td>
                         </tr>
                       );
                     })}
@@ -251,7 +251,7 @@ export default function AccountDetailPage() {
 
           {/* Sidenote sidebar — metadata + notes */}
           <div style={{ width: 220, flexShrink: 0 }}>
-            <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: '16px 18px', marginBottom: 16 }}>
+            <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 18px', marginBottom: 16 }}>
               {account.region && (
                 <SidenoteField label="Territory">{account.region}</SidenoteField>
               )}
@@ -268,7 +268,7 @@ export default function AccountDetailPage() {
                 </SidenoteField>
               )}
             </div>
-            <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: '16px 18px' }}>
+            <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 18px' }}>
               <AccountNotes accountName={account.account} />
             </div>
           </div>

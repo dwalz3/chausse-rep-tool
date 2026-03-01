@@ -30,7 +30,7 @@ export default function AccountNotes({ accountName }: AccountNotesProps) {
           margin: '0 0 8px',
           fontSize: 10,
           fontWeight: 600,
-          color: '#a8a29e',
+          color: '#7D8590',
           textTransform: 'uppercase',
           letterSpacing: '0.07em',
         }}
@@ -46,11 +46,11 @@ export default function AccountNotes({ accountName }: AccountNotesProps) {
         style={{
           width: '100%',
           padding: '8px 10px',
-          border: '1px solid #E5E1DC',
+          border: '1px solid #30363D',
           borderRadius: 8,
           fontSize: 12,
-          color: '#1C1917',
-          backgroundColor: '#F9F9F9',
+          color: '#E6EDF3',
+          backgroundColor: '#1C2128',
           resize: 'vertical',
           outline: 'none',
           fontFamily: 'inherit',

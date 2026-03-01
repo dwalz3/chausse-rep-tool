@@ -47,18 +47,18 @@ export default function LoginPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#F7F9F7',
+        backgroundColor: '#0D1117',
       }}
     >
       <div
         style={{
-          backgroundColor: '#FFFFFF',
+          backgroundColor: '#161B22',
           borderRadius: 12,
           padding: '40px 48px',
           width: '100%',
           maxWidth: 400,
           boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
-          border: '1px solid #E5E1DC',
+          border: '1px solid #30363D',
         }}
       >
         {/* Logo / brand */}
@@ -66,20 +66,20 @@ export default function LoginPage() {
           <div
             style={{
               display: 'inline-block',
-              backgroundColor: '#2D5A3D',
+              backgroundColor: '#3FB950',
               borderRadius: 8,
               padding: '10px 18px',
               marginBottom: 16,
             }}
           >
-            <span style={{ color: '#FFFFFF', fontWeight: 700, fontSize: 16, letterSpacing: '0.05em' }}>
+            <span style={{ color: '#161B22', fontWeight: 700, fontSize: 16, letterSpacing: '0.05em' }}>
               CHAUSSE
             </span>
           </div>
-          <h1 style={{ color: '#1C1917', fontSize: 20, fontWeight: 600, margin: 0 }}>
+          <h1 style={{ color: '#E6EDF3', fontSize: 20, fontWeight: 600, margin: 0 }}>
             Rep Field Tool
           </h1>
-          <p style={{ color: '#a8a29e', fontSize: 14, margin: '6px 0 0' }}>
+          <p style={{ color: '#7D8590', fontSize: 14, margin: '6px 0 0' }}>
             Sign in to access your accounts
           </p>
         </div>
@@ -89,7 +89,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="email"
-              style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#1C1917', marginBottom: 6 }}
+              style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#E6EDF3', marginBottom: 6 }}
             >
               Email
             </label>
@@ -105,9 +105,9 @@ export default function LoginPage() {
                 width: '100%',
                 padding: '10px 12px',
                 borderRadius: 8,
-                border: '1px solid #E5E1DC',
-                backgroundColor: '#F7F9F7',
-                color: '#1C1917',
+                border: '1px solid #30363D',
+                backgroundColor: '#0D1117',
+                color: '#E6EDF3',
                 fontSize: 15,
                 outline: 'none',
                 boxSizing: 'border-box',
@@ -119,7 +119,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="password"
-              style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#1C1917', marginBottom: 6 }}
+              style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#E6EDF3', marginBottom: 6 }}
             >
               Password
             </label>
@@ -135,9 +135,9 @@ export default function LoginPage() {
                 width: '100%',
                 padding: '10px 12px',
                 borderRadius: 8,
-                border: error ? '1px solid #dc2626' : '1px solid #E5E1DC',
-                backgroundColor: '#F7F9F7',
-                color: '#1C1917',
+                border: error ? '1px solid #F85149' : '1px solid #30363D',
+                backgroundColor: '#0D1117',
+                color: '#E6EDF3',
                 fontSize: 15,
                 outline: 'none',
                 boxSizing: 'border-box',
@@ -147,7 +147,7 @@ export default function LoginPage() {
 
           {/* Error */}
           {error && (
-            <p style={{ color: '#dc2626', fontSize: 13, margin: 0 }}>
+            <p style={{ color: '#F85149', fontSize: 13, margin: 0 }}>
               {error}
             </p>
           )}
@@ -157,8 +157,8 @@ export default function LoginPage() {
             type="submit"
             disabled={loading || !email || !password}
             style={{
-              backgroundColor: loading || !email || !password ? '#a8a29e' : '#2D5A3D',
-              color: '#FFFFFF',
+              backgroundColor: loading || !email || !password ? '#7D8590' : '#3FB950',
+              color: '#161B22',
               border: 'none',
               borderRadius: 8,
               padding: '12px',

@@ -105,39 +105,39 @@ export default function FocusPage() {
 
     return (
       <tr
-        style={{ borderTop: '1px solid #F3F4F6', cursor: props ? 'pointer' : 'default' }}
+        style={{ borderTop: '1px solid #21262D', cursor: props ? 'pointer' : 'default' }}
         onClick={() => props && router.push(`/portfolio/${encodeURIComponent(item.wineCode)}`)}
-        onMouseEnter={(e) => props && (e.currentTarget.style.backgroundColor = '#F9F9F9')}
+        onMouseEnter={(e) => props && (e.currentTarget.style.backgroundColor = '#1C2128')}
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
       >
-        <td style={{ padding: '9px 16px', color: '#a8a29e', fontSize: 12, width: 32 }}>{idx + 1}</td>
+        <td style={{ padding: '9px 16px', color: '#7D8590', fontSize: 12, width: 32 }}>{idx + 1}</td>
         <td style={{ padding: '9px 16px', width: 80 }}>
           {props ? (
             <WineTypeBadge type={props.wineType} />
           ) : (
-            <span style={{ fontSize: 11, backgroundColor: '#F3F4F6', color: '#a8a29e', borderRadius: 4, padding: '2px 7px', fontWeight: 600 }}>—</span>
+            <span style={{ fontSize: 11, backgroundColor: '#21262D', color: '#7D8590', borderRadius: 4, padding: '2px 7px', fontWeight: 600 }}>—</span>
           )}
         </td>
         <td style={{ padding: '9px 16px', maxWidth: 280 }}>
-          <div style={{ color: '#1C1917', fontWeight: 500, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ color: '#E6EDF3', fontWeight: 500, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {item.wineName}
           </div>
           {props && (
-            <div style={{ color: '#a8a29e', fontSize: 11, marginTop: 1 }}>
+            <div style={{ color: '#7D8590', fontSize: 11, marginTop: 1 }}>
               {props.producer}{props.country ? ` · ${props.country}` : ''}
             </div>
           )}
         </td>
-        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#a8a29e', fontSize: 12 }}>
+        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontSize: 12 }}>
           {price && price > 0 ? `$${price.toFixed(2)}` : '—'}
         </td>
-        <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color: '#1C1917' }}>
+        <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color: '#E6EDF3' }}>
           {fmt$(item.revenue)}
         </td>
-        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#a8a29e' }}>
+        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590' }}>
           {item.casesSold > 0 ? `${Math.round(item.casesSold / 12)} cs` : '—'}
         </td>
-        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#a8a29e', fontSize: 12 }}>
+        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontSize: 12 }}>
           {item.accountCount} acct{item.accountCount !== 1 ? 's' : ''}
         </td>
       </tr>
@@ -147,22 +147,22 @@ export default function FocusPage() {
   function Section({ title, items, icon, color }: { title: string; items: Ra25WineRow[]; icon: React.ReactNode; color: string }) {
     if (items.length === 0) return null;
     return (
-      <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', overflow: 'hidden', marginBottom: 16 }}>
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #E5E1DC', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', marginBottom: 16 }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid #30363D', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ color }}>{icon}</span>
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#1C1917' }}>{title}</h3>
-          <span style={{ fontSize: 12, color: '#a8a29e' }}>({items.length})</span>
+          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#E6EDF3' }}>{title}</h3>
+          <span style={{ fontSize: 12, color: '#7D8590' }}>({items.length})</span>
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead style={{ backgroundColor: '#F9F9F9' }}>
+          <thead style={{ backgroundColor: '#1C2128' }}>
             <tr>
-              <th style={{ width: 32, padding: '8px 16px', color: '#a8a29e', fontWeight: 500 }}>#</th>
-              <th style={{ width: 80, padding: '8px 16px', color: '#a8a29e', fontWeight: 500 }}>Type</th>
-              <th style={{ textAlign: 'left', padding: '8px 16px', color: '#a8a29e', fontWeight: 500 }}>Wine</th>
-              <th style={{ textAlign: 'right', padding: '8px 16px', color: '#a8a29e', fontWeight: 500 }}>Price/btl</th>
-              <th style={{ textAlign: 'right', padding: '8px 16px', color: '#a8a29e', fontWeight: 500 }}>Revenue</th>
-              <th style={{ textAlign: 'right', padding: '8px 16px', color: '#a8a29e', fontWeight: 500 }}>Cases</th>
-              <th style={{ textAlign: 'right', padding: '8px 16px', color: '#a8a29e', fontWeight: 500 }}>Accts</th>
+              <th style={{ width: 32, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>#</th>
+              <th style={{ width: 80, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Type</th>
+              <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
+              <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Price/btl</th>
+              <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Revenue</th>
+              <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Cases</th>
+              <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Accts</th>
             </tr>
           </thead>
           <tbody>
@@ -176,24 +176,24 @@ export default function FocusPage() {
   return (
     <Shell>
       <div style={{ maxWidth: 900 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1C1917', margin: '0 0 4px' }}>Focus List</h1>
-        <p style={{ fontSize: 13, color: '#a8a29e', margin: '0 0 24px' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: '0 0 4px' }}>Focus List</h1>
+        <p style={{ fontSize: 13, color: '#7D8590', margin: '0 0 24px' }}>
           Top performing wines across your accounts.
         </p>
 
         {noData ? (
-          <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: 40, textAlign: 'center', color: '#a8a29e', fontSize: 14 }}>
+          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 40, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
             Upload RA25 data on the{' '}
-            <a href="/upload" style={{ color: '#2D5A3D', fontWeight: 600 }}>Upload page</a> first.
+            <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload page</a> first.
           </div>
         ) : wines.length === 0 ? (
-          <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: 40, textAlign: 'center', color: '#a8a29e', fontSize: 14 }}>
+          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 40, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
             No wine data found for your accounts.
           </div>
         ) : (
           <>
-            <Section title="Push These — Top Performers" items={pushList} icon={<TrendingUp size={16} />} color="#16a34a" />
-            <Section title="Watch These — Next Tier" items={watchList} icon={<TrendingDown size={16} />} color="#d97706" />
+            <Section title="Push These — Top Performers" items={pushList} icon={<TrendingUp size={16} />} color="#3FB950" />
+            <Section title="Watch These — Next Tier" items={watchList} icon={<TrendingDown size={16} />} color="#E3B341" />
           </>
         )}
       </div>

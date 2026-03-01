@@ -45,7 +45,8 @@ export default function Sidebar() {
       style={{
         width,
         minWidth: width,
-        backgroundColor: '#2D5A3D',
+        backgroundColor: '#010409',
+        borderRight: '1px solid #21262D',
         display: 'flex',
         flexDirection: 'column',
         transition: 'width 0.2s ease',
@@ -57,17 +58,17 @@ export default function Sidebar() {
       <div
         style={{
           padding: isSidebarCollapsed ? '20px 0' : '20px 16px',
-          borderBottom: '1px solid rgba(255,255,255,0.15)',
+          borderBottom: '1px solid #21262D',
           display: 'flex',
           alignItems: 'center',
           justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
         }}
       >
         {isSidebarCollapsed ? (
-          <span style={{ color: '#FFFFFF', fontWeight: 700, fontSize: 14 }}>CS</span>
+          <span style={{ color: '#3FB950', fontWeight: 700, fontSize: 14 }}>CS</span>
         ) : (
-          <span style={{ color: '#FFFFFF', fontWeight: 700, fontSize: 14, letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
-            CHAUSSE
+          <span style={{ color: '#3FB950', fontWeight: 700, fontSize: 13, letterSpacing: '0.12em', whiteSpace: 'nowrap' }}>
+            CHAUSSE_
           </span>
         )}
       </div>
@@ -89,31 +90,31 @@ export default function Sidebar() {
                 padding: isSidebarCollapsed ? '10px 0' : '10px 16px',
                 justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
                 textDecoration: 'none',
-                backgroundColor: isActive ? 'rgba(255,255,255,0.12)' : 'transparent',
-                borderRight: isActive ? '3px solid #E8732A' : '3px solid transparent',
-                color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.7)',
-                fontSize: 14,
+                backgroundColor: isActive ? 'rgba(63,185,80,0.1)' : 'transparent',
+                borderRight: isActive ? '2px solid #3FB950' : '2px solid transparent',
+                color: isActive ? '#3FB950' : '#7D8590',
+                fontSize: 13,
                 fontWeight: isActive ? 600 : 400,
-                transition: 'background-color 0.15s',
+                transition: 'background-color 0.15s, color 0.15s',
                 position: 'relative',
                 whiteSpace: 'nowrap',
               }}
             >
               <span style={{ position: 'relative', flexShrink: 0 }}>
-                <Icon size={18} />
+                <Icon size={16} />
                 {badgeKey && count > 0 && isSidebarCollapsed && (
                   <span
                     style={{
                       position: 'absolute',
                       top: -6,
                       right: -6,
-                      backgroundColor: '#E8732A',
-                      color: '#FFF',
+                      backgroundColor: '#3FB950',
+                      color: '#010409',
                       borderRadius: '50%',
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: 700,
-                      width: 16,
-                      height: 16,
+                      width: 14,
+                      height: 14,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -129,12 +130,12 @@ export default function Sidebar() {
                   {badgeKey && count > 0 && (
                     <span
                       style={{
-                        backgroundColor: '#E8732A',
-                        color: '#FFF',
-                        borderRadius: 10,
-                        fontSize: 11,
+                        backgroundColor: '#3FB950',
+                        color: '#010409',
+                        borderRadius: 4,
+                        fontSize: 10,
                         fontWeight: 700,
-                        padding: '1px 7px',
+                        padding: '1px 6px',
                       }}
                     >
                       {count}
@@ -157,14 +158,14 @@ export default function Sidebar() {
           padding: 12,
           backgroundColor: 'transparent',
           border: 'none',
-          borderTop: '1px solid rgba(255,255,255,0.15)',
-          color: 'rgba(255,255,255,0.6)',
+          borderTop: '1px solid #21262D',
+          color: '#484F58',
           cursor: 'pointer',
           width: '100%',
         }}
         title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
-        {isSidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        {isSidebarCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
       </button>
     </aside>
   );

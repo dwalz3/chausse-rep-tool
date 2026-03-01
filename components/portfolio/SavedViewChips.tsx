@@ -43,7 +43,7 @@ interface Props {
 export default function SavedViewChips({ activeId, onSelect, counts }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 180 }}>
-      <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 600, color: '#a8a29e', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+      <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 600, color: '#7D8590', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
         Saved Views
       </p>
       {SAVED_VIEWS.map((view) => {
@@ -59,8 +59,8 @@ export default function SavedViewChips({ activeId, onSelect, counts }: Props) {
               padding: '7px 12px',
               borderRadius: 8,
               border: 'none',
-              backgroundColor: isActive ? '#2D5A3D' : 'transparent',
-              color: isActive ? '#FFFFFF' : '#1C1917',
+              backgroundColor: isActive ? '#3FB950' : 'transparent',
+              color: isActive ? '#FFFFFF' : '#E6EDF3',
               fontSize: 13,
               fontWeight: isActive ? 600 : 400,
               cursor: 'pointer',
@@ -73,8 +73,8 @@ export default function SavedViewChips({ activeId, onSelect, counts }: Props) {
               <span
                 style={{
                   fontSize: 11,
-                  backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : '#F3F4F6',
-                  color: isActive ? '#FFFFFF' : '#a8a29e',
+                  backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : '#21262D',
+                  color: isActive ? '#FFFFFF' : '#7D8590',
                   borderRadius: 10,
                   padding: '1px 7px',
                   fontWeight: 600,

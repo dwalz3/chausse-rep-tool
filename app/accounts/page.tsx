@@ -35,10 +35,10 @@ function getStatus(row: Rc5Row): 'new' | 'dormant' | 'at-risk' | 'active' {
 
 function StatusPill({ status }: { status: ReturnType<typeof getStatus> }) {
   const map = {
-    'new':     { label: 'New',     color: '#2563eb', bg: '#dbeafe' },
-    'dormant': { label: 'Dormant', color: '#d97706', bg: '#fef3c7' },
-    'at-risk': { label: 'At-Risk', color: '#b45309', bg: '#fef9c3' },
-    'active':  { label: 'Active',  color: '#16a34a', bg: '#dcfce7' },
+    'new':     { label: 'New',     color: '#58A6FF', bg: '#031D41' },
+    'dormant': { label: 'Dormant', color: '#E3B341', bg: '#2D2000' },
+    'at-risk': { label: 'At-Risk', color: '#C8922B', bg: '#2D2000' },
+    'active':  { label: 'Active',  color: '#3FB950', bg: '#0D2918' },
   };
   const { label, color, bg } = map[status];
   return (
@@ -52,7 +52,7 @@ function TrendCell({ row }: { row: Rc5Row }) {
   const recent = row.monthlyRevenue[10] + row.monthlyRevenue[11] + row.monthlyRevenue[12];
   const prior = row.monthlyRevenue[7] + row.monthlyRevenue[8] + row.monthlyRevenue[9];
   const pct = prior > 0 ? ((recent - prior) / prior) * 100 : null;
-  const color = pct === null ? '#a8a29e' : pct >= 5 ? '#16a34a' : pct <= -5 ? '#dc2626' : '#a8a29e';
+  const color = pct === null ? '#7D8590' : pct >= 5 ? '#3FB950' : pct <= -5 ? '#F85149' : '#7D8590';
   const label = pct === null
     ? (recent > 0 ? '↑ New' : '—')
     : `${pct >= 0 ? '+' : ''}${pct.toFixed(0)}%`;
@@ -67,8 +67,8 @@ function TrendCell({ row }: { row: Rc5Row }) {
 }
 
 function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; sortDir: SortDir }) {
-  if (col !== sortKey) return <ChevronUp size={12} color="#d4d4d4" />;
-  return sortDir === 'asc' ? <ChevronUp size={12} color="#2D5A3D" /> : <ChevronDown size={12} color="#2D5A3D" />;
+  if (col !== sortKey) return <ChevronUp size={12} color="#484F58" />;
+  return sortDir === 'asc' ? <ChevronUp size={12} color="#3FB950" /> : <ChevronDown size={12} color="#3FB950" />;
 }
 
 function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
@@ -79,9 +79,9 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
         padding: '5px 12px',
         borderRadius: 20,
         border: '1px solid',
-        borderColor: active ? '#2D5A3D' : '#E5E1DC',
-        backgroundColor: active ? '#2D5A3D' : '#FFFFFF',
-        color: active ? '#FFFFFF' : '#1C1917',
+        borderColor: active ? '#3FB950' : '#30363D',
+        backgroundColor: active ? '#3FB950' : '#161B22',
+        color: active ? '#FFFFFF' : '#E6EDF3',
         fontSize: 12,
         fontWeight: active ? 600 : 400,
         cursor: 'pointer',
@@ -172,22 +172,22 @@ export default function AccountsPage() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1C1917', margin: 0 }}>Accounts</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: 0 }}>Accounts</h1>
             {!noData && (
-              <p style={{ fontSize: 13, color: '#a8a29e', margin: '4px 0 0' }}>
+              <p style={{ fontSize: 13, color: '#7D8590', margin: '4px 0 0' }}>
                 {sorted.length} accounts · {rows.filter((r) => r.isDormant).length} dormant
               </p>
             )}
           </div>
           {!noData && (
             <div style={{ position: 'relative' }}>
-              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#a8a29e' }} />
+              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#7D8590' }} />
               <input
                 type="text"
                 placeholder="Search accounts…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, border: '1px solid #E5E1DC', borderRadius: 8, fontSize: 13, color: '#1C1917', backgroundColor: '#FFFFFF', outline: 'none', width: 220 }}
+                style={{ paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, border: '1px solid #30363D', borderRadius: 8, fontSize: 13, color: '#E6EDF3', backgroundColor: '#161B22', outline: 'none', width: 220 }}
               />
             </div>
           )}
@@ -199,7 +199,7 @@ export default function AccountsPage() {
             {TERRITORY_FILTERS.map((t) => (
               <FilterChip key={t} label={t} active={territory === t} onClick={() => setTerritory(t)} />
             ))}
-            <div style={{ width: 1, backgroundColor: '#E5E1DC', margin: '0 4px' }} />
+            <div style={{ width: 1, backgroundColor: '#30363D', margin: '0 4px' }} />
             {STATUS_FILTERS.map(({ key, label }) => (
               <FilterChip key={key} label={label} active={statusFilter === key} onClick={() => setStatusFilter(key)} />
             ))}
@@ -207,13 +207,13 @@ export default function AccountsPage() {
         )}
 
         {noData ? (
-          <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: 32, textAlign: 'center', color: '#a8a29e', fontSize: 14 }}>
-            Upload RC5 data on the <a href="/upload" style={{ color: '#2D5A3D', fontWeight: 600 }}>Upload page</a> first.
+          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 32, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
+            Upload RC5 data on the <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload page</a> first.
           </div>
         ) : (
-          <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', overflow: 'hidden' }}>
+          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <thead style={{ backgroundColor: '#F9F9F9' }}>
+              <thead style={{ backgroundColor: '#1C2128' }}>
                 <tr>
                   {[
                     { key: 'account' as SortKey, label: 'Account' },
@@ -225,7 +225,7 @@ export default function AccountsPage() {
                     <th
                       key={key}
                       onClick={() => toggleSort(key)}
-                      style={{ textAlign: key === 'account' ? 'left' : 'right', padding: '10px 16px', color: '#a8a29e', fontWeight: 500, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+                      style={{ textAlign: key === 'account' ? 'left' : 'right', padding: '10px 16px', color: '#7D8590', fontWeight: 500, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
                     >
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                         {label}
@@ -233,8 +233,8 @@ export default function AccountsPage() {
                       </span>
                     </th>
                   ))}
-                  <th style={{ padding: '10px 16px', color: '#a8a29e', fontWeight: 500, textAlign: 'right', width: 80 }}>Trend</th>
-                  <th style={{ padding: '10px 16px', color: '#a8a29e', fontWeight: 500, textAlign: 'center' }}>Status</th>
+                  <th style={{ padding: '10px 16px', color: '#7D8590', fontWeight: 500, textAlign: 'right', width: 80 }}>Trend</th>
+                  <th style={{ padding: '10px 16px', color: '#7D8590', fontWeight: 500, textAlign: 'center' }}>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -246,22 +246,22 @@ export default function AccountsPage() {
                     <tr
                       key={row.accountCode || row.account}
                       onClick={() => router.push(`/accounts/${encodeURIComponent(row.accountCode || row.account)}`)}
-                      style={{ borderTop: '1px solid #F3F4F6', cursor: 'pointer' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F9F9F9')}
+                      style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <td style={{ padding: '10px 16px', color: '#1C1917', fontWeight: 500 }}>
+                      <td style={{ padding: '10px 16px', color: '#E6EDF3', fontWeight: 500 }}>
                         {row.account}
                         {row.accountType && (
-                          <span style={{ marginLeft: 8, fontSize: 11, color: '#a8a29e', fontWeight: 400 }}>{row.accountType}</span>
+                          <span style={{ marginLeft: 8, fontSize: 11, color: '#7D8590', fontWeight: 400 }}>{row.accountType}</span>
                         )}
                       </td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#a8a29e' }}>
+                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#7D8590' }}>
                         {fmtMonth(row.lastActiveMonth)}
                       </td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#1C1917' }}>{fmt$(three_mo)}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#1C1917' }}>{fmt$(ytd)}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#1C1917' }}>{fmt$(row.totalRevenue)}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3' }}>{fmt$(three_mo)}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3' }}>{fmt$(ytd)}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3' }}>{fmt$(row.totalRevenue)}</td>
                       <td style={{ padding: '10px 16px', textAlign: 'right' }}>
                         <TrendCell row={row} />
                       </td>
@@ -273,7 +273,7 @@ export default function AccountsPage() {
                 })}
                 {sorted.length === 0 && (
                   <tr>
-                    <td colSpan={7} style={{ padding: 32, textAlign: 'center', color: '#a8a29e' }}>
+                    <td colSpan={7} style={{ padding: 32, textAlign: 'center', color: '#7D8590' }}>
                       No accounts match your filters.
                     </td>
                   </tr>

@@ -13,7 +13,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           style={{
             flex: 1,
             overflowY: 'auto',
-            backgroundColor: '#F7F9F7',
+            backgroundColor: '#0D1117',
             padding: 24,
           }}
         >

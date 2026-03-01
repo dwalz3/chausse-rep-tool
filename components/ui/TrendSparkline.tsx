@@ -34,7 +34,7 @@ export default function TrendSparkline({
   const polyPoints = pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
   const last = pts[pts.length - 1];
   const net = trimmed[trimmed.length - 1] - trimmed[0];
-  const dotColor = net > 0 ? '#16a34a' : net < 0 ? '#dc2626' : '#a8a29e';
+  const dotColor = net > 0 ? '#3FB950' : net < 0 ? '#F85149' : '#7D8590';
 
   return (
     <svg

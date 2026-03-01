@@ -88,13 +88,13 @@ function PortfolioInner() {
   return (
     <Shell>
       <div>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1C1917', margin: '0 0 20px' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: '0 0 20px' }}>
           Portfolio Explorer
         </h1>
 
         {noData ? (
-          <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', padding: 32, textAlign: 'center', color: '#a8a29e', fontSize: 14 }}>
-            Upload Wine Properties on the <a href="/upload" style={{ color: '#2D5A3D', fontWeight: 600 }}>Upload page</a> to explore the portfolio.
+          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 32, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
+            Upload Wine Properties on the <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload page</a> to explore the portfolio.
           </div>
         ) : (
           <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
@@ -102,9 +102,9 @@ function PortfolioInner() {
             <div
               style={{
                 flexShrink: 0,
-                backgroundColor: '#FFFFFF',
+                backgroundColor: '#161B22',
                 borderRadius: 10,
-                border: '1px solid #E5E1DC',
+                border: '1px solid #30363D',
                 padding: '16px 12px',
                 width: 210,
               }}
@@ -116,7 +116,7 @@ function PortfolioInner() {
             <div style={{ flex: 1, minWidth: 0 }}>
               {/* Search */}
               <div style={{ position: 'relative', marginBottom: 16 }}>
-                <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#a8a29e' }} />
+                <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#7D8590' }} />
                 <input
                   type="text"
                   placeholder="Search by wine, producer, country…"
@@ -128,11 +128,11 @@ function PortfolioInner() {
                     paddingRight: 12,
                     paddingTop: 9,
                     paddingBottom: 9,
-                    border: '1px solid #E5E1DC',
+                    border: '1px solid #30363D',
                     borderRadius: 8,
                     fontSize: 13,
-                    color: '#1C1917',
-                    backgroundColor: '#FFFFFF',
+                    color: '#E6EDF3',
+                    backgroundColor: '#161B22',
                     outline: 'none',
                     boxSizing: 'border-box',
                   }}
@@ -140,22 +140,22 @@ function PortfolioInner() {
               </div>
 
               {/* Count */}
-              <p style={{ margin: '0 0 10px', fontSize: 13, color: '#a8a29e' }}>
+              <p style={{ margin: '0 0 10px', fontSize: 13, color: '#7D8590' }}>
                 {searchFiltered.length.toLocaleString()} wines
               </p>
 
               {/* Table */}
-              <div style={{ backgroundColor: '#FFFFFF', borderRadius: 10, border: '1px solid #E5E1DC', overflow: 'hidden' }}>
+              <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                  <thead style={{ backgroundColor: '#F9F9F9' }}>
+                  <thead style={{ backgroundColor: '#1C2128' }}>
                     <tr>
-                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#a8a29e', fontWeight: 500 }}>Type</th>
-                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#a8a29e', fontWeight: 500 }}>Producer</th>
-                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#a8a29e', fontWeight: 500 }}>Wine</th>
-                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#a8a29e', fontWeight: 500 }}>Vintage</th>
-                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#a8a29e', fontWeight: 500 }}>Country</th>
-                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#a8a29e', fontWeight: 500 }}>Price</th>
-                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#a8a29e', fontWeight: 500 }}>PO Cases</th>
+                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Type</th>
+                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Producer</th>
+                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
+                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Vintage</th>
+                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Country</th>
+                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Price</th>
+                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>PO Cases</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -163,36 +163,36 @@ function PortfolioInner() {
                       <tr
                         key={row.wineCode}
                         onClick={() => router.push(`/portfolio/${encodeURIComponent(row.wineCode)}`)}
-                        style={{ borderTop: '1px solid #F3F4F6', cursor: 'pointer' }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F9F9F9')}
+                        style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                       >
                         <td style={{ padding: '9px 16px' }}>
                           <WineTypeBadge type={row.wineType} />
                         </td>
-                        <td style={{ padding: '9px 16px', color: '#a8a29e', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <td style={{ padding: '9px 16px', color: '#7D8590', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {row.producer}
                         </td>
-                        <td style={{ padding: '9px 16px', color: '#1C1917', fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <td style={{ padding: '9px 16px', color: '#E6EDF3', fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {row.wineName || row.name}
                         </td>
-                        <td style={{ padding: '9px 16px', color: '#a8a29e' }}>
+                        <td style={{ padding: '9px 16px', color: '#7D8590' }}>
                           {row.vintage || '—'}
                         </td>
-                        <td style={{ padding: '9px 16px', color: '#a8a29e' }}>
+                        <td style={{ padding: '9px 16px', color: '#7D8590' }}>
                           {row.country || '—'}
                         </td>
-                        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#1C1917', fontWeight: 600 }}>
+                        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#E6EDF3', fontWeight: 600 }}>
                           {fmt$(row.bottlePrice)}
                         </td>
-                        <td style={{ padding: '9px 16px', textAlign: 'right', color: row.openPOCases > 0 ? '#16a34a' : '#a8a29e' }}>
+                        <td style={{ padding: '9px 16px', textAlign: 'right', color: row.openPOCases > 0 ? '#3FB950' : '#7D8590' }}>
                           {row.openPOCases > 0 ? row.openPOCases : '—'}
                         </td>
                       </tr>
                     ))}
                     {searchFiltered.length === 0 && (
                       <tr>
-                        <td colSpan={7} style={{ padding: 32, textAlign: 'center', color: '#a8a29e' }}>
+                        <td colSpan={7} style={{ padding: 32, textAlign: 'center', color: '#7D8590' }}>
                           No wines match your filters.
                         </td>
                       </tr>
