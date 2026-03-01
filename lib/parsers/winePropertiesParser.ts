@@ -206,11 +206,17 @@ function resolveFromRows(
   const colType = findCol(headers,
     'wine type', 'product type', 'varietal type', 'beverage type',
     'wine category', 'item type', 'product group', 'subcategory',
-    'category', 'style', 'color', 'type', 'kind'
+    'category', 'style', 'color', 'type', 'kind', 'varietal', 'grape'
   );
+  // Only columns unambiguously about the grape variety (not wine type)
   const colVarietal = findCol(headers,
-    'varietal', 'grape variety', 'variety', 'varieties', 'blend', 'composition', 'grapes', 'grape'
+    'grape variety', 'grape varietal', 'variety', 'varieties',
+    'blend', 'composition', 'grapes'
   );
+  // If the same column was matched for both type and varietal, clear varietal
+  // (type takes priority — e.g. Vinosmith's "Varietal" column = Red/White/etc.)
+  // dedupe: if varietal matched same col as type, discard varietal match
+  const colVarietalFinal = (colVarietal >= 0 && colVarietal !== colType) ? colVarietal : -1;
   const colVintage = findCol(headers, 'vintage', 'vintage year', 'year', 'vy');
 
   const rows: WinePropertyRow[] = [];
@@ -230,7 +236,7 @@ function resolveFromRows(
     const casesPerPallet = colPallet >= 0 ? Math.max(1, Number(r[colPallet]) || 56) : 56;
     const typeRaw = colType >= 0 ? String(r[colType] ?? '').trim() : '';
     const wineType = parseWineType(typeRaw || rawName);
-    const varietal = colVarietal >= 0 ? String(r[colVarietal] ?? '').trim() : '';
+    const varietal = colVarietalFinal >= 0 ? String(r[colVarietalFinal] ?? '').trim() : '';
     const vintage = colVintage >= 0 ? String(r[colVintage] ?? '').trim() : parsed.vintage;
 
     const { isNatural, isBiodynamic } = parseFarmingFlags(rawName, importer);

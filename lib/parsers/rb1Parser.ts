@@ -67,7 +67,9 @@ export interface Rb1ParseResult {
   filename: string;
   detectedCodeCol: string;
   detectedCasesCol: string;
+  detectedBottlesCol: string;
   sampleCodes: string[];
+  allHeaders: string[];   // every column from the header row — shown in upload debug panel
 }
 
 function resolveFromRows(
@@ -77,7 +79,8 @@ function resolveFromRows(
 ): void {
   const empty = (errors: string[]): Rb1ParseResult => ({
     rows: [], rowCount: 0, errors, filename,
-    detectedCodeCol: '(none)', detectedCasesCol: '(none)', sampleCodes: [],
+    detectedCodeCol: '(none)', detectedCasesCol: '(none)', detectedBottlesCol: '(none)',
+    sampleCodes: [], allHeaders: [],
   });
 
   if (raw.length < 2) { resolve(empty(['File has no data rows'])); return; }
@@ -102,22 +105,27 @@ function resolveFromRows(
     'supplier', 'producer', 'vendor', 'winery', 'brand', 'importer'
   );
 
-  // Cases on hand — prefer specific "cases on hand" / "available" before generic "cases"
+  // Total bottles column — if the file reports inventory as bottles directly (preferred)
+  const colTotalBottles = findCol(headers,
+    'total bottles', 'btl on hand', 'bottles on hand', 'available btl',
+    'avail btl', 'qty btl', 'bottle qty', 'total btl'
+  );
+
+  // Cases on hand — full cases (used when no total-bottles col found)
   const colCases = findCol(headers,
     'cases on hand', 'avail cases', 'available cases', 'total cases',
-    'cs on hand', 'cases avail', 'quantity cases', 'qty cases',
+    'cs on hand', 'cases avail', 'qty cases', 'case qty',
     'cases', 'cs', 'qty', 'quantity', 'on hand', 'available', 'inventory'
   );
 
-  // Loose bottles
-  const colBottles = findCol(headers,
-    'bottles on hand', 'loose bottles', 'btl on hand', 'bottles avail',
-    'available bottles', 'total bottles', 'qty bottles',
-    'bottles', 'btl', 'bots'
+  // Loose bottles (individual bottles not making a full case)
+  const colLooseBottles = findCol(headers,
+    'loose bottles', 'loose btl', 'btl', 'bottles', 'bots'
   );
 
   const detectedCodeCol = colCode >= 0 ? headers[colCode] : '(not found)';
   const detectedCasesCol = colCases >= 0 ? headers[colCases] : '(not found)';
+  const detectedBottlesCol = colTotalBottles >= 0 ? headers[colTotalBottles] : '(not found)';
 
   const rows: InventoryRow[] = [];
 
@@ -129,8 +137,16 @@ function resolveFromRows(
     const name = colName >= 0 ? String(r[colName] ?? '').trim() : '';
     if (isJunkRow(code, name)) continue;
 
-    const casesOnHand = colCases >= 0 ? num(r[colCases]) : 0;
-    const bottlesOnHand = colBottles >= 0 ? num(r[colBottles]) : 0;
+    // If the file has a dedicated "total bottles" col, use it directly as bottlesOnHand
+    // and leave casesOnHand = 0 (so buildPortfolioRows won't double-multiply)
+    let casesOnHand = 0;
+    let bottlesOnHand = 0;
+    if (colTotalBottles >= 0) {
+      bottlesOnHand = num(r[colTotalBottles]);
+    } else {
+      casesOnHand = colCases >= 0 ? num(r[colCases]) : 0;
+      bottlesOnHand = colLooseBottles >= 0 ? num(r[colLooseBottles]) : 0;
+    }
 
     rows.push({
       wineCode: code,
@@ -152,7 +168,9 @@ function resolveFromRows(
     filename,
     detectedCodeCol,
     detectedCasesCol,
+    detectedBottlesCol,
     sampleCodes,
+    allHeaders: headers,
   });
 }
 
@@ -162,7 +180,7 @@ export function parseRb1(file: File): Promise<Rb1ParseResult> {
 
     const fail = (msg: string) =>
       resolve({ rows: [], rowCount: 0, errors: [msg], filename: file.name,
-        detectedCodeCol: '(error)', detectedCasesCol: '(error)', sampleCodes: [] });
+        detectedCodeCol: '(error)', detectedCasesCol: '(error)', detectedBottlesCol: '(error)', sampleCodes: [], allHeaders: [] });
 
     reader.onload = (e) => {
       try {

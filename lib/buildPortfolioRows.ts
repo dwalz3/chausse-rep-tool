@@ -78,6 +78,8 @@ export function buildPortfolioRows(
     const key = normCode(w.wineCode);
     const price = priceMap.get(key);
     const po = poMap.get(key);
+    const inv = inventoryMap.get(key);
+    const csSize = parseInt(w.caseSize) || 12;
 
     return {
       wineCode: w.wineCode,
@@ -97,12 +99,13 @@ export function buildPortfolioRows(
       isDirect: w.isDirect,
       bottlePrice: price?.defaultPrice ?? 0,
       fobPrice: price?.fobPrice ?? 0,
-      inventoryCases: inventoryMap.get(key)?.casesOnHand ?? 0,
-      inventoryBottles: inventoryMap.get(key)?.bottlesOnHand ?? 0,
+      inventoryCases: inv?.casesOnHand ?? 0,
+      inventoryBottles: inv?.bottlesOnHand ?? 0,
+      inventoryTotalBottles: inv ? inv.casesOnHand * csSize + inv.bottlesOnHand : 0,
       allocatedCases: allocMap.get(key) ?? 0,
       openPOCases: po?.openCases ?? 0,
       expectedArrival: po?.expectedArrival ?? null,
-      stockCases: inventoryMap.get(key)?.casesOnHand ?? po?.openCases ?? 0,
+      stockCases: inv?.casesOnHand ?? po?.openCases ?? 0,
       accountCount: accountCountMap.get(key) ?? 0,
     };
   });

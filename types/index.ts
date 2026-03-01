@@ -187,8 +187,9 @@ export interface PortfolioRow {
   isDirect: boolean;
   bottlePrice: number;
   fobPrice: number;
-  inventoryCases: number;   // from RB1 — actual cases in warehouse
-  inventoryBottles: number; // from RB1 — loose bottles
+  inventoryCases: number;        // from RB1 — actual cases in warehouse
+  inventoryBottles: number;      // from RB1 — loose bottles
+  inventoryTotalBottles: number; // computed: casesOnHand × caseSize + bottlesOnHand
   allocatedCases: number;
   openPOCases: number;
   expectedArrival: Date | null;

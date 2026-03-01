@@ -112,7 +112,7 @@ export default function UploadPage() {
           status: 'success',
           message: `${rowCount.toLocaleString()} rows loaded`,
           rowCount,
-          debug: { detectedCodeCol: result.detectedCodeCol, detectedPriceCol: result.detectedCasesCol, sampleCodes: result.sampleCodes },
+          debug: { detectedCodeCol: result.detectedCodeCol, detectedPriceCol: result.detectedCasesCol, sampleCodes: result.sampleCodes, allHeaders: result.allHeaders },
         });
         return;
       } else if (key === 'allocations') {

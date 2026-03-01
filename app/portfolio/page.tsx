@@ -77,6 +77,7 @@ function PortfolioInner() {
   const [search, setSearch] = useState(searchParams.get('q') ?? '');
   const [selectedWine, setSelectedWine] = useState<PortfolioRow | null>(null);
   const [viewsCollapsed, setViewsCollapsed] = useState(false);
+  const [showAllInventory, setShowAllInventory] = useState(false);
 
   // ── Resizable columns ──────────────────────────────────────────────────────
   const colWidthsRef = useRef<number[]>(COL_DEFS.map((c) => c.defaultWidth));
@@ -137,11 +138,15 @@ function PortfolioInner() {
   const viewFiltered = useMemo(() => allRows.filter(viewPredicate), [allRows, viewPredicate]);
 
   const searchFiltered = useMemo(() => {
-    if (!search.trim()) return viewFiltered;
+    // When inventory data is loaded, hide zero-inventory wines unless user toggled "show all"
+    let base = (!showAllInventory && inventoryData)
+      ? viewFiltered.filter((r) => r.inventoryTotalBottles > 0)
+      : viewFiltered;
+    if (!search.trim()) return base;
     const fuseResults = fuse.search(search);
     const matchCodes = new Set(fuseResults.map((r) => r.item.wineCode));
-    return viewFiltered.filter((r) => matchCodes.has(r.wineCode));
-  }, [viewFiltered, fuse, search]);
+    return base.filter((r) => matchCodes.has(r.wineCode));
+  }, [viewFiltered, fuse, search, showAllInventory, inventoryData]);
 
   const counts = useMemo(() => {
     const map: Record<string, number> = {};
@@ -252,10 +257,32 @@ function PortfolioInner() {
                   />
                 </div>
 
-                {/* Count */}
-                <p style={{ margin: '0 0 8px', fontSize: 13, color: '#7D8590' }}>
-                  {searchFiltered.length.toLocaleString()} wines
-                </p>
+                {/* Count + inventory toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 8px' }}>
+                  <p style={{ margin: 0, fontSize: 13, color: '#7D8590' }}>
+                    {searchFiltered.length.toLocaleString()} wines
+                    {inventoryData && !showAllInventory && <span style={{ color: '#484F58' }}> · in stock</span>}
+                  </p>
+                  {inventoryData && (
+                    <button
+                      onClick={() => setShowAllInventory((x) => !x)}
+                      style={{
+                        background: 'none',
+                        border: '1px solid #30363D',
+                        borderRadius: 5,
+                        color: '#7D8590',
+                        fontSize: 11,
+                        padding: '2px 8px',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {showAllInventory
+                        ? 'In-stock only'
+                        : `Show all ${viewFiltered.length.toLocaleString()} wines`}
+                    </button>
+                  )}
+                </div>
 
                 {/* Spreadsheet table */}
                 <div style={{
@@ -430,17 +457,13 @@ function PortfolioInner() {
 
                             {/* Inventory */}
                             <td style={{ borderTop: '1px solid #21262D', padding: '7px 12px', fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
-                              {row.inventoryCases > 0 || row.inventoryBottles > 0 || row.openPOCases > 0 ? (
+                              {row.inventoryTotalBottles > 0 || row.openPOCases > 0 ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                  {/* Real stock from RB1 */}
-                                  {(row.inventoryCases > 0 || row.inventoryBottles > 0) && (
+                                  {row.inventoryTotalBottles > 0 && (
                                     <span style={{ color: '#3FB950', fontWeight: 600 }}>
-                                      {row.inventoryCases > 0 && `${row.inventoryCases} cs`}
-                                      {row.inventoryCases > 0 && row.inventoryBottles > 0 && ' + '}
-                                      {row.inventoryBottles > 0 && `${row.inventoryBottles} btl`}
+                                      {row.inventoryTotalBottles} btl
                                     </span>
                                   )}
-                                  {/* Incoming from Open POs */}
                                   {row.openPOCases > 0 && (
                                     <span style={{ color: '#58A6FF' }}>
                                       +{row.openPOCases} on order

@@ -1,5 +1,18 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.9.4 — 2026-02-28
+Inventory shown in bottles; varietal detection fix; in-stock filter toggle.
+
+### Fixed
+- `lib/parsers/winePropertiesParser.ts` — restored `'varietal'` and `'grape'` to TYPE column keywords (end of list); VARIETAL column now only matches unambiguous terms (`'grape variety'`, `'grape varietal'`, `'variety'`, `'varieties'`, `'blend'`, `'composition'`, `'grapes'`); added dedupe: `colVarietalFinal` = -1 if it matched same column as type
+- `lib/parsers/rb1Parser.ts` — `resolve()` call now includes `allHeaders: headers` and `detectedBottlesCol`; `fail()` now includes those fields too; column detection uses `colTotalBottles` (preferred direct-bottles col) vs `colCases + colLooseBottles`
+- `lib/buildPortfolioRows.ts` — computes `inventoryTotalBottles = casesOnHand × caseSize + bottlesOnHand` (defaults caseSize to 12 when unparseable); uses `inv` variable to avoid repeated map lookups
+- `types/index.ts` — `PortfolioRow.inventoryTotalBottles: number` added
+
+### Changed
+- `app/portfolio/page.tsx` — Inventory cell now shows `inventoryTotalBottles` as "X btl" (not cases); when `inventoryData` is loaded, table defaults to showing only in-stock wines; toggle button "Show all N wines" / "In-stock only" added beside wine count; "· in stock" label when filtered
+- `app/upload/page.tsx` — RB1 inventory zone debug panel now shows `allHeaders` (all detected column headers), same as pricing zone
+
 ## v0.9.3 — 2026-02-28
 RB1 inventory upload; portfolio Inventory column shows real stock.
 
