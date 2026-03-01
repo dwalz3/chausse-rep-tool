@@ -23,6 +23,13 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
+  // Dave-only routes: /upload and /integrations
+  const pathname = req.nextUrl.pathname;
+  const isDaveOnly = pathname.startsWith('/upload') || pathname.startsWith('/integrations');
+  if (isDaveOnly && rep !== 'dave') {
+    return NextResponse.redirect(new URL('/', req.url));
+  }
+
   // Pass through with rep identity header for server components
   const res = NextResponse.next();
   res.headers.set('x-rep', rep);

@@ -27,8 +27,8 @@ const NAV = [
   { href: '/focus',           label: 'Focus',        Icon: Target },
   { href: '/territory-map',   label: 'Territory Map',Icon: Map },
   { href: '/producers',       label: 'Producers',    Icon: Grape },
-  { href: '/integrations',    label: 'Integrations', Icon: Zap },
-  { href: '/upload',          label: 'Upload',       Icon: Upload },
+  { href: '/integrations',    label: 'Integrations', Icon: Zap, daveOnly: true },
+  { href: '/upload',          label: 'Upload',       Icon: Upload, daveOnly: true },
   { href: '/settings',        label: 'Settings',     Icon: Settings },
 ];
 
@@ -80,7 +80,7 @@ export default function Sidebar() {
 
       {/* Nav items */}
       <nav style={{ flex: 1, padding: '8px 0' }}>
-        {NAV.map(({ href, label, Icon, badgeKey }) => {
+        {NAV.filter(({ daveOnly }) => !daveOnly || rep === 'dave').map(({ href, label, Icon, badgeKey }) => {
           const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
           const count = badgeKey === 'dormant' ? dormantCount : 0;
 

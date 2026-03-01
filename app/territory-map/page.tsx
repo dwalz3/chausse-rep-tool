@@ -12,6 +12,50 @@ function normCode(s: string) { return s.toString().trim().toUpperCase(); }
 
 function fmt$(n: number) { return '$' + Math.round(n).toLocaleString(); }
 
+/**
+ * Fallback: infer wine type from a wine name string.
+ * Used when wine properties data is absent or returns 'Other' for a code.
+ */
+function inferWineType(name: string): WineType | null {
+  const s = name.toLowerCase();
+  // Sparkling first
+  if (s.includes('sparkling') || s.includes('champagne') || s.includes('prosecco') ||
+      s.includes('cava') || s.includes('crémant') || s.includes('cremant') ||
+      s.includes('pét nat') || s.includes('pet nat') || s.includes('pétillant') ||
+      s.includes('petillant') || s.includes('mousseux') || s.includes('frizzante') ||
+      s.includes('lambrusco')) return 'Sparkling';
+  // Orange / skin-contact
+  if (s.includes('orange wine') || s.includes('skin contact') || s.includes('skin-contact') ||
+      s.includes('amber wine') || s.includes('ramato')) return 'Orange';
+  // Rosé (before red to avoid 'rosso' conflicts)
+  if (s.includes('rosé') || s.includes('rose wine') || s.includes('rosato') || s.includes('rosado')) return 'Rosé';
+  // Vermouth / aperitif
+  if (s.includes('vermouth') || s.includes('aperitif') || s.includes('apéritif') ||
+      s.includes('amaro') || s.includes('fortified')) return 'Vermouth';
+  // Non-alcoholic
+  if (s.includes('non-alc') || s.includes('dealc') || s.includes('non alcoholic') ||
+      s.includes('kombucha') || s.includes('zero alcohol') || s.includes('alcohol free')) return 'Tea/NA';
+  // Red varietals & keywords
+  if (s.includes('red wine') || s.includes('rouge') || s.includes('tinto') || s.includes('rosso') ||
+      s.includes('nero') || s.includes(' noir') || s.includes('cabernet') || s.includes('merlot') ||
+      s.includes('shiraz') || s.includes('syrah') || s.includes('malbec') ||
+      s.includes('barbera') || s.includes('nebbiolo') || s.includes('sangiovese') ||
+      s.includes('tempranillo') || s.includes('grenache') || s.includes('gamay') ||
+      s.includes('mourvèdre') || s.includes('mourvedre') || s.includes('zinfandel') ||
+      s.includes('primitivo') || s.includes('dolcetto') || s.includes('corvina') ||
+      s.includes('montepulciano') || s.includes('aglianico') || s.includes('nero d')) return 'Red';
+  // White varietals & keywords
+  if (s.includes('white wine') || s.includes('blanc') || s.includes('bianco') || s.includes('blanco') ||
+      s.includes('weiss') || s.includes('chardonnay') || s.includes('riesling') ||
+      s.includes('sauvignon') || s.includes('pinot grigio') || s.includes('pinot gris') ||
+      s.includes('gewürz') || s.includes('gewurz') || s.includes('viognier') ||
+      s.includes('chenin') || s.includes('grüner') || s.includes('gruner') ||
+      s.includes('vermentino') || s.includes('verdicchio') || s.includes('muscadet') ||
+      s.includes('albariño') || s.includes('albarino') || s.includes('torrontés') ||
+      s.includes('torrontes') || s.includes('trebbiano') || s.includes('pinot bianco')) return 'White';
+  return null;
+}
+
 type SortMode = 'revenue' | 'alpha' | 'gaps';
 
 export default function TerritoryMapPage() {
@@ -76,8 +120,13 @@ export default function TerritoryMapPage() {
     const acctCatMap = new Map<string, Map<WineType, CellData>>();
 
     for (const row of ra23Data.rows) {
-      const wineType = wineTypeMap.get(normCode(row.wineCode));
-      if (!wineType || !CATEGORIES.includes(wineType)) continue;
+      // Try wine properties map first; fall back to name-based inference
+      let wineType = wineTypeMap.get(normCode(row.wineCode));
+      if (!wineType || !CATEGORIES.includes(wineType)) {
+        const inferred = inferWineType(row.wineName || row.wineCode || '');
+        if (inferred) wineType = inferred;
+        else continue;
+      }
 
       if (!acctCatMap.has(row.account)) acctCatMap.set(row.account, new Map());
       const catMap = acctCatMap.get(row.account)!;
@@ -255,6 +304,12 @@ export default function TerritoryMapPage() {
             <p style={{ marginTop: 10, fontSize: 12, color: '#484F58' }}>
               Showing top {accountRows.length} of {topAccounts.length} accounts with RA23 data.
             </p>
+            {topAccounts.length === 0 && ra23Data && ra23Data.rows.length > 0 && (
+              <div style={{ backgroundColor: '#161B22', border: '1px solid #E3B341', borderRadius: 8, padding: '12px 16px', marginTop: 8, fontSize: 12, color: '#E3B341' }}>
+                RA23 has {ra23Data.rows.length.toLocaleString()} rows but none could be categorized by wine type.
+                Check that Wine Names in RA23 include type keywords (Red, White, Sparkling, etc.) or upload Wine Properties with a type/category column.
+              </div>
+            )}
           </>
         )}
 

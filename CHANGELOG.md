@@ -1,5 +1,13 @@
 # Changelog — Chausse Rep Field Tool
 
+## v1.0.2 — 2026-03-01
+Dave-only pages + Territory Map wine type fallback.
+
+### Changed
+- `middleware.ts` — redirect non-dave reps away from `/upload` and `/integrations` to `/`
+- `components/layout/Sidebar.tsx` — Integrations + Upload nav items hidden for non-dave reps (`daveOnly: true` flag)
+- `app/territory-map/page.tsx` — added `inferWineType()` name-based fallback; when wine properties type is missing or 'Other', infers from wine name keywords (Red/White/Sparkling/Orange/Rosé/Vermouth/Tea-NA varietals); added amber diagnostic when 0 accounts match despite RA23 having rows
+
 ## v1.0.1 — 2026-03-01
 RC3 PDF support: Vinosmith RC3 exports as PDF only; parser now handles both PDF and XLSX.
 
