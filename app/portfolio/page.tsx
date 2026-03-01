@@ -10,7 +10,7 @@ import WineDrawer from '@/components/ui/WineDrawer';
 import { useStore } from '@/store';
 import { buildPortfolioRows } from '@/lib/buildPortfolioRows';
 import { PortfolioRow } from '@/types';
-import { Search } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 function fmt$(n: number) {
   return n > 0 ? '$' + n.toFixed(2) : '—';
@@ -30,6 +30,7 @@ function PortfolioInner() {
   const [activeView, setActiveView] = useState(searchParams.get('view') ?? 'all');
   const [search, setSearch] = useState(searchParams.get('q') ?? '');
   const [selectedWine, setSelectedWine] = useState<PortfolioRow | null>(null);
+  const [viewsCollapsed, setViewsCollapsed] = useState(false);
 
   const allRows = useMemo(() => {
     if (!winePropertiesData) return [];
@@ -101,19 +102,50 @@ function PortfolioInner() {
             Upload Wine Properties on the <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload page</a> to explore the portfolio.
           </div>
         ) : (
-          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-            {/* Left panel — saved views */}
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+            {/* Left panel — saved views (collapsible) */}
             <div
               style={{
                 flexShrink: 0,
                 backgroundColor: '#161B22',
                 borderRadius: 10,
                 border: '1px solid #30363D',
-                padding: '16px 12px',
-                width: 210,
+                width: viewsCollapsed ? 32 : 210,
+                overflow: 'hidden',
+                transition: 'width 0.2s ease',
               }}
             >
-              <SavedViewChips activeId={activeView} onSelect={handleViewSelect} counts={counts} />
+              {viewsCollapsed ? (
+                /* Collapsed strip */
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', gap: 8 }}>
+                  <button
+                    onClick={() => setViewsCollapsed(false)}
+                    title="Expand saved views"
+                    style={{ background: 'none', border: 'none', color: '#7D8590', cursor: 'pointer', padding: 4, lineHeight: 0 }}
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                  {/* Active view dot indicator */}
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#3FB950' }} title={SAVED_VIEWS.find((v) => v.id === activeView)?.label} />
+                </div>
+              ) : (
+                /* Expanded panel */
+                <div style={{ padding: '12px 12px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#7D8590', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      Saved Views
+                    </span>
+                    <button
+                      onClick={() => setViewsCollapsed(true)}
+                      title="Collapse saved views"
+                      style={{ background: 'none', border: 'none', color: '#484F58', cursor: 'pointer', padding: 2, lineHeight: 0 }}
+                    >
+                      <ChevronLeft size={13} />
+                    </button>
+                  </div>
+                  <SavedViewChips activeId={activeView} onSelect={handleViewSelect} counts={counts} hideHeader />
+                </div>
+              )}
             </div>
 
             {/* Main panel */}

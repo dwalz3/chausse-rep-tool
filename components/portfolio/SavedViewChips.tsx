@@ -40,14 +40,17 @@ interface Props {
   activeId: string;
   onSelect: (id: string) => void;
   counts: Record<string, number>;
+  hideHeader?: boolean;
 }
 
-export default function SavedViewChips({ activeId, onSelect, counts }: Props) {
+export default function SavedViewChips({ activeId, onSelect, counts, hideHeader }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 180 }}>
-      <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 600, color: '#7D8590', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-        Saved Views
-      </p>
+      {!hideHeader && (
+        <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 600, color: '#7D8590', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          Saved Views
+        </p>
+      )}
       {SAVED_VIEWS.map((view) => {
         const isActive = view.id === activeId;
         return (
