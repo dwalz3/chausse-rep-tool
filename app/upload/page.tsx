@@ -75,6 +75,17 @@ export default function UploadPage() {
         if (result.errors.length && !result.rowCount) throw new Error(result.errors[0]);
         store.setRa25Data(result.data, { ...meta, rowCount: result.rowCount });
         rowCount = result.rowCount;
+        setZone(key, {
+          status: result.hasWineDetail ? 'success' : 'success',
+          message: `${rowCount.toLocaleString()} rows loaded${result.hasWineDetail ? '' : ' · no wine detail'}`,
+          rowCount,
+          debug: {
+            detectedCodeCol: result.detectedWineCodeCol !== '(not found)' ? result.detectedWineCodeCol : undefined,
+            detectedInvCol: result.detectedWineNameCol !== '(not found)' ? result.detectedWineNameCol : undefined,
+            allHeaders: result.allHeaders,
+          },
+        });
+        return;
       } else if (key === 'producers') {
         const result = await parseProducers(file);
         if (result.errors.length && !result.rowCount) throw new Error(result.errors[0]);

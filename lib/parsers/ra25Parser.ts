@@ -11,7 +11,16 @@ function normCode(s: string): string {
   return s.toString().trim().toUpperCase();
 }
 
-export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount: number; errors: string[]; filename: string }> {
+export async function parseRa25(file: File): Promise<{
+  data: Ra25Data;
+  rowCount: number;
+  errors: string[];
+  filename: string;
+  allHeaders: string[];
+  detectedWineNameCol: string;
+  detectedWineCodeCol: string;
+  hasWineDetail: boolean;
+}> {
   const errors: string[] = [];
 
   const buffer = await file.arrayBuffer();
@@ -24,6 +33,10 @@ export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount:
       rowCount: 0,
       errors: [`Sheet "Accounts" not found. Available sheets: ${wb.SheetNames.join(', ')}`],
       filename: file.name,
+      allHeaders: [],
+      detectedWineNameCol: '(no sheet)',
+      detectedWineCodeCol: '(no sheet)',
+      hasWineDetail: false,
     };
   }
 
@@ -36,6 +49,10 @@ export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount:
       rowCount: 0,
       errors: ['Sheet has fewer than 3 rows'],
       filename: file.name,
+      allHeaders: [],
+      detectedWineNameCol: '(no data)',
+      detectedWineCodeCol: '(no data)',
+      hasWineDetail: false,
     };
   }
 
@@ -166,7 +183,8 @@ export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount:
   });
 
   // ── Wine-level aggregation ───────────────────────────────────────────────────
-  // Key: normalized wine code OR wine name (if no code)
+  // Only runs when the RA25 file has actual per-wine rows.
+  // No importer fallback — importer names should never appear as wine names.
   const wineMap = new Map<string, {
     wineName: string;
     importer: string;
@@ -179,9 +197,10 @@ export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount:
 
   if (hasWineData) {
     for (const row of rows) {
-      const rawName = row.wineName || row.importer || '';
-      if (!rawName) continue;
-      const key = row.wineCode ? normCode(row.wineCode) : rawName.toUpperCase();
+      // Only use actual wine name — do NOT fall back to importer
+      const rawName = row.wineName || '';
+      const key = row.wineCode ? normCode(row.wineCode) : rawName ? rawName.toUpperCase() : null;
+      if (!key) continue;   // skip rows with no wine identity at all
       const ex = wineMap.get(key);
       if (ex) {
         ex.revenue += row.totalRevenue;
@@ -189,26 +208,7 @@ export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount:
         ex.accounts.add(row.account);
       } else {
         wineMap.set(key, {
-          wineName: rawName,
-          importer: row.importer,
-          revenue: row.totalRevenue,
-          casesSold: row.totalQty,
-          accounts: new Set([row.account]),
-        });
-      }
-    }
-  } else {
-    // Fall back: aggregate by importer as a proxy for wine grouping
-    for (const row of rows) {
-      const key = (row.importer || 'Unknown').toUpperCase();
-      const ex = wineMap.get(key);
-      if (ex) {
-        ex.revenue += row.totalRevenue;
-        ex.casesSold += row.totalQty;
-        ex.accounts.add(row.account);
-      } else {
-        wineMap.set(key, {
-          wineName: row.importer || 'Unknown',
+          wineName: rawName || row.wineCode || key,
           importer: row.importer,
           revenue: row.totalRevenue,
           casesSold: row.totalQty,
@@ -217,6 +217,7 @@ export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount:
       }
     }
   }
+  // If hasWineData is false, wineTotals stays empty — the caller can show an appropriate message.
 
   const wineTotals: Ra25WineRow[] = Array.from(wineMap.entries())
     .map(([key, v]) => ({
@@ -229,6 +230,8 @@ export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount:
     }))
     .sort((a, b) => b.revenue - a.revenue);
 
+  const allHeaders = headerRow.map((h) => String(h ?? '').trim().toLowerCase());
+
   return {
     data: {
       rows,
@@ -239,5 +242,9 @@ export async function parseRa25(file: File): Promise<{ data: Ra25Data; rowCount:
     rowCount: rows.length,
     errors,
     filename: file.name,
+    allHeaders,
+    detectedWineNameCol: colWineName >= 0 ? allHeaders[colWineName] : '(not found)',
+    detectedWineCodeCol: colWineCode >= 0 ? allHeaders[colWineCode] : '(not found)',
+    hasWineDetail: hasWineData,
   };
 }

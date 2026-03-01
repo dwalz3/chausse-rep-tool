@@ -59,7 +59,8 @@ export default function FocusPage() {
     return s;
   }, [rc5Data, rep]);
 
-  // Build wine-level totals filtered to this rep's accounts
+  // Build wine-level totals filtered to this rep's accounts.
+  // Requires RA25 rows that have wineName/wineCode — never uses importer as a wine name.
   const wines = useMemo((): Ra25WineRow[] => {
     if (!ra25Data) return [];
     const { rows } = ra25Data;
@@ -68,9 +69,10 @@ export default function FocusPage() {
 
     for (const row of rows) {
       if (repAccounts.size > 0 && !repAccounts.has(row.account.toLowerCase())) continue;
-      const rawName = row.wineName || row.importer || '';
-      if (!rawName) continue;
-      const key = row.wineCode ? normCode(row.wineCode) : rawName.toUpperCase();
+      // Only use actual wine name — skip rows with no wine identity
+      const rawName = row.wineName || '';
+      const key = row.wineCode ? normCode(row.wineCode) : rawName ? rawName.toUpperCase() : null;
+      if (!key) continue;
       const ex = filteredMap.get(key);
       if (ex) {
         ex.revenue += row.totalRevenue;
@@ -78,7 +80,7 @@ export default function FocusPage() {
         ex.accounts.add(row.account);
       } else {
         filteredMap.set(key, {
-          wineName: rawName,
+          wineName: rawName || row.wineCode || key,
           importer: row.importer,
           revenue: row.totalRevenue,
           casesSold: row.totalQty,
@@ -123,6 +125,8 @@ export default function FocusPage() {
   const watchList = wines.slice(10, 20);
 
   const noData = !ra25Data || !rep;
+  // RA25 loaded but rows have no wineName/wineCode — summary-level file only
+  const noWineDetail = ra25Data && !noData && wines.length === 0 && ra25Data.rows.length > 0;
 
   function WineRow({ item, idx }: { item: Ra25WineRow; idx: number }) {
     const props = winePropsMap.get(item.wineCode);
@@ -210,6 +214,18 @@ export default function FocusPage() {
           <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 40, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
             Upload RA25 data on the{' '}
             <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload page</a> first.
+          </div>
+        ) : noWineDetail ? (
+          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #E3B341', padding: 32, color: '#7D8590', fontSize: 14 }}>
+            <div style={{ fontWeight: 700, color: '#E3B341', marginBottom: 8, fontSize: 15 }}>RA25 file is account-summary level — no per-wine rows detected</div>
+            <p style={{ margin: '0 0 8px' }}>
+              The uploaded RA25 has <strong style={{ color: '#E6EDF3' }}>{ra25Data?.rows.length.toLocaleString()} rows</strong> but none contain a wine name or wine code column.
+              Focus List requires a per-wine RA25 export from Vinosmith.
+            </p>
+            <p style={{ margin: 0 }}>
+              In Vinosmith: <strong style={{ color: '#E6EDF3' }}>Reports → RA25 → select "Detail" view</strong> and export with wine name/code columns included.
+              Check the <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload debug panel</a> to see which columns were detected.
+            </p>
           </div>
         ) : (
           <>

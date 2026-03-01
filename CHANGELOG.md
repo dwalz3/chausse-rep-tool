@@ -1,5 +1,16 @@
 # Changelog — Chausse Rep Field Tool
 
+## v0.9.7 — 2026-02-28
+Focus List: stop showing importers as wines; RA25 debug panel; diagnostic message for summary-only files.
+
+### Fixed
+- `lib/parsers/ra25Parser.ts` — removed importer fallback from `wineTotals` aggregation; rows with no `wineName`/`wineCode` are now skipped entirely; `hasWineData=false` now produces empty `wineTotals` instead of importer-grouped fake wine rows
+- `app/focus/page.tsx` — same fix in per-rep wine filter: `row.wineName || row.importer` → `row.wineName || ''`; rows with no wine identity skipped; new `noWineDetail` state shows an amber diagnostic message when RA25 is loaded but has no wine columns (tells user to export RA25 "Detail" view from Vinosmith)
+
+### Added
+- `lib/parsers/ra25Parser.ts` — returns `allHeaders`, `detectedWineNameCol`, `detectedWineCodeCol`, `hasWineDetail` for debugging
+- `app/upload/page.tsx` — RA25 upload zone now shows debug panel with detected wine name col (teal), wine code col (yellow), and all column headers
+
 ## v0.9.6 — 2026-02-28
 Varietal column detection fix; sortable portfolio columns.
 
