@@ -336,7 +336,7 @@ function PortfolioInner() {
                     <thead>
                       <tr>
                         {/* Row # header */}
-                        <th className="sticky left-0 top-0 z-10 bg-black/5 dark:bg-white/5 w-[44px] border-b-2 border-border/50 border-r border-border/50 py-2 text-center text-muted font-medium text-[11px] select-none">
+                        <th className="sticky left-0 top-0 z-20 bg-black/5 dark:bg-white/5 w-[44px] border-b-2 border-border/50 border-r border-border/50 py-2 text-center text-muted font-medium text-[11px] select-none shadow-[2px_0_4px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.3)]">
                           #
                         </th>
                         {/* Resizable column headers */}
@@ -351,9 +351,9 @@ function PortfolioInner() {
                                 top: 0,
                                 ...(col.key === 'name' ? {
                                   left: NAME_LEFT,
-                                  zIndex: 10,
+                                  zIndex: 20,
                                 } : {
-                                  zIndex: 8,
+                                  zIndex: 10,
                                   borderRight: '1px solid var(--border)',
                                 }),
                               }}
