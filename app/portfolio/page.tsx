@@ -179,16 +179,37 @@ function PortfolioInner() {
   }
 
   const displayRows = useMemo(() => {
-    if (!sortKey) return searchFiltered;
-    return [...searchFiltered].sort((a, b) => {
-      const va = getSortValue(a, sortKey);
-      const vb = getSortValue(b, sortKey);
-      const cmp = typeof va === 'string' && typeof vb === 'string'
-        ? va.localeCompare(vb)
-        : (va as number) - (vb as number);
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-  }, [searchFiltered, sortKey, sortDir]);
+    // If user clicked a column header explicitly, honor that strictly
+    if (sortKey) {
+      return [...searchFiltered].sort((a, b) => {
+        const va = getSortValue(a, sortKey);
+        const vb = getSortValue(b, sortKey);
+        const cmp = typeof va === 'string' && typeof vb === 'string'
+          ? va.localeCompare(vb)
+          : (va as number) - (vb as number);
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    // Default multi-sort specifically for BTG-Eligible view
+    if (activeView === 'btg') {
+      return [...searchFiltered].sort((a, b) => {
+        // 1. Sort by Wine Type (Style) alphabetically
+        const typeCmp = String(a.wineType || '').localeCompare(String(b.wineType || ''));
+        if (typeCmp !== 0) return typeCmp;
+
+        // 2. Sort by Price (Low to High)
+        const priceCmp = (a.bottlePrice || 0) - (b.bottlePrice || 0);
+        if (priceCmp !== 0) return priceCmp;
+
+        // 3. Sort by Name alphabetically
+        return String(a.name || a.wineName || '').localeCompare(String(b.name || b.wineName || ''));
+      });
+    }
+
+    // Otherwise return unfiltered/unsorted result
+    return searchFiltered;
+  }, [searchFiltered, sortKey, sortDir, activeView]);
 
   const counts = useMemo(() => {
     const map: Record<string, number> = {};
