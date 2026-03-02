@@ -395,14 +395,14 @@ function PortfolioInner() {
                             </td>
 
                             {/* Inventory — color-coded via RB6 */}
-                            <td className="py-1.5 px-3 text-[11px] tabular-nums">
+                            <td className="py-1.5 px-3 text-[11px] tabular-nums text-center">
                               {(() => {
                                 const btl = rb6Row ? rb6Row.onHandBottles : row.inventoryTotalBottles;
                                 if (rb6Row?.isOutOfStock) return <span className="bg-red-100 dark:bg-[#3D0000] text-red-700 dark:text-[#F85149] rounded px-1.5 py-[1px] font-bold text-[10px]">Out</span>;
                                 if (btl > 0 || row.openPOCases > 0) {
                                   const invColorClass = rb6Row?.isCritical ? 'text-red-600 dark:text-red-500' : rb6Row?.isLowStock ? 'text-amber-600 dark:text-amber-500' : 'text-green-600 dark:text-green-500';
                                   return (
-                                    <div className="flex flex-col gap-[1px]">
+                                    <div className="flex flex-col items-center gap-[1px]">
                                       {btl > 0 && <span className={`font-semibold ${invColorClass}`}>{btl} btl</span>}
                                       {row.openPOCases > 0 && <span className="text-blue-600 dark:text-blue-400">+{row.openPOCases} on order</span>}
                                     </div>
@@ -413,7 +413,7 @@ function PortfolioInner() {
                             </td>
 
                             {/* Accts — prefer RA27 over RA25 accountCount */}
-                            <td className={`py-2 px-3 text-right tabular-nums ${(ra27Count ?? row.accountCount) > 0 ? 'text-text' : 'text-muted'}`}>
+                            <td className={`py-2 px-3 text-center tabular-nums ${(ra27Count ?? row.accountCount) > 0 ? 'text-text' : 'text-muted'}`}>
                               {(ra27Count ?? row.accountCount) > 0 ? (ra27Count ?? row.accountCount) : '—'}
                             </td>
 
