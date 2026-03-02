@@ -5,18 +5,11 @@ import TopBar from './TopBar';
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div className="flex-1 flex flex-col overflow-hidden">
         <TopBar />
-        <main
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            backgroundColor: '#0D1117',
-            padding: 24,
-          }}
-        >
+        <main className="flex-1 overflow-y-auto bg-bg p-4 md:p-6 pb-20 md:pb-6">
           {children}
         </main>
       </div>

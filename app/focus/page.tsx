@@ -29,7 +29,7 @@ interface TalkingPoint { label: string; color: string; bg: string }
 
 function TalkingPointChip({ tp }: { tp: TalkingPoint }) {
   return (
-    <span style={{ fontSize: 10, fontWeight: 700, backgroundColor: tp.bg, color: tp.color, borderRadius: 4, padding: '2px 6px', whiteSpace: 'nowrap' }}>
+    <span className="text-[10px] font-bold rounded px-1.5 py-0.5 whitespace-nowrap" style={{ backgroundColor: tp.bg, color: tp.color }}>
       {tp.label}
     </span>
   );
@@ -37,16 +37,16 @@ function TalkingPointChip({ tp }: { tp: TalkingPoint }) {
 
 export default function FocusPage() {
   const router = useRouter();
-  const rc5Data      = useStore((s) => s.rc5Data);
-  const ra21Data     = useStore((s) => s.ra21Data);
-  const ra30Data     = useStore((s) => s.ra30Data);
-  const ra3Data      = useStore((s) => s.ra3Data);
-  const rb6RepData   = useStore((s) => s.rb6RepData);
-  const ra27Data     = useStore((s) => s.ra27Data);
+  const rc5Data = useStore((s) => s.rc5Data);
+  const ra21Data = useStore((s) => s.ra21Data);
+  const ra30Data = useStore((s) => s.ra30Data);
+  const ra3Data = useStore((s) => s.ra3Data);
+  const rb6RepData = useStore((s) => s.rb6RepData);
+  const ra27Data = useStore((s) => s.ra27Data);
   const inventoryData = useStore((s) => s.inventoryData);
-  const pricingData  = useStore((s) => s.pricingData);
+  const pricingData = useStore((s) => s.pricingData);
   const winePropertiesData = useStore((s) => s.winePropertiesData);
-  const rep          = useStore((s) => s.rep);
+  const rep = useStore((s) => s.rep);
 
   // ── Lookup maps ───────────────────────────────────────────────────────────────
 
@@ -81,7 +81,7 @@ export default function FocusPage() {
     const key = normCode(row.wineCode);
     const props = winePropsMap.get(key);
     const price = priceMap.get(key) ?? 0;
-    const rb6   = rb6RepData?.byWineCode?.[key];
+    const rb6 = rb6RepData?.byWineCode?.[key];
     const accountCount = ra27Data?.byWineCode?.[key] ?? row.accountCount ?? 0;
     const recentPlacements = ra30Data?.byWineCode?.[key]?.filter((r) => (r.daysAgo ?? 999) <= 90).length ?? 0;
 
@@ -162,8 +162,8 @@ export default function FocusPage() {
   // ── Layout logic ─────────────────────────────────────────────────────────────
 
   const hasRa21 = (ra21Data?.rows.length ?? 0) > 0;
-  const hasRb1  = rb1Wines.length > 0;
-  const noData  = !hasRa21 && !hasRb1 && !rep;
+  const hasRb1 = rb1Wines.length > 0;
+  const noData = !hasRa21 && !hasRb1 && !rep;
 
   // ── Shared RA21 wine row ─────────────────────────────────────────────────────
 
@@ -174,36 +174,34 @@ export default function FocusPage() {
   }) {
     return (
       <tr
-        style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
+        className="border-t border-border/50 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors group"
         onClick={() => item.wineCode && router.push(`/portfolio/${encodeURIComponent(item.wineCode)}`)}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
       >
-        <td style={{ padding: '9px 16px', color: '#7D8590', fontSize: 12, width: 32 }}>{idx + 1}</td>
-        <td style={{ padding: '9px 16px', width: 80 }}>
+        <td className="py-2.5 px-4 text-muted text-xs w-8 tabular-nums">{idx + 1}</td>
+        <td className="py-2.5 px-4 w-20">
           {item.props ? (
             <WineTypeBadge type={item.props.wineType} />
           ) : (
-            <span style={{ fontSize: 11, backgroundColor: '#21262D', color: '#7D8590', borderRadius: 4, padding: '2px 7px', fontWeight: 600 }}>—</span>
+            <span className="text-[11px] bg-black/5 dark:bg-white/10 text-muted rounded px-2 py-0.5 font-semibold">—</span>
           )}
         </td>
-        <td style={{ padding: '9px 16px', maxWidth: 260 }}>
-          <div style={{ color: '#E6EDF3', fontWeight: 500, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <td className="py-2.5 px-4 max-w-[260px] truncate">
+          <div className="text-text font-medium text-[13px] truncate">
             {item.props?.wineName || item.wineName || item.wineCode}
           </div>
-          {item.props && <div style={{ color: '#7D8590', fontSize: 11, marginTop: 1 }}>{item.props.producer}{item.props.country ? ` · ${item.props.country}` : ''}</div>}
+          {item.props && <div className="text-muted text-[11px] mt-0.5 truncate">{item.props.producer}{item.props.country ? ` · ${item.props.country}` : ''}</div>}
         </td>
-        <td style={{ padding: '9px 8px' }}>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        <td className="py-2.5 px-2">
+          <div className="flex gap-1 flex-wrap justify-end">
             {item.tps.map((tp, ti) => <TalkingPointChip key={ti} tp={tp} />)}
           </div>
         </td>
         {showRev && (
-          <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color: '#E6EDF3', fontVariantNumeric: 'tabular-nums', width: 90 }}>
+          <td className="py-2.5 px-4 text-right font-semibold text-text tabular-nums w-[90px] whitespace-nowrap">
             {item.revenue > 0 ? fmt$(item.revenue) : '—'}
           </td>
         )}
-        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontSize: 12, width: 60, fontVariantNumeric: 'tabular-nums' }}>
+        <td className="py-2.5 px-4 text-right text-muted text-xs w-[60px] tabular-nums whitespace-nowrap">
           {item.price > 0 ? `$${item.price.toFixed(2)}` : '—'}
         </td>
       </tr>
@@ -214,62 +212,64 @@ export default function FocusPage() {
     title: string; subtitle?: string; icon: React.ReactNode; iconColor: string; count: number; children: React.ReactNode;
   }) {
     return (
-      <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', marginBottom: 16 }}>
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #30363D', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ color: iconColor }}>{icon}</span>
-          <div style={{ flex: 1 }}>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#E6EDF3' }}>{title}</h3>
-            {subtitle && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7D8590' }}>{subtitle}</p>}
+      <div className="bg-surface rounded-xl border border-border overflow-hidden mb-4 shadow-sm">
+        <div className="px-5 py-3.5 border-b border-border/50 flex items-start gap-2.5">
+          <span className="mt-[3px]" style={{ color: iconColor }}>{icon}</span>
+          <div className="flex-1 min-w-0">
+            <h3 className="m-0 text-[15px] font-bold text-text truncate">{title}</h3>
+            {subtitle && <p className="m-0 mt-0.5 text-xs text-muted truncate">{subtitle}</p>}
           </div>
-          <span style={{ fontSize: 12, color: '#7D8590' }}>({count})</span>
+          <span className="text-xs text-muted mt-[3px]">({count})</span>
         </div>
-        {children}
+        <div className="overflow-x-auto hide-scrollbar">
+          {children}
+        </div>
       </div>
     );
   }
 
   return (
     <Shell>
-      <div style={{ maxWidth: 960 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: '0 0 4px' }}>Focus List</h1>
-        <p style={{ fontSize: 13, color: '#7D8590', margin: '0 0 20px' }}>
+      <div className="max-w-[1000px] mx-auto w-full pb-8">
+        <h1 className="text-2xl font-bold text-text m-0 mb-1">Focus List</h1>
+        <p className="text-[13px] text-muted m-0 mb-5">
           Top performing wines and accounts to prioritize.
         </p>
 
         {/* Banner if RA23 missing */}
         {!useStore((s) => s.ra23Data) && (
-          <div style={{ backgroundColor: '#1C1610', border: '1px solid #3D2B00', borderRadius: 8, padding: '12px 16px', marginBottom: 20, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <AlertCircle size={15} color="#E3B341" style={{ flexShrink: 0, marginTop: 2 }} />
+          <div className="bg-amber-100/50 dark:bg-[#1C1610] border border-amber-500/30 dark:border-[#3D2B00] rounded-xl p-3 sm:p-4 mb-5 flex gap-3 items-start">
+            <AlertCircle size={15} className="shrink-0 mt-0.5 text-amber-600 dark:text-[#E3B341]" />
             <div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#E3B341' }}>Upload RA23 to unlock full Focus detail</span>
-              <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7D8590' }}>
+              <span className="text-[13px] font-semibold text-amber-800 dark:text-[#E3B341] block">Upload RA23 to unlock full Focus detail</span>
+              <p className="m-0 mt-0.5 text-xs text-amber-700/80 dark:text-muted">
                 Account × Wine detail required for per-account drilling.{' '}
-                <Link href="/integrations" style={{ color: '#3FB950', textDecoration: 'none', fontWeight: 600 }}>Sync via Integrations →</Link>
+                <Link href="/integrations" className="text-primary font-semibold hover:underline">Sync via Integrations →</Link>
               </p>
             </div>
           </div>
         )}
 
         {noData ? (
-          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 40, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
+          <div className="bg-surface rounded-xl border border-border p-8 sm:p-10 text-center text-muted text-sm">
             Upload RA21 (Top Wines) or RB1 inventory on the{' '}
-            <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload page</a> to populate Focus List.
+            <a href="/upload" className="text-primary font-semibold hover:underline">Upload page</a> to populate Focus List.
           </div>
         ) : (
           <>
             {hasRa21 ? (
               <>
                 {/* KPI cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
                   {[
                     { label: 'Ranked SKUs', value: ra21Data!.rows.length.toLocaleString() },
                     { label: 'Top Wine Revenue', value: ra21Data!.rows[0]?.revenue ? fmt$(ra21Data!.rows[0].revenue) : '—' },
                     { label: 'New Placements (90d)', value: (ra30Data?.recentPlacements.length ?? 0).toLocaleString() },
                     { label: 'Declining SKUs', value: watchList.length.toLocaleString() },
                   ].map(({ label, value }) => (
-                    <div key={label} style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 20px' }}>
-                      <div style={{ fontSize: 11, color: '#7D8590', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</div>
-                      <div style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+                    <div key={label} className="bg-surface rounded-xl border border-border p-4 sm:p-5 shadow-sm">
+                      <div className="text-[11px] text-muted font-semibold uppercase tracking-widest mb-1.5">{label}</div>
+                      <div className="text-[22px] font-bold text-text tabular-nums">{value}</div>
                     </div>
                   ))}
                 </div>
@@ -277,15 +277,15 @@ export default function FocusPage() {
                 {/* Push These */}
                 {pushThese.length > 0 && (
                   <Section title="Push These — Top Performers" subtitle="Ranked by revenue from RA21" icon={<TrendingUp size={16} />} iconColor="#3FB950" count={pushThese.length}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                      <thead style={{ backgroundColor: '#1C2128' }}>
+                    <table className="w-full border-collapse text-[13px] min-w-[700px]">
+                      <thead className="bg-black/5 dark:bg-white/5 border-b border-border/50">
                         <tr>
-                          <th style={{ width: 32, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>#</th>
-                          <th style={{ width: 80, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Type</th>
-                          <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
-                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Talking Points</th>
-                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Revenue</th>
-                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Price/btl</th>
+                          <th className="w-8 py-2 px-4 text-left text-muted font-medium">#</th>
+                          <th className="w-20 py-2 px-4 text-left text-muted font-medium">Type</th>
+                          <th className="py-2 px-4 text-left text-muted font-medium">Wine</th>
+                          <th className="py-2 px-4 text-right text-muted font-medium whitespace-nowrap">Talking Points</th>
+                          <th className="py-2 px-4 text-right text-muted font-medium">Revenue</th>
+                          <th className="py-2 px-4 text-right text-muted font-medium whitespace-nowrap">Price/btl</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -298,15 +298,15 @@ export default function FocusPage() {
                 {/* Expand These */}
                 {expandThese.length > 0 && (
                   <Section title="Expand These — High Revenue, Low Distribution" subtitle="High revenue but fewer than 10 accounts — opportunity to grow" icon={<Info size={16} />} iconColor="#79BAFF" count={expandThese.length}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                      <thead style={{ backgroundColor: '#1C2128' }}>
+                    <table className="w-full border-collapse text-[13px] min-w-[700px]">
+                      <thead className="bg-black/5 dark:bg-white/5 border-b border-border/50">
                         <tr>
-                          <th style={{ width: 32, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>#</th>
-                          <th style={{ width: 80, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Type</th>
-                          <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
-                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Talking Points</th>
-                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Revenue</th>
-                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Price/btl</th>
+                          <th className="w-8 py-2 px-4 text-left text-muted font-medium">#</th>
+                          <th className="w-20 py-2 px-4 text-left text-muted font-medium">Type</th>
+                          <th className="py-2 px-4 text-left text-muted font-medium">Wine</th>
+                          <th className="py-2 px-4 text-right text-muted font-medium whitespace-nowrap">Talking Points</th>
+                          <th className="py-2 px-4 text-right text-muted font-medium">Revenue</th>
+                          <th className="py-2 px-4 text-right text-muted font-medium whitespace-nowrap">Price/btl</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -319,13 +319,13 @@ export default function FocusPage() {
                 {/* New Placements */}
                 {newPlacements.length > 0 && (
                   <Section title="New Placements — Last 90 Days" subtitle="First-time wine placements at accounts" icon={<TrendingUp size={16} />} iconColor="#58A6FF" count={newPlacements.length}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                      <thead style={{ backgroundColor: '#1C2128' }}>
+                    <table className="w-full border-collapse text-[13px] min-w-[600px]">
+                      <thead className="bg-black/5 dark:bg-white/5 border-b border-border/50">
                         <tr>
-                          <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
-                          <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Account</th>
-                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Days Ago</th>
-                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Importer</th>
+                          <th className="py-2 px-4 text-left text-muted font-medium">Wine</th>
+                          <th className="py-2 px-4 text-left text-muted font-medium">Account</th>
+                          <th className="py-2 px-4 text-right text-muted font-medium whitespace-nowrap">Days Ago</th>
+                          <th className="py-2 px-4 text-right text-muted font-medium">Importer</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -333,18 +333,18 @@ export default function FocusPage() {
                           const key = normCode(p.wineCode);
                           const props = winePropsMap.get(key);
                           return (
-                            <tr key={i} style={{ borderTop: '1px solid #21262D' }}>
-                              <td style={{ padding: '9px 16px', maxWidth: 240 }}>
-                                <div style={{ color: '#E6EDF3', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <tr key={i} className="border-t border-border/50 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                              <td className="py-2.5 px-4 max-w-[240px] truncate">
+                                <div className="text-text font-medium text-[13px] truncate">
                                   {props?.wineName || p.wineName || p.wineCode}
                                 </div>
-                                {props?.producer && <div style={{ fontSize: 11, color: '#7D8590', marginTop: 1 }}>{props.producer}</div>}
+                                {props?.producer && <div className="text-muted text-[11px] mt-0.5 truncate">{props.producer}</div>}
                               </td>
-                              <td style={{ padding: '9px 16px', color: '#7D8590' }}>{p.account}</td>
-                              <td style={{ padding: '9px 16px', textAlign: 'right', color: '#58A6FF', fontWeight: 600 }}>
+                              <td className="py-2.5 px-4 text-muted truncate max-w-[200px]">{p.account}</td>
+                              <td className="py-2.5 px-4 text-right text-blue-500 font-semibold whitespace-nowrap">
                                 {p.daysAgo !== null ? `${p.daysAgo}d ago` : '—'}
                               </td>
-                              <td style={{ padding: '9px 16px', textAlign: 'right', color: '#484F58', fontSize: 12 }}>{p.importer || '—'}</td>
+                              <td className="py-2.5 px-4 text-right text-muted text-xs truncate max-w-[150px]">{p.importer || '—'}</td>
                             </tr>
                           );
                         })}
@@ -356,13 +356,13 @@ export default function FocusPage() {
                 {/* Watch List — Declines */}
                 {watchList.length > 0 && (
                   <Section title="Watch List — Recent Declines" subtitle={`From RA3 period comparison · ${ra3Data?.currentPeriodLabel ?? 'current'} vs ${ra3Data?.priorPeriodLabel ?? 'prior'}`} icon={<TrendingDown size={16} />} iconColor="#F85149" count={watchList.length}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                      <thead style={{ backgroundColor: '#1C2128' }}>
+                    <table className="w-full border-collapse text-[13px] min-w-[600px]">
+                      <thead className="bg-black/5 dark:bg-white/5 border-b border-border/50">
                         <tr>
-                          <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
-                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Current Rev</th>
-                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Prior Rev</th>
-                          <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Change</th>
+                          <th className="py-2 px-4 text-left text-muted font-medium">Wine</th>
+                          <th className="py-2 px-4 text-right text-muted font-medium whitespace-nowrap">Current Rev</th>
+                          <th className="py-2 px-4 text-right text-muted font-medium whitespace-nowrap">Prior Rev</th>
+                          <th className="py-2 px-4 text-right text-muted font-medium">Change</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -372,20 +372,18 @@ export default function FocusPage() {
                           return (
                             <tr
                               key={i}
-                              style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
+                              className="border-t border-border/50 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors group"
                               onClick={() => w.wineCode && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
-                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
-                              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                             >
-                              <td style={{ padding: '9px 16px', maxWidth: 260 }}>
-                                <div style={{ color: '#E6EDF3', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <td className="py-2.5 px-4 max-w-[260px] truncate">
+                                <div className="text-text font-medium text-[13px] truncate">
                                   {props?.wineName || w.wineName || w.wineCode}
                                 </div>
-                                {props?.producer && <div style={{ fontSize: 11, color: '#7D8590', marginTop: 1 }}>{props.producer}</div>}
+                                {props?.producer && <div className="text-muted text-[11px] mt-0.5 truncate">{props.producer}</div>}
                               </td>
-                              <td style={{ padding: '9px 16px', textAlign: 'right', color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{fmt$(w.currentPeriodRevenue)}</td>
-                              <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontVariantNumeric: 'tabular-nums' }}>{fmt$(w.priorPeriodRevenue)}</td>
-                              <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 700, color: '#F85149', fontVariantNumeric: 'tabular-nums' }}>
+                              <td className="py-2.5 px-4 text-right text-text font-medium tabular-nums whitespace-nowrap">{fmt$(w.currentPeriodRevenue)}</td>
+                              <td className="py-2.5 px-4 text-right text-muted tabular-nums whitespace-nowrap">{fmt$(w.priorPeriodRevenue)}</td>
+                              <td className="py-2.5 px-4 text-right font-bold text-red-500 tabular-nums whitespace-nowrap">
                                 {changePct.toFixed(0)}%
                               </td>
                             </tr>
@@ -399,66 +397,66 @@ export default function FocusPage() {
             ) : hasRb1 ? (
               <>
                 {/* KPI cards (RB1 fallback) */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
                   {[
                     { label: 'Active SKUs', value: rb1Wines.length.toLocaleString() },
                     { label: 'Btl Sold (30d)', value: rb1Wines.reduce((s, w) => s + w.qtySold, 0).toLocaleString() },
                     { label: 'Active Accounts', value: repAccounts.size > 0 ? repAccounts.size.toLocaleString() : '—' },
                     { label: 'In Stock', value: rb1Wines.filter(w => w.bottlesOnHand > 0).length.toLocaleString() },
                   ].map(({ label, value }) => (
-                    <div key={label} style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 20px' }}>
-                      <div style={{ fontSize: 11, color: '#7D8590', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</div>
-                      <div style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+                    <div key={label} className="bg-surface rounded-xl border border-border p-4 sm:p-5 shadow-sm">
+                      <div className="text-[11px] text-muted font-semibold uppercase tracking-widest mb-1.5">{label}</div>
+                      <div className="text-[22px] font-bold text-text tabular-nums">{value}</div>
                     </div>
                   ))}
                 </div>
 
-                <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', marginBottom: 16 }}>
-                  <div style={{ padding: '14px 20px', borderBottom: '1px solid #30363D', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ color: '#3FB950' }}><TrendingUp size={16} /></span>
-                    <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#E6EDF3' }}>Top Movers — Last 30 Days</h3>
-                    <span style={{ fontSize: 12, color: '#7D8590' }}>({rb1Wines.length})</span>
-                    <span style={{ marginLeft: 'auto', fontSize: 11, color: '#484F58' }}>from RB1 · <Link href="/integrations" style={{ color: '#7D8590', textDecoration: 'none' }}>upload RA21 for full ranking →</Link></span>
+                <div className="bg-surface rounded-xl border border-border overflow-hidden mb-4 shadow-sm">
+                  <div className="px-5 py-3.5 border-b border-border/50 flex items-center gap-2.5">
+                    <span className="text-green-500"><TrendingUp size={16} /></span>
+                    <h3 className="m-0 text-[15px] font-bold text-text">Top Movers — Last 30 Days</h3>
+                    <span className="text-xs text-muted">({rb1Wines.length})</span>
+                    <span className="ml-auto text-[11px] text-muted/80">from RB1 · <Link href="/integrations" className="text-muted hover:text-text hover:underline transition-colors">upload RA21 for full ranking →</Link></span>
                   </div>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                    <thead style={{ backgroundColor: '#1C2128' }}>
-                      <tr>
-                        <th style={{ width: 32, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>#</th>
-                        <th style={{ width: 80, padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Type</th>
-                        <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Wine</th>
-                        <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Sold (30d)</th>
-                        <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Available</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rb1Wines.map((w, i) => {
-                        const key = normCode(w.wineCode);
-                        const props = winePropsMap.get(key);
-                        return (
-                          <tr
-                            key={w.wineCode}
-                            style={{ borderTop: '1px solid #21262D', cursor: props ? 'pointer' : 'default' }}
-                            onClick={() => props && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
-                            onMouseEnter={(e) => props && (e.currentTarget.style.backgroundColor = '#1C2128')}
-                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                          >
-                            <td style={{ padding: '9px 16px', color: '#7D8590', fontSize: 12 }}>{i + 1}</td>
-                            <td style={{ padding: '9px 16px' }}>
-                              {props ? <WineTypeBadge type={props.wineType} /> : <span style={{ fontSize: 11, backgroundColor: '#21262D', color: '#7D8590', borderRadius: 4, padding: '2px 7px' }}>—</span>}
-                            </td>
-                            <td style={{ padding: '9px 16px', maxWidth: 300 }}>
-                              <div style={{ color: '#E6EDF3', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{props?.wineName || w.wineName}</div>
-                              {props && <div style={{ fontSize: 11, color: '#7D8590', marginTop: 1 }}>{props.producer}{props.country ? ` · ${props.country}` : ''}</div>}
-                            </td>
-                            <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color: '#3FB950', fontVariantNumeric: 'tabular-nums' }}>{w.qtySold} btl</td>
-                            <td style={{ padding: '9px 16px', textAlign: 'right', color: w.bottlesOnHand > 0 ? '#E6EDF3' : '#484F58', fontVariantNumeric: 'tabular-nums' }}>
-                              {w.bottlesOnHand > 0 ? `${w.bottlesOnHand} btl` : '—'}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                  <div className="overflow-x-auto hide-scrollbar">
+                    <table className="w-full border-collapse text-[13px] min-w-[600px]">
+                      <thead className="bg-black/5 dark:bg-white/5 border-b border-border/50">
+                        <tr>
+                          <th className="w-8 py-2 px-4 text-left text-muted font-medium">#</th>
+                          <th className="w-20 py-2 px-4 text-left text-muted font-medium">Type</th>
+                          <th className="py-2 px-4 text-left text-muted font-medium">Wine</th>
+                          <th className="py-2 px-4 text-right text-muted font-medium whitespace-nowrap">Sold (30d)</th>
+                          <th className="py-2 px-4 text-right text-muted font-medium">Available</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rb1Wines.map((w, i) => {
+                          const key = normCode(w.wineCode);
+                          const props = winePropsMap.get(key);
+                          return (
+                            <tr
+                              key={w.wineCode}
+                              className={`border-t border-border/50 transition-colors ${props ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 group' : ''}`}
+                              onClick={() => props && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
+                            >
+                              <td className="py-2.5 px-4 text-muted text-xs">{i + 1}</td>
+                              <td className="py-2.5 px-4">
+                                {props ? <WineTypeBadge type={props.wineType} /> : <span className="text-[11px] bg-black/5 dark:bg-white/10 text-muted rounded px-2 py-0.5">—</span>}
+                              </td>
+                              <td className="py-2.5 px-4 max-w-[300px] truncate">
+                                <div className="text-text font-medium text-[13px] truncate">{props?.wineName || w.wineName}</div>
+                                {props && <div className="text-muted text-[11px] mt-0.5 truncate">{props.producer}{props.country ? ` · ${props.country}` : ''}</div>}
+                              </td>
+                              <td className="py-2.5 px-4 text-right font-semibold text-green-500 tabular-nums whitespace-nowrap">{w.qtySold} btl</td>
+                              <td className={`py-2.5 px-4 text-right tabular-nums whitespace-nowrap ${w.bottlesOnHand > 0 ? 'text-text' : 'text-muted'}`}>
+                                {w.bottlesOnHand > 0 ? `${w.bottlesOnHand} btl` : '—'}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </>
             ) : null}
@@ -466,28 +464,26 @@ export default function FocusPage() {
             {/* Reactivate section */}
             {reactivateList.length > 0 && (
               <Section title="Reactivate — Dormant Accounts" icon={<RefreshCw size={16} />} iconColor="#F85149" count={reactivateList.length}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                  <thead style={{ backgroundColor: '#1C2128' }}>
+                <table className="w-full border-collapse text-[13px] min-w-[500px]">
+                  <thead className="bg-black/5 dark:bg-white/5 border-b border-border/50">
                     <tr>
-                      <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Account</th>
-                      <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Last Active</th>
-                      <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Peak 3-Mo</th>
-                      <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Lifetime Rev</th>
+                      <th className="py-2 px-4 text-left text-muted font-medium">Account</th>
+                      <th className="py-2 px-4 text-right text-muted font-medium whitespace-nowrap">Last Active</th>
+                      <th className="py-2 px-4 text-right text-muted font-medium whitespace-nowrap">Peak 3-Mo</th>
+                      <th className="py-2 px-4 text-right text-muted font-medium whitespace-nowrap">Lifetime Rev</th>
                     </tr>
                   </thead>
                   <tbody>
                     {reactivateList.map((acct) => (
                       <tr
                         key={acct.account}
-                        style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
+                        className="border-t border-border/50 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors group"
                         onClick={() => router.push(`/accounts/${encodeURIComponent(acct.account)}`)}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                       >
-                        <td style={{ padding: '9px 16px', color: '#E6EDF3', fontWeight: 500 }}>{acct.account}</td>
-                        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590' }}>{fmtMonth(acct.lastActive)}</td>
-                        <td style={{ padding: '9px 16px', textAlign: 'right', color: '#7D8590', fontVariantNumeric: 'tabular-nums' }}>{acct.threeMo > 0 ? fmt$(acct.threeMo) : '—'}</td>
-                        <td style={{ padding: '9px 16px', textAlign: 'right', fontWeight: 600, color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{fmt$(acct.totalRevenue)}</td>
+                        <td className="py-2.5 px-4 text-text font-medium">{acct.account}</td>
+                        <td className="py-2.5 px-4 text-right text-muted whitespace-nowrap">{fmtMonth(acct.lastActive)}</td>
+                        <td className="py-2.5 px-4 text-right text-muted tabular-nums whitespace-nowrap">{acct.threeMo > 0 ? fmt$(acct.threeMo) : '—'}</td>
+                        <td className="py-2.5 px-4 text-right font-semibold text-text tabular-nums whitespace-nowrap">{fmt$(acct.totalRevenue)}</td>
                       </tr>
                     ))}
                   </tbody>

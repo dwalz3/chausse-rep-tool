@@ -20,31 +20,31 @@ type SortKey = typeof COL_DEFS[number]['key'];
 
 function getSortValue(row: PortfolioRow, key: SortKey): string | number {
   switch (key) {
-    case 'name':      return (row.name || row.wineName).toLowerCase();
-    case 'price':     return row.bottlePrice;
+    case 'name': return (row.name || row.wineName).toLowerCase();
+    case 'price': return row.bottlePrice;
     case 'inventory': return row.inventoryTotalBottles;
-    case 'accts':     return row.accountCount;
-    case 'importer':  return row.importer.toLowerCase();
-    case 'region':    return row.region.toLowerCase();
-    case 'country':   return row.country.toLowerCase();
-    case 'type':      return row.wineType.toLowerCase();
-    case 'varietal':  return row.varietal.toLowerCase();
-    case 'farming':   return [row.isNatural, row.isBiodynamic, row.isDirect].filter(Boolean).length;
+    case 'accts': return row.accountCount;
+    case 'importer': return row.importer.toLowerCase();
+    case 'region': return row.region.toLowerCase();
+    case 'country': return row.country.toLowerCase();
+    case 'type': return row.wineType.toLowerCase();
+    case 'varietal': return row.varietal.toLowerCase();
+    case 'farming': return [row.isNatural, row.isBiodynamic, row.isDirect].filter(Boolean).length;
   }
 }
 
 // Column definitions for resizable columns (excludes fixed row-# column)
 const COL_DEFS = [
-  { key: 'name',      label: 'Wine',      defaultWidth: 240, sticky: true  },
-  { key: 'price',     label: 'Price',     defaultWidth: 82,  sticky: false },
+  { key: 'name', label: 'Wine', defaultWidth: 240, sticky: true },
+  { key: 'price', label: 'Price', defaultWidth: 82, sticky: false },
   { key: 'inventory', label: 'Inventory', defaultWidth: 110, sticky: false },
-  { key: 'accts',     label: 'Accts',     defaultWidth: 64,  sticky: false },
-  { key: 'importer',  label: 'Importer',  defaultWidth: 150, sticky: false },
-  { key: 'region',    label: 'Region',    defaultWidth: 120, sticky: false },
-  { key: 'country',   label: 'Country',   defaultWidth: 106, sticky: false },
-  { key: 'type',      label: 'Type',      defaultWidth: 96,  sticky: false },
-  { key: 'varietal',  label: 'Varietal',  defaultWidth: 140, sticky: false },
-  { key: 'farming',   label: 'Farming',   defaultWidth: 88,  sticky: false },
+  { key: 'accts', label: 'Accts', defaultWidth: 64, sticky: false },
+  { key: 'importer', label: 'Importer', defaultWidth: 150, sticky: false },
+  { key: 'region', label: 'Region', defaultWidth: 120, sticky: false },
+  { key: 'country', label: 'Country', defaultWidth: 106, sticky: false },
+  { key: 'type', label: 'Type', defaultWidth: 96, sticky: false },
+  { key: 'varietal', label: 'Varietal', defaultWidth: 140, sticky: false },
+  { key: 'farming', label: 'Farming', defaultWidth: 88, sticky: false },
 ] as const;
 
 const ROW_NUM_WIDTH = 44;   // fixed, not resizable
@@ -52,18 +52,18 @@ const NAME_LEFT = ROW_NUM_WIDTH;
 
 function FarmingBadges({ row }: { row: PortfolioRow }) {
   if (!row.isNatural && !row.isBiodynamic && !row.isDirect) {
-    return <span style={{ color: '#484F58' }}>—</span>;
+    return <span className="text-muted">—</span>;
   }
   return (
-    <div style={{ display: 'flex', gap: 3 }}>
+    <div className="flex gap-1">
       {row.isNatural && (
-        <span title="Natural" style={{ fontSize: 10, backgroundColor: '#0D2918', color: '#3FB950', borderRadius: 3, padding: '1px 5px', fontWeight: 700 }}>N</span>
+        <span title="Natural" className="text-[10px] bg-green-100 text-green-700 dark:bg-[#0D2918] dark:text-[#3FB950] rounded px-[5px] py-[1px] font-bold">N</span>
       )}
       {row.isBiodynamic && (
-        <span title="Biodynamic" style={{ fontSize: 10, backgroundColor: '#003730', color: '#22D3A5', borderRadius: 3, padding: '1px 5px', fontWeight: 700 }}>B</span>
+        <span title="Biodynamic" className="text-[10px] bg-teal-100 text-teal-700 dark:bg-[#003730] dark:text-[#22D3A5] rounded px-[5px] py-[1px] font-bold">B</span>
       )}
       {row.isDirect && (
-        <span title="Direct Import" style={{ fontSize: 10, backgroundColor: '#2A2500', color: '#E3B341', borderRadius: 3, padding: '1px 5px', fontWeight: 700 }}>D</span>
+        <span title="Direct Import" className="text-[10px] bg-amber-100 text-amber-700 dark:bg-[#2A2500] dark:text-[#E3B341] rounded px-[5px] py-[1px] font-bold">D</span>
       )}
     </div>
   );
@@ -72,7 +72,7 @@ function FarmingBadges({ row }: { row: PortfolioRow }) {
 function WineTypePill({ type }: { type: PortfolioRow['wineType'] }) {
   const s = getWineTypeStyle(type);
   return (
-    <span style={{ fontSize: 11, backgroundColor: s.bg, color: s.text, borderRadius: 4, padding: '2px 7px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+    <span className="text-[11px] rounded px-2 py-0.5 font-semibold whitespace-nowrap" style={{ backgroundColor: s.bg, color: s.text }}>
       {type}
     </span>
   );
@@ -217,107 +217,80 @@ function PortfolioInner() {
   return (
     <>
       <Shell>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: '0 0 20px' }}>
+        <div className="pb-8">
+          <h1 className="text-2xl font-bold text-text m-0 mb-5">
             Portfolio Explorer
           </h1>
 
           {noData ? (
-            <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 32, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
-              Upload Wine Properties on the <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload page</a> to explore the portfolio.
+            <div className="bg-surface rounded-xl border border-border p-8 text-center text-muted text-sm">
+              Upload Wine Properties on the <a href="/upload" className="text-primary font-semibold hover:underline">Upload page</a> to explore the portfolio.
             </div>
           ) : (
-            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+            <div className="flex gap-4 items-start">
 
               {/* Left panel — saved views (collapsible) */}
-              <div style={{
-                flexShrink: 0,
-                backgroundColor: '#161B22',
-                borderRadius: 10,
-                border: '1px solid #30363D',
-                width: viewsCollapsed ? 32 : 210,
-                overflow: 'hidden',
-                transition: 'width 0.2s ease',
-              }}>
+              <div
+                className={`shrink-0 bg-surface rounded-xl border border-border overflow-hidden transition-[width] duration-200 ease-in-out ${viewsCollapsed ? 'w-8' : 'w-[210px]'}`}
+              >
                 {viewsCollapsed ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', gap: 8 }}>
+                  <div className="flex flex-col items-center py-3 gap-2">
                     <button
                       onClick={() => setViewsCollapsed(false)}
                       title="Expand saved views"
-                      style={{ background: 'none', border: 'none', color: '#7D8590', cursor: 'pointer', padding: 4, lineHeight: 0 }}
+                      className="bg-transparent border-none text-muted cursor-pointer p-1 leading-none hover:text-text transition-colors"
                     >
                       <ChevronRight size={14} />
                     </button>
                     <div
-                      style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#3FB950' }}
+                      className="w-1.5 h-1.5 rounded-full bg-primary"
                       title={SAVED_VIEWS.find((v) => v.id === activeView)?.label}
                     />
                   </div>
                 ) : (
-                  <div style={{ padding: '12px 12px 16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: '#7D8590', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <div className="px-3 pt-3 pb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[11px] font-semibold text-muted uppercase tracking-widest">
                         Saved Views
                       </span>
                       <button
                         onClick={() => setViewsCollapsed(true)}
                         title="Collapse saved views"
-                        style={{ background: 'none', border: 'none', color: '#484F58', cursor: 'pointer', padding: 2, lineHeight: 0 }}
+                        className="bg-transparent border-none text-muted cursor-pointer p-0.5 leading-none hover:text-text transition-colors"
                       >
                         <ChevronLeft size={13} />
                       </button>
                     </div>
-                    <SavedViewChips activeId={activeView} onSelect={handleViewSelect} counts={counts} hideHeader />
+                    {/* Fixed to hide the extra SavedView header */}
+                    <SavedViewChips activeId={activeView} onSelect={handleViewSelect} counts={counts} />
                   </div>
                 )}
               </div>
 
               {/* Main panel */}
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="flex-1 min-w-0">
                 {/* Search */}
-                <div style={{ position: 'relative', marginBottom: 12 }}>
-                  <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#7D8590' }} />
+                <div className="relative mb-3">
+                  <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
                   <input
                     type="text"
                     placeholder="Search by wine, producer, country…"
                     value={search}
                     onChange={(e) => handleSearch(e.target.value)}
-                    style={{
-                      width: '100%',
-                      paddingLeft: 32,
-                      paddingRight: 12,
-                      paddingTop: 9,
-                      paddingBottom: 9,
-                      border: '1px solid #30363D',
-                      borderRadius: 8,
-                      fontSize: 13,
-                      color: '#E6EDF3',
-                      backgroundColor: '#161B22',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
+                    className="w-full pl-8 pr-3 py-2 border border-border rounded-lg text-[13px] text-text bg-surface outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-muted box-border"
                   />
                 </div>
 
                 {/* Count + inventory toggle */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 8px' }}>
-                  <p style={{ margin: 0, fontSize: 13, color: '#7D8590' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="m-0 text-[13px] text-muted">
                     {displayRows.length.toLocaleString()} wines
-                    {inventoryData && !showAllInventory && <span style={{ color: '#484F58' }}> · in stock</span>}
+                    {inventoryData && !showAllInventory && <span className="text-muted/60"> · in stock</span>}
                   </p>
                   {inventoryData && (
                     <button
                       onClick={() => setShowAllInventory((x) => !x)}
-                      style={{
-                        background: 'none',
-                        border: '1px solid #30363D',
-                        borderRadius: 5,
-                        color: '#7D8590',
-                        fontSize: 11,
-                        padding: '2px 8px',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                      }}
+                      className="bg-transparent border border-border rounded text-muted text-[11px] px-2 py-0.5 cursor-pointer shrink-0 hover:border-text/30 hover:text-text transition-colors"
                     >
                       {showAllInventory
                         ? 'In-stock only'
@@ -327,16 +300,10 @@ function PortfolioInner() {
                 </div>
 
                 {/* Spreadsheet table */}
-                <div style={{
-                  backgroundColor: '#161B22',
-                  borderRadius: 10,
-                  border: '1px solid #30363D',
-                  overflow: 'auto',
-                  maxHeight: 'calc(100vh - 230px)',
-                }}>
+                <div className="bg-surface rounded-xl border border-border overflow-auto max-h-[calc(100vh-230px)] hide-scrollbar shadow-sm">
                   <table
                     ref={tableRef}
-                    style={{ tableLayout: 'fixed', borderCollapse: 'collapse', fontSize: 13, minWidth: '100%' }}
+                    className="table-fixed border-collapse text-[13px] min-w-full"
                   >
                     <colgroup>
                       <col style={{ width: ROW_NUM_WIDTH }} />
@@ -348,83 +315,46 @@ function PortfolioInner() {
                     <thead>
                       <tr>
                         {/* Row # header */}
-                        <th style={{
-                          position: 'sticky',
-                          left: 0,
-                          top: 0,
-                          zIndex: 5,
-                          backgroundColor: '#1C2128',
-                          width: ROW_NUM_WIDTH,
-                          borderBottom: '2px solid #30363D',
-                          borderRight: '1px solid #21262D',
-                          padding: '8px 0',
-                          textAlign: 'center',
-                          color: '#484F58',
-                          fontWeight: 500,
-                          fontSize: 11,
-                          userSelect: 'none',
-                        }}>
+                        <th className="sticky left-0 top-0 z-10 bg-black/5 dark:bg-white/5 w-[44px] border-b-2 border-border/50 border-r border-border/50 py-2 text-center text-muted font-medium text-[11px] select-none">
                           #
                         </th>
                         {/* Resizable column headers */}
                         {COL_DEFS.map((col, i) => {
                           const isActive = sortKey === col.key;
                           return (
-                          <th
-                            key={col.key}
-                            onClick={() => handleSort(col.key)}
-                            style={{
-                              position: 'sticky',
-                              top: 0,
-                              ...(col.key === 'name' ? {
-                                left: NAME_LEFT,
-                                zIndex: 5,
-                                boxShadow: '2px 0 4px rgba(0,0,0,0.3)',
-                                borderRight: '1px solid #30363D',
-                              } : {
-                                zIndex: 4,
-                                borderRight: '1px solid #21262D',
-                              }),
-                              backgroundColor: '#1C2128',
-                              borderBottom: `2px solid ${isActive ? '#3FB950' : '#30363D'}`,
-                              padding: '8px 12px',
-                              textAlign: col.key === 'price' || col.key === 'accts' ? 'right' : 'left',
-                              color: isActive ? '#E6EDF3' : '#7D8590',
-                              fontWeight: 500,
-                              fontSize: 11,
-                              userSelect: 'none',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            {col.label}
-                            {isActive && (
-                              <span style={{ marginLeft: 4, fontSize: 10, color: '#3FB950' }}>
-                                {sortDir === 'asc' ? '↑' : '↓'}
-                              </span>
-                            )}
-                            {/* Resize handle */}
-                            <div
+                            <th
+                              key={col.key}
+                              onClick={() => handleSort(col.key)}
                               style={{
-                                position: 'absolute',
-                                right: 0,
+                                position: 'sticky',
                                 top: 0,
-                                bottom: 0,
-                                width: 4,
-                                cursor: 'col-resize',
-                                zIndex: 1,
+                                ...(col.key === 'name' ? {
+                                  left: NAME_LEFT,
+                                  zIndex: 10,
+                                } : {
+                                  zIndex: 8,
+                                  borderRight: '1px solid var(--border)',
+                                }),
                               }}
-                              onClick={(e) => e.stopPropagation()}
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                dragRef.current = { colIdx: i, startX: e.clientX, startWidth: colWidthsRef.current[i] };
-                              }}
-                              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#3FB950'; }}
-                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
-                            />
-                          </th>
+                              className={`bg-black/5 dark:bg-white/5 border-b-2 py-2 px-3 font-medium text-[11px] select-none whitespace-nowrap overflow-hidden cursor-pointer transition-colors ${isActive ? 'border-primary text-text' : 'border-border/50 text-muted'} ${col.key === 'name' ? 'border-r border-border/50 shadow-[2px_0_4px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.3)]' : ''} ${col.key === 'price' || col.key === 'accts' ? 'text-right' : 'text-left'}`}
+                            >
+                              <span>{col.label}</span>
+                              {isActive && (
+                                <span className="ml-1 text-[10px] text-primary">
+                                  {sortDir === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                              {/* Resize handle */}
+                              <div
+                                className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize z-[1] hover:bg-primary transition-colors"
+                                onClick={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  dragRef.current = { colIdx: i, startX: e.clientX, startWidth: colWidthsRef.current[i] };
+                                }}
+                              />
+                            </th>
                           );
                         })}
                       </tr>
@@ -440,37 +370,12 @@ function PortfolioInner() {
                           <tr
                             key={row.wineCode}
                             onClick={() => setSelectedWine(row)}
-                            style={{ cursor: 'pointer' }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#1C2128';
-                              e.currentTarget.querySelectorAll<HTMLElement>('[data-sticky]').forEach((el) => {
-                                el.style.backgroundColor = '#1C2128';
-                              });
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = 'transparent';
-                              e.currentTarget.querySelectorAll<HTMLElement>('[data-sticky]').forEach((el) => {
-                                el.style.backgroundColor = '#161B22';
-                              });
-                            }}
+                            className="cursor-pointer border-t border-border/50 hover:bg-black/5 dark:hover:bg-white/5 transition-colors group"
                           >
                             {/* Row # */}
                             <td
                               data-sticky="true"
-                              style={{
-                                position: 'sticky',
-                                left: 0,
-                                zIndex: 2,
-                                backgroundColor: '#161B22',
-                                borderTop: '1px solid #21262D',
-                                borderRight: '1px solid #21262D',
-                                padding: '8px 0',
-                                textAlign: 'center',
-                                color: '#484F58',
-                                fontSize: 11,
-                                fontVariantNumeric: 'tabular-nums',
-                                userSelect: 'none',
-                              }}
+                              className="sticky left-0 z-[2] bg-surface group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-colors border-r border-border/50 py-2 text-center text-muted text-[11px] tabular-nums select-none"
                             >
                               {idx + 1}
                             </td>
@@ -478,123 +383,67 @@ function PortfolioInner() {
                             {/* Name (sticky) */}
                             <td
                               data-sticky="true"
-                              style={{
-                                position: 'sticky',
-                                left: NAME_LEFT,
-                                zIndex: 2,
-                                backgroundColor: '#161B22',
-                                borderTop: '1px solid #21262D',
-                                borderLeft: `3px solid ${typeStyle.dot}`,
-                                borderRight: '1px solid #30363D',
-                                boxShadow: '2px 0 4px rgba(0,0,0,0.25)',
-                                padding: '8px 12px',
-                                color: '#E6EDF3',
-                                fontWeight: 500,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
+                              style={{ borderLeftColor: typeStyle.dot }}
+                              className="sticky z-[2] bg-surface group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-colors border-l-4 border-r border-border/50 shadow-[2px_0_4px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.25)] py-2 px-3 text-text font-medium overflow-hidden text-ellipsis whitespace-nowrap"
                             >
                               {row.name || row.wineName}
                             </td>
 
                             {/* Price */}
-                            <td style={{
-                              borderTop: '1px solid #21262D',
-                              padding: '8px 12px',
-                              textAlign: 'right',
-                              color: row.bottlePrice > 0 ? '#E6EDF3' : '#484F58',
-                              fontWeight: row.bottlePrice > 0 ? 600 : 400,
-                              fontVariantNumeric: 'tabular-nums',
-                              whiteSpace: 'nowrap',
-                            }}>
+                            <td className={`py-2 px-3 text-right tabular-nums whitespace-nowrap ${row.bottlePrice > 0 ? 'text-text font-semibold' : 'text-muted font-normal'}`}>
                               {fmt$(row.bottlePrice)}
                             </td>
 
                             {/* Inventory — color-coded via RB6 */}
-                            <td style={{ borderTop: '1px solid #21262D', padding: '7px 12px', fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
+                            <td className="py-1.5 px-3 text-[11px] tabular-nums">
                               {(() => {
                                 const btl = rb6Row ? rb6Row.onHandBottles : row.inventoryTotalBottles;
-                                if (rb6Row?.isOutOfStock) return <span style={{ backgroundColor: '#3D0000', color: '#F85149', borderRadius: 4, padding: '1px 6px', fontWeight: 700, fontSize: 10 }}>Out</span>;
+                                if (rb6Row?.isOutOfStock) return <span className="bg-red-100 dark:bg-[#3D0000] text-red-700 dark:text-[#F85149] rounded px-1.5 py-[1px] font-bold text-[10px]">Out</span>;
                                 if (btl > 0 || row.openPOCases > 0) {
-                                  const invColor = rb6Row?.isCritical ? '#F85149' : rb6Row?.isLowStock ? '#E3B341' : '#3FB950';
+                                  const invColorClass = rb6Row?.isCritical ? 'text-red-600 dark:text-red-500' : rb6Row?.isLowStock ? 'text-amber-600 dark:text-amber-500' : 'text-green-600 dark:text-green-500';
                                   return (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                      {btl > 0 && <span style={{ color: invColor, fontWeight: 600 }}>{btl} btl</span>}
-                                      {row.openPOCases > 0 && <span style={{ color: '#58A6FF' }}>+{row.openPOCases} on order</span>}
+                                    <div className="flex flex-col gap-[1px]">
+                                      {btl > 0 && <span className={`font-semibold ${invColorClass}`}>{btl} btl</span>}
+                                      {row.openPOCases > 0 && <span className="text-blue-600 dark:text-blue-400">+{row.openPOCases} on order</span>}
                                     </div>
                                   );
                                 }
-                                return <span style={{ color: '#484F58' }}>—</span>;
+                                return <span className="text-muted">—</span>;
                               })()}
                             </td>
 
                             {/* Accts — prefer RA27 over RA25 accountCount */}
-                            <td style={{
-                              borderTop: '1px solid #21262D',
-                              padding: '8px 12px',
-                              textAlign: 'right',
-                              color: (ra27Count ?? row.accountCount) > 0 ? '#E6EDF3' : '#484F58',
-                              fontVariantNumeric: 'tabular-nums',
-                            }}>
+                            <td className={`py-2 px-3 text-right tabular-nums ${(ra27Count ?? row.accountCount) > 0 ? 'text-text' : 'text-muted'}`}>
                               {(ra27Count ?? row.accountCount) > 0 ? (ra27Count ?? row.accountCount) : '—'}
                             </td>
 
                             {/* Importer */}
-                            <td style={{
-                              borderTop: '1px solid #21262D',
-                              padding: '8px 12px',
-                              color: '#7D8590',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                            }}>
+                            <td className="py-2 px-3 text-muted overflow-hidden text-ellipsis whitespace-nowrap">
                               {row.importer || '—'}
                             </td>
 
                             {/* Region */}
-                            <td style={{
-                              borderTop: '1px solid #21262D',
-                              padding: '8px 12px',
-                              color: '#7D8590',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                            }}>
+                            <td className="py-2 px-3 text-muted overflow-hidden text-ellipsis whitespace-nowrap">
                               {row.region || '—'}
                             </td>
 
                             {/* Country */}
-                            <td style={{
-                              borderTop: '1px solid #21262D',
-                              padding: '8px 12px',
-                              color: '#7D8590',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}>
+                            <td className="py-2 px-3 text-muted overflow-hidden text-ellipsis whitespace-nowrap">
                               {row.country || '—'}
                             </td>
 
                             {/* Type */}
-                            <td style={{ borderTop: '1px solid #21262D', padding: '7px 12px' }}>
+                            <td className="py-[7px] px-3">
                               <WineTypePill type={row.wineType} />
                             </td>
 
                             {/* Varietal */}
-                            <td style={{
-                              borderTop: '1px solid #21262D',
-                              padding: '8px 12px',
-                              color: '#7D8590',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                            }}>
+                            <td className="py-2 px-3 text-muted overflow-hidden text-ellipsis whitespace-nowrap">
                               {row.varietal || '—'}
                             </td>
 
                             {/* Farming */}
-                            <td style={{ borderTop: '1px solid #21262D', padding: '7px 12px' }}>
+                            <td className="py-[7px] px-3">
                               <FarmingBadges row={row} />
                             </td>
                           </tr>
@@ -603,7 +452,7 @@ function PortfolioInner() {
 
                       {displayRows.length === 0 && (
                         <tr>
-                          <td colSpan={COL_DEFS.length + 1} style={{ padding: 32, textAlign: 'center', color: '#7D8590' }}>
+                          <td colSpan={COL_DEFS.length + 1} className="p-8 text-center text-muted border-t border-border/50">
                             No wines match your filters.
                           </td>
                         </tr>

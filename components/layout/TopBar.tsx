@@ -25,36 +25,14 @@ export default function TopBar() {
   }
 
   return (
-    <header
-      style={{
-        backgroundColor: '#161B22',
-        borderBottom: '1px solid #30363D',
-        padding: '0 24px',
-        height: 56,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexShrink: 0,
-      }}
-    >
-      <p style={{ margin: 0, fontSize: 15, color: '#E6EDF3' }}>
+    <header className="bg-surface border-b border-border px-6 h-14 flex items-center justify-between shrink-0">
+      <p className="m-0 text-[15px] text-text">
         {greeting()}{repName ? `, ${repName}` : ''}
       </p>
 
       <button
         onClick={handleLogout}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          backgroundColor: 'transparent',
-          border: '1px solid #30363D',
-          borderRadius: 8,
-          padding: '6px 12px',
-          color: '#7D8590',
-          fontSize: 13,
-          cursor: 'pointer',
-        }}
+        className="flex items-center gap-1.5 bg-transparent border border-border rounded-lg py-1.5 px-3 text-muted text-[13px] cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
       >
         <LogOut size={14} />
         Sign out

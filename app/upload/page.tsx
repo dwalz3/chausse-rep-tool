@@ -40,23 +40,23 @@ interface ZoneState {
 }
 
 const PRIMARY_ZONES: { key: UploadKey; label: string; hint: string; accept: string }[] = [
-  { key: 'rc5',  label: 'RC5 — Territory Revenue',        hint: '13 monthly revenue columns per account', accept: '.xlsx,.xls' },
-  { key: 'ra23', label: 'RA23 — Account + Wine Detail',   hint: 'Account × Wine × Revenue rows (replaces RA25 for wine detail)', accept: '.xlsx,.xls' },
-  { key: 'ra21', label: 'RA21 — Top Wines Sold',          hint: 'Ranked wine performance list', accept: '.xlsx,.xls' },
-  { key: 'ra27', label: 'RA27 — Points of Distribution',  hint: 'Account count per wine code', accept: '.xlsx,.xls' },
-  { key: 'rb6',  label: 'RB6 — Velocity + Inventory',     hint: 'On-hand bottles, avg monthly velocity', accept: '.xlsx,.xls' },
-  { key: 'ra30', label: 'RA30 — New Placements',          hint: 'First placement date per account × wine', accept: '.xlsx,.xls' },
-  { key: 'rc3',  label: 'RC3 — Unloved Accounts',         hint: 'Inactive accounts with days-since-order', accept: '.pdf,.xlsx,.xls' },
-  { key: 'ra3',  label: 'RA3 — Period Comparison',        hint: 'Current vs prior period revenue per wine', accept: '.xlsx,.xls' },
+  { key: 'rc5', label: 'RC5 — Territory Revenue', hint: '13 monthly revenue columns per account', accept: '.xlsx,.xls' },
+  { key: 'ra23', label: 'RA23 — Account + Wine Detail', hint: 'Account × Wine × Revenue rows (replaces RA25 for wine detail)', accept: '.xlsx,.xls' },
+  { key: 'ra21', label: 'RA21 — Top Wines Sold', hint: 'Ranked wine performance list', accept: '.xlsx,.xls' },
+  { key: 'ra27', label: 'RA27 — Points of Distribution', hint: 'Account count per wine code', accept: '.xlsx,.xls' },
+  { key: 'rb6', label: 'RB6 — Velocity + Inventory', hint: 'On-hand bottles, avg monthly velocity', accept: '.xlsx,.xls' },
+  { key: 'ra30', label: 'RA30 — New Placements', hint: 'First placement date per account × wine', accept: '.xlsx,.xls' },
+  { key: 'rc3', label: 'RC3 — Unloved Accounts', hint: 'Inactive accounts with days-since-order', accept: '.pdf,.xlsx,.xls' },
+  { key: 'ra3', label: 'RA3 — Period Comparison', hint: 'Current vs prior period revenue per wine', accept: '.xlsx,.xls' },
 ];
 
 const REFERENCE_ZONES: { key: UploadKey; label: string; hint: string; accept: string }[] = [
-  { key: 'wineProperties', label: 'Wine Properties',             hint: 'Wine Code, Name, Producer, Country, Type', accept: '.csv,.xlsx,.xls' },
-  { key: 'pricing',        label: 'Pricing',                     hint: 'Wine Code, Default Price, FOB Price',       accept: '.xlsx,.xls' },
-  { key: 'inventory',      label: 'RB1 — Inventory by Supplier', hint: 'Wine Code, Available (bottles)',            accept: '.xlsx,.xls' },
-  { key: 'allocations',    label: 'Allocations',                 hint: 'Wine Code, Account, Allocated Cases',       accept: '.xlsx,.xls' },
-  { key: 'openPO',         label: 'Open Purchase Orders',        hint: 'Wine Code, Cases, Expected Arrival',        accept: '.xlsx,.xls' },
-  { key: 'producers',      label: 'Producers',                   hint: 'Producers sheet',                           accept: '.xlsx,.xls' },
+  { key: 'wineProperties', label: 'Wine Properties', hint: 'Wine Code, Name, Producer, Country, Type', accept: '.csv,.xlsx,.xls' },
+  { key: 'pricing', label: 'Pricing', hint: 'Wine Code, Default Price, FOB Price', accept: '.xlsx,.xls' },
+  { key: 'inventory', label: 'RB1 — Inventory by Supplier', hint: 'Wine Code, Available (bottles)', accept: '.xlsx,.xls' },
+  { key: 'allocations', label: 'Allocations', hint: 'Wine Code, Account, Allocated Cases', accept: '.xlsx,.xls' },
+  { key: 'openPO', label: 'Open Purchase Orders', hint: 'Wine Code, Cases, Expected Arrival', accept: '.xlsx,.xls' },
+  { key: 'producers', label: 'Producers', hint: 'Producers sheet', accept: '.xlsx,.xls' },
 ];
 
 const LEGACY_ZONES: { key: UploadKey; label: string; hint: string; accept: string }[] = [
@@ -220,62 +220,57 @@ export default function UploadPage() {
     const debug = state?.debug;
 
     return (
-      <div style={{
-        borderRadius: 10, overflow: 'hidden',
-        border: `2px solid ${state?.status === 'error' ? '#F85149' : state?.status === 'success' ? '#3FB950' : isLegacy ? '#3D2B00' : '#30363D'}`,
-        transition: 'border-color 0.15s',
-        opacity: isLegacy ? 0.8 : 1,
-      }}>
+      <div className={`rounded-xl overflow-hidden border-2 transition-colors ${state?.status === 'error' ? 'border-red-500' : state?.status === 'success' ? 'border-primary' : isLegacy ? 'border-amber-900/40' : 'border-border'} ${isLegacy ? 'opacity-80' : 'opacity-100'}`}>
         <div
-          style={{ backgroundColor: isLegacy ? '#1C1610' : '#161B22', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer' }}
+          className={`px-5 py-4 sm:px-6 sm:py-5 flex items-center gap-4 cursor-pointer transition-colors ${isLegacy ? 'bg-[#1C1610] hover:bg-[#261E16]' : 'bg-surface hover:bg-black/5 dark:hover:bg-[#1C2128]'}`}
           onClick={() => inputRef.current?.click()}
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleFile(zone.key, f); }}
         >
-          <input ref={inputRef} type="file" accept={zone.accept} style={{ display: 'none' }}
+          <input ref={inputRef} type="file" accept={zone.accept} className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(zone.key, f); e.target.value = ''; }} />
 
-          <div style={{ flexShrink: 0 }}>
-            {state?.status === 'loading' && <Loader size={22} color="#7D8590" style={{ animation: 'spin 1s linear infinite' }} />}
-            {state?.status === 'success' && <CheckCircle size={22} color="#3FB950" />}
-            {state?.status === 'error' && <AlertCircle size={22} color="#F85149" />}
-            {(!state || state.status === 'idle') && <Upload size={22} color={isLegacy ? '#484F58' : '#7D8590'} />}
+          <div className="shrink-0 flex items-center justify-center w-[22px] h-[22px]">
+            {state?.status === 'loading' && <Loader size={22} className="text-muted animate-spin" />}
+            {state?.status === 'success' && <CheckCircle size={22} className="text-primary" />}
+            {state?.status === 'error' && <AlertCircle size={22} className="text-red-500" />}
+            {(!state || state.status === 'idle') && <Upload size={22} className={isLegacy ? "text-muted/60" : "text-muted"} />}
           </div>
 
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: isLegacy ? '#7D8590' : '#E6EDF3' }}>{zone.label}</p>
-            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#484F58' }}>{zone.hint}</p>
+          <div className="flex-1 min-w-0">
+            <p className={`m-0 text-sm font-semibold ${isLegacy ? 'text-muted' : 'text-text'}`}>{zone.label}</p>
+            <p className="m-0 mt-0.5 text-xs text-muted/80">{zone.hint}</p>
           </div>
 
-          <div style={{ flexShrink: 0, textAlign: 'right' }}>
-            {state?.status === 'loading' && <span style={{ fontSize: 12, color: '#7D8590' }}>Parsing…</span>}
-            {state?.status === 'success' && <span style={{ fontSize: 12, color: '#3FB950', fontWeight: 600 }}>{state.message}</span>}
-            {state?.status === 'error' && <span style={{ fontSize: 12, color: '#F85149' }}>{state.message}</span>}
-            {!state && meta && <span style={{ fontSize: 12, color: '#7D8590' }}>{meta.rowCount.toLocaleString()} rows · {fmt(meta.date)}</span>}
-            {!state && !meta && <span style={{ fontSize: 12, color: '#484F58' }}>No data</span>}
+          <div className="shrink-0 text-right">
+            {state?.status === 'loading' && <span className="text-xs text-muted">Parsing…</span>}
+            {state?.status === 'success' && <span className="text-xs text-primary font-semibold">{state.message}</span>}
+            {state?.status === 'error' && <span className="text-xs text-red-500">{state.message}</span>}
+            {!state && meta && <span className="text-xs text-muted">{meta.rowCount.toLocaleString()} rows · {fmt(meta.date)}</span>}
+            {!state && !meta && <span className="text-xs text-muted/80">No data</span>}
           </div>
 
           {debug && (
             <button onClick={(e) => { e.stopPropagation(); setShowDebug((x) => !x); }}
-              style={{ background: 'none', border: 'none', color: '#484F58', cursor: 'pointer', padding: 2, lineHeight: 0, flexShrink: 0 }}>
+              className="bg-transparent border-none text-muted cursor-pointer p-0.5 leading-none shrink-0 hover:text-text transition-colors">
               {showDebug ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </button>
           )}
         </div>
 
         {debug && showDebug && (
-          <div style={{ backgroundColor: '#0D1117', borderTop: '1px solid #21262D', padding: '12px 24px', fontSize: 12, color: '#7D8590', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className="bg-black/10 dark:bg-[#0D1117] border-t border-border/50 px-6 py-3 text-xs text-muted flex flex-col gap-1.5 font-mono">
             {debug.detectedCodeCol && (
-              <div><span style={{ color: '#484F58' }}>Code col: </span><span style={{ color: '#E3B341', fontFamily: 'monospace' }}>{debug.detectedCodeCol}</span></div>
+              <div><span className="text-muted/60 font-sans">Code col: </span><span className="text-amber-500">{debug.detectedCodeCol}</span></div>
             )}
             {debug.detectedInvCol && (
-              <div><span style={{ color: '#484F58' }}>Inv col: </span><span style={{ color: '#22D3A5', fontFamily: 'monospace' }}>{debug.detectedInvCol}</span></div>
+              <div><span className="text-muted/60 font-sans">Inv col: </span><span className="text-emerald-400">{debug.detectedInvCol}</span></div>
             )}
             {debug.detectedPriceCol && (
-              <div><span style={{ color: '#484F58' }}>Price col: </span><span style={{ color: '#3FB950', fontFamily: 'monospace' }}>{debug.detectedPriceCol}</span></div>
+              <div><span className="text-muted/60 font-sans">Price col: </span><span className="text-primary">{debug.detectedPriceCol}</span></div>
             )}
             {debug.sampleCodes && debug.sampleCodes.length > 0 && (
-              <div><span style={{ color: '#484F58' }}>Sample codes: </span><span style={{ color: '#79BAFF', fontFamily: 'monospace' }}>{debug.sampleCodes.join(', ')}</span></div>
+              <div><span className="text-muted/60 font-sans">Sample codes: </span><span className="text-blue-400">{debug.sampleCodes.join(', ')}</span></div>
             )}
             {debug.samplePrices && debug.samplePrices.length > 0 && (() => {
               const nonZero = debug.samplePrices.filter(p => p > 0);
@@ -284,8 +279,8 @@ export default function UploadPage() {
               const tooLow = !allZero && avg < 10;
               return (
                 <div>
-                  <span style={{ color: '#484F58' }}>Sample prices: </span>
-                  <span style={{ color: allZero ? '#F85149' : tooLow ? '#E3B341' : '#3FB950', fontFamily: 'monospace' }}>
+                  <span className="text-muted/60 font-sans">Sample prices: </span>
+                  <span className={`${allZero ? 'text-red-500' : tooLow ? 'text-amber-500' : 'text-primary'}`}>
                     {debug.samplePrices.map(p => p > 0 ? `$${p.toFixed(2)}` : '0').join(', ')}
                     {allZero && ' ← all zero! wrong price column'}
                     {tooLow && ` ← avg $${avg.toFixed(2)} — may be FOB/cost`}
@@ -294,11 +289,11 @@ export default function UploadPage() {
               );
             })()}
             {debug.allHeaders && debug.allHeaders.length > 0 && (
-              <div style={{ marginTop: 2 }}>
-                <span style={{ color: '#484F58' }}>All columns: </span>
-                <span style={{ fontFamily: 'monospace' }}>
+              <div className="mt-0.5">
+                <span className="text-muted/60 font-sans">All columns: </span>
+                <span>
                   {debug.allHeaders.map((h, i) => (
-                    <span key={i} style={{ color: h === debug.detectedPriceCol ? '#3FB950' : h === debug.detectedInvCol ? '#22D3A5' : h === debug.detectedCodeCol ? '#E3B341' : '#484F58' }}>
+                    <span key={i} className={`${h === debug.detectedPriceCol ? 'text-primary' : h === debug.detectedInvCol ? 'text-emerald-400' : h === debug.detectedCodeCol ? 'text-amber-500' : 'text-muted/80'}`}>
                       {h}{i < (debug.allHeaders?.length ?? 0) - 1 ? ', ' : ''}
                     </span>
                   ))}
@@ -309,11 +304,10 @@ export default function UploadPage() {
               const wCodes = new Set(store.winePropertiesData.map(w => w.wineCode.trim().toUpperCase()));
               const pCodes = (store.pricingData ?? []).map(p => p.wineCode.trim().toUpperCase());
               const matches = pCodes.filter(c => wCodes.has(c)).length;
-              const matchColor = matches === 0 ? '#F85149' : matches < pCodes.length * 0.5 ? '#E3B341' : '#3FB950';
               return (
-                <div style={{ marginTop: 4, paddingTop: 6, borderTop: '1px solid #21262D' }}>
-                  <span style={{ color: '#484F58' }}>Join check: </span>
-                  <span style={{ color: matchColor, fontWeight: 600 }}>
+                <div className="mt-1 pt-1.5 border-t border-border/50 font-sans">
+                  <span className="text-muted/60">Join check: </span>
+                  <span className={`font-semibold ${matches === 0 ? 'text-red-500' : matches < pCodes.length * 0.5 ? 'text-amber-500' : 'text-primary'}`}>
                     {matches}/{pCodes.length} pricing codes match wine properties
                   </span>
                 </div>
@@ -327,39 +321,35 @@ export default function UploadPage() {
 
   return (
     <Shell>
-      <div style={{ maxWidth: 700 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: '0 0 4px' }}>Upload Data</h1>
-        <p style={{ fontSize: 14, color: '#7D8590', margin: '0 0 28px' }}>
-          Drop or click each zone to load a dataset. Use <a href="/integrations" style={{ color: '#3FB950', textDecoration: 'none' }}>Integrations</a> for automatic sync.
+      <div className="max-w-[700px] mx-auto w-full pb-8">
+        <h1 className="text-2xl font-bold text-text m-0 mb-1">Upload Data</h1>
+        <p className="text-sm text-muted m-0 mb-7">
+          Drop or click each zone to load a dataset. Use <a href="/integrations" className="text-primary hover:underline font-medium">Integrations</a> for automatic sync.
         </p>
 
         {/* Primary reports */}
-        <h2 style={{ fontSize: 11, fontWeight: 700, color: '#7D8590', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>
+        <h2 className="text-[11px] font-bold text-muted uppercase tracking-wider m-0 mb-2.5">
           Primary Reports
         </h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
+        <div className="flex flex-col gap-2.5 mb-7">
           {PRIMARY_ZONES.map((zone) => <UploadZone key={zone.key} zone={zone} />)}
         </div>
 
         {/* Reference data */}
-        <h2 style={{ fontSize: 11, fontWeight: 700, color: '#7D8590', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>
+        <h2 className="text-[11px] font-bold text-muted uppercase tracking-wider m-0 mb-2.5">
           Reference Data
         </h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
+        <div className="flex flex-col gap-2.5 mb-7">
           {REFERENCE_ZONES.map((zone) => <UploadZone key={zone.key} zone={zone} />)}
         </div>
 
         {/* Legacy */}
-        <h2 style={{ fontSize: 11, fontWeight: 700, color: '#484F58', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>
+        <h2 className="text-[11px] font-bold text-muted/60 uppercase tracking-wider m-0 mb-2.5">
           Legacy / Reference
         </h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="flex flex-col gap-2.5">
           {LEGACY_ZONES.map((zone) => <UploadZone key={zone.key} zone={zone} isLegacy />)}
         </div>
-
-        <style>{`
-          @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        `}</style>
       </div>
     </Shell>
   );

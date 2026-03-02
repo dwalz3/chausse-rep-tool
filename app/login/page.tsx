@@ -41,55 +41,29 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#0D1117',
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: '#161B22',
-          borderRadius: 12,
-          padding: '40px 48px',
-          width: '100%',
-          maxWidth: 400,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
-          border: '1px solid #30363D',
-        }}
-      >
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="bg-surface rounded-2xl p-8 sm:p-10 w-full max-w-[400px] shadow-2xl border border-border">
         {/* Logo / brand */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div
-            style={{
-              display: 'inline-block',
-              backgroundColor: '#3FB950',
-              borderRadius: 8,
-              padding: '10px 18px',
-              marginBottom: 16,
-            }}
-          >
-            <span style={{ color: '#161B22', fontWeight: 700, fontSize: 16, letterSpacing: '0.05em' }}>
+        <div className="text-center mb-8">
+          <div className="inline-block bg-primary rounded-lg px-4 py-2.5 mb-4 shadow-sm">
+            <span className="text-surface font-bold text-base tracking-widest">
               CHAUSSE
             </span>
           </div>
-          <h1 style={{ color: '#E6EDF3', fontSize: 20, fontWeight: 600, margin: 0 }}>
+          <h1 className="text-text text-xl font-bold m-0">
             Rep Field Tool
           </h1>
-          <p style={{ color: '#7D8590', fontSize: 14, margin: '6px 0 0' }}>
+          <p className="text-muted text-sm m-0 mt-1.5">
             Sign in to access your accounts
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Email */}
           <div>
             <label
               htmlFor="email"
-              style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#E6EDF3', marginBottom: 6 }}
+              className="block text-[13px] font-medium text-text mb-1.5"
             >
               Email
             </label>
@@ -101,17 +75,7 @@ export default function LoginPage() {
               placeholder="you@chausseselections.com"
               required
               autoComplete="email"
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: 8,
-                border: '1px solid #30363D',
-                backgroundColor: '#0D1117',
-                color: '#E6EDF3',
-                fontSize: 15,
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
+              className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-text text-[15px] outline-none box-border focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm"
             />
           </div>
 
@@ -119,7 +83,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="password"
-              style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#E6EDF3', marginBottom: 6 }}
+              className="block text-[13px] font-medium text-text mb-1.5"
             >
               Password
             </label>
@@ -131,23 +95,13 @@ export default function LoginPage() {
               placeholder="Enter your password"
               required
               autoComplete="current-password"
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: 8,
-                border: error ? '1px solid #F85149' : '1px solid #30363D',
-                backgroundColor: '#0D1117',
-                color: '#E6EDF3',
-                fontSize: 15,
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
+              className={`w-full px-3 py-2.5 rounded-lg border shadow-sm ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-border focus:border-primary focus:ring-primary'} bg-background text-text text-[15px] outline-none box-border focus:ring-1 transition-all`}
             />
           </div>
 
           {/* Error */}
           {error && (
-            <p style={{ color: '#F85149', fontSize: 13, margin: 0 }}>
+            <p className="text-red-500 text-[13px] m-0 font-medium">
               {error}
             </p>
           )}
@@ -156,17 +110,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading || !email || !password}
-            style={{
-              backgroundColor: loading || !email || !password ? '#7D8590' : '#3FB950',
-              color: '#161B22',
-              border: 'none',
-              borderRadius: 8,
-              padding: '12px',
-              fontSize: 15,
-              fontWeight: 600,
-              cursor: loading || !email || !password ? 'not-allowed' : 'pointer',
-              marginTop: 4,
-            }}
+            className={`mt-1 py-3 px-4 rounded-lg text-[15px] font-bold border-none transition-colors shadow-sm ${loading || !email || !password ? 'bg-black/10 dark:bg-white/5 text-muted cursor-not-allowed' : 'bg-primary text-surface cursor-pointer hover:bg-primary/90'}`}
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>

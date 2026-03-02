@@ -55,35 +55,35 @@ function ReEngageModal({ row, onClose, onContacted }: ModalProps) {
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-[1000] p-5 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div style={{ backgroundColor: '#161B22', borderRadius: 12, border: '1px solid #30363D', width: '100%', maxWidth: 480, padding: '24px 28px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+      <div className="bg-surface rounded-xl border border-border w-full max-w-[480px] p-6 sm:p-7 shadow-2xl">
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div className="flex items-start justify-between mb-5">
           <div>
-            <h2 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 700, color: '#E6EDF3' }}>Re-engage</h2>
-            <p style={{ margin: 0, fontSize: 14, color: '#7D8590' }}>{row.account}</p>
+            <h2 className="m-0 mb-1 text-lg font-bold text-text">Re-engage</h2>
+            <p className="m-0 text-sm text-muted">{row.account}</p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#7D8590' }}>
+          <button onClick={onClose} className="bg-transparent border-none cursor-pointer p-1 text-muted hover:text-text transition-colors">
             <X size={18} />
           </button>
         </div>
 
         {/* Account summary */}
-        <div style={{ backgroundColor: '#1C2128', borderRadius: 8, padding: '12px 16px', marginBottom: 20 }}>
-          <div style={{ display: 'flex', gap: 24, fontSize: 13 }}>
+        <div className="bg-black/5 dark:bg-[#1C2128] rounded-lg p-3 sm:p-4 mb-5">
+          <div className="flex gap-6 text-[13px]">
             <div>
-              <span style={{ color: '#7D8590' }}>Last active</span>
-              <p style={{ margin: '2px 0 0', fontWeight: 600, color: '#E6EDF3' }}>{fmtMonth(row.lastActiveMonth)}</p>
+              <span className="text-muted">Last active</span>
+              <p className="m-0 mt-0.5 font-semibold text-text">{fmtMonth(row.lastActiveMonth)}</p>
             </div>
             <div>
-              <span style={{ color: '#7D8590' }}>LTM revenue</span>
-              <p style={{ margin: '2px 0 0', fontWeight: 600, color: '#E6EDF3' }}>{fmt$(row.ltm)}</p>
+              <span className="text-muted">LTM revenue</span>
+              <p className="m-0 mt-0.5 font-semibold text-text">{fmt$(row.ltm)}</p>
             </div>
             <div>
-              <span style={{ color: '#7D8590' }}>Months since order</span>
-              <p style={{ margin: '2px 0 0', fontWeight: 600, color: row.monthsSinceLast >= 6 ? '#F85149' : '#E3B341' }}>
+              <span className="text-muted">Months since order</span>
+              <p className={`m-0 mt-0.5 font-semibold ${row.monthsSinceLast >= 6 ? 'text-red-500' : 'text-amber-500'}`}>
                 {row.monthsSinceLast}
               </p>
             </div>
@@ -91,8 +91,8 @@ function ReEngageModal({ row, onClose, onContacted }: ModalProps) {
         </div>
 
         {/* Notes */}
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#E6EDF3', marginBottom: 6 }}>
+        <div className="mb-5">
+          <label className="block text-[13px] font-medium text-text mb-1.5">
             What will you say?
           </label>
           <textarea
@@ -100,21 +100,21 @@ function ReEngageModal({ row, onClose, onContacted }: ModalProps) {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Your pitch notes for this account..."
             rows={3}
-            style={{ width: '100%', padding: '10px 12px', border: '1px solid #30363D', borderRadius: 8, fontSize: 13, color: '#E6EDF3', backgroundColor: '#1C2128', resize: 'vertical', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
+            className="w-full px-3 py-2.5 border border-border rounded-lg text-[13px] text-text bg-black/5 dark:bg-[#1C2128] resize-y outline-none font-sans box-border focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
           />
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="flex flex-col sm:flex-row gap-2.5">
           <button
             onClick={handleMarkContacted}
-            style={{ flex: 1, backgroundColor: '#3FB950', color: '#161B22', border: 'none', borderRadius: 8, padding: '10px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            className="flex-1 bg-primary text-white border-none rounded-lg py-2.5 px-4 text-[13px] font-semibold cursor-pointer hover:bg-primary/90 transition-colors"
           >
             Mark as Contacted
           </button>
           <button
             onClick={() => { onClose(); router.push(`/accounts/${encodeURIComponent(row.accountCode || row.account)}`); }}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, backgroundColor: '#161B22', color: '#E6EDF3', border: '1px solid #30363D', borderRadius: 8, padding: '10px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+            className="flex items-center justify-center gap-1.5 bg-surface text-text border border-border rounded-lg py-2.5 px-4 text-[13px] font-medium cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
             <ExternalLink size={13} />
             Open Account
@@ -187,35 +187,33 @@ export default function DormantPage() {
     return (
       <tr
         onClick={() => router.push(`/accounts/${encodeURIComponent(r.accountCode || r.account)}`)}
-        style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+        className="border-t border-border/50 cursor-pointer hover:bg-black/5 dark:hover:bg-[#1C2128] transition-colors group"
       >
-        <td style={{ padding: '10px 16px', color: '#E6EDF3', fontWeight: 500 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+        <td className="px-4 py-2.5 text-text font-medium">
+          <div className="flex items-center gap-1.5 flex-wrap">
             {r.account}
-            {r.accountType && <span style={{ fontSize: 11, color: '#7D8590', fontWeight: 400 }}>{r.accountType}</span>}
+            {r.accountType && <span className="text-[11px] text-muted font-normal">{r.accountType}</span>}
             {r.rc3Priority === 'High' && (
-              <span style={{ fontSize: 10, fontWeight: 700, backgroundColor: '#3D0000', color: '#F85149', borderRadius: 4, padding: '1px 5px' }}>
+              <span className="text-[10px] font-bold bg-red-100 text-red-700 dark:bg-[#3D0000] dark:text-[#F85149] rounded px-1.5 py-[1px]">
                 VS High
               </span>
             )}
             {r.rc3Priority === 'Medium' && (
-              <span style={{ fontSize: 10, fontWeight: 700, backgroundColor: '#2D2000', color: '#E3B341', borderRadius: 4, padding: '1px 5px' }}>
+              <span className="text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-[#2D2000] dark:text-[#E3B341] rounded px-1.5 py-[1px]">
                 VS Med
               </span>
             )}
           </div>
         </td>
-        <td style={{ padding: '10px 16px', textAlign: 'right', color: '#7D8590' }}>{fmtMonth(r.lastActiveMonth)}</td>
-        <td style={{ padding: '10px 16px', textAlign: 'right', color: r.monthsSinceLast >= 6 ? '#F85149' : '#E3B341', fontWeight: 600 }}>
+        <td className="px-4 py-2.5 text-right text-muted">{fmtMonth(r.lastActiveMonth)}</td>
+        <td className={`px-4 py-2.5 text-right font-semibold ${r.monthsSinceLast >= 6 ? 'text-red-500' : 'text-amber-500'}`}>
           {r.monthsSinceLast}
         </td>
-        <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3', fontWeight: 600 }}>{fmt$(r.ltm)}</td>
-        <td style={{ padding: '10px 16px' }} onClick={(e) => e.stopPropagation()}>
+        <td className="px-4 py-2.5 text-right text-text font-semibold">{fmt$(r.ltm)}</td>
+        <td className="px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
           <span
             onClick={() => setModalRow(r)}
-            style={{ backgroundColor: '#FEF3C7', color: '#92400E', borderRadius: 6, fontSize: 11, fontWeight: 600, padding: '3px 10px', display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
+            className="bg-amber-100 text-amber-700 dark:bg-[#FEF3C7] dark:text-[#92400E] rounded-md text-[11px] font-bold px-2.5 py-1 inline-flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
           >
             <AlertCircle size={11} />
             Re-engage
@@ -235,37 +233,37 @@ export default function DormantPage() {
         />
       )}
 
-      <div>
-        <div style={{ marginBottom: 20 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: 0 }}>Dormant Accounts</h1>
+      <div className="max-w-[1000px] mx-auto w-full pb-8">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-text m-0">Dormant Accounts</h1>
           {!noData && (
-            <p style={{ fontSize: 13, color: '#7D8590', margin: '4px 0 0' }}>
-              {active.length} accounts with no revenue in last 3 months · sorted by historical value
+            <p className="text-[13px] text-muted m-0 mt-1">
+              {active.length} accounts with no revenue in last 3 months · sorted by priority
             </p>
           )}
         </div>
 
         {noData ? (
-          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 32, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
-            Upload RC5 data on the <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload page</a> first.
+          <div className="bg-surface rounded-xl border border-border p-8 text-center text-muted text-sm">
+            Upload RC5 data on the <a href="/upload" className="text-primary font-semibold hover:underline">Upload page</a> first.
           </div>
         ) : dormant.length === 0 ? (
-          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 32, textAlign: 'center', color: '#3FB950', fontSize: 14, fontWeight: 600 }}>
+          <div className="bg-surface rounded-xl border border-border p-8 text-center text-primary text-sm font-semibold">
             No dormant accounts — great work!
           </div>
         ) : (
-          <>
+          <div className="flex flex-col gap-6">
             {/* Active dormant */}
             {active.length > 0 && (
-              <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', marginBottom: 16 }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                  <thead style={{ backgroundColor: '#1C2128' }}>
+              <div className="bg-surface rounded-xl border border-border overflow-x-auto shadow-sm">
+                <table className="w-full border-collapse min-w-[600px] text-[13px]">
+                  <thead className="bg-black/5 dark:bg-[#1C2128]">
                     <tr>
-                      <th style={{ textAlign: 'left', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Account</th>
-                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Last Active</th>
-                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>Months Ago</th>
-                      <th style={{ textAlign: 'right', padding: '10px 16px', color: '#7D8590', fontWeight: 500 }}>LTM Revenue</th>
-                      <th style={{ padding: '10px 16px', color: '#7D8590', fontWeight: 500 }} />
+                      <th className="text-left font-medium text-muted px-4 py-2.5">Account</th>
+                      <th className="text-right font-medium text-muted px-4 py-2.5">Last Active</th>
+                      <th className="text-right font-medium text-muted px-4 py-2.5">Months Ago</th>
+                      <th className="text-right font-medium text-muted px-4 py-2.5">LTM Revenue</th>
+                      <th className="px-4 py-2.5"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -277,31 +275,31 @@ export default function DormantPage() {
 
             {/* RC3-only accounts */}
             {rc3OnlyAccounts.length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#7D8590', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>
+              <div>
+                <p className="text-xs font-semibold text-muted uppercase tracking-wider m-0 mb-3">
                   Other Unloved Accounts — from Vinosmith RC3 ({rc3OnlyAccounts.length})
                 </p>
-                <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', opacity: 0.8 }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                    <thead style={{ backgroundColor: '#1C2128' }}>
+                <div className="bg-surface rounded-xl border border-border overflow-x-auto shadow-sm opacity-90">
+                  <table className="w-full border-collapse min-w-[600px] text-[13px]">
+                    <thead className="bg-black/5 dark:bg-[#1C2128]">
                       <tr>
-                        <th style={{ textAlign: 'left', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Account</th>
-                        <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Priority</th>
-                        <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>LTM Revenue</th>
-                        <th style={{ textAlign: 'right', padding: '8px 16px', color: '#7D8590', fontWeight: 500 }}>Days Inactive</th>
+                        <th className="text-left font-medium text-muted px-4 py-2">Account</th>
+                        <th className="text-right font-medium text-muted px-4 py-2">Priority</th>
+                        <th className="text-right font-medium text-muted px-4 py-2">LTM Revenue</th>
+                        <th className="text-right font-medium text-muted px-4 py-2">Days Inactive</th>
                       </tr>
                     </thead>
                     <tbody>
                       {rc3OnlyAccounts.slice(0, 10).map((r) => (
-                        <tr key={r.account} style={{ borderTop: '1px solid #21262D' }}>
-                          <td style={{ padding: '8px 16px', color: '#E6EDF3' }}>{r.account}</td>
-                          <td style={{ padding: '8px 16px', textAlign: 'right' }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, borderRadius: 4, padding: '1px 6px', backgroundColor: r.priority === 'High' ? '#3D0000' : r.priority === 'Medium' ? '#2D2000' : '#21262D', color: r.priority === 'High' ? '#F85149' : r.priority === 'Medium' ? '#E3B341' : '#7D8590' }}>
+                        <tr key={r.account} className="border-t border-border/50">
+                          <td className="px-4 py-2 text-text">{r.account}</td>
+                          <td className="px-4 py-2 text-right">
+                            <span className={`text-[10px] font-bold rounded px-1.5 py-[1px] inline-block ${r.priority === 'High' ? 'bg-red-100 text-red-700 dark:bg-[#3D0000] dark:text-[#F85149]' : r.priority === 'Medium' ? 'bg-amber-100 text-amber-700 dark:bg-[#2D2000] dark:text-[#E3B341]' : 'bg-black/5 dark:bg-[#21262D] text-muted'}`}>
                               {r.priority}
                             </span>
                           </td>
-                          <td style={{ padding: '8px 16px', textAlign: 'right', color: '#7D8590', fontVariantNumeric: 'tabular-nums' }}>{fmt$(r.ltmRevenue)}</td>
-                          <td style={{ padding: '8px 16px', textAlign: 'right', color: '#E3B341', fontVariantNumeric: 'tabular-nums' }}>{r.daysSinceOrder ?? '—'}</td>
+                          <td className="px-4 py-2 text-right text-muted tabular-nums">{fmt$(r.ltmRevenue)}</td>
+                          <td className="px-4 py-2 text-right text-amber-500 tabular-nums">{r.daysSinceOrder ?? '—'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -313,25 +311,23 @@ export default function DormantPage() {
             {/* Contacted section */}
             {contacted.length > 0 && (
               <div>
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#7D8590', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>
+                <p className="text-xs font-semibold text-muted uppercase tracking-wider m-0 mb-3">
                   Contacted — Awaiting Response ({contacted.length})
                 </p>
-                <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden', opacity: 0.7 }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <div className="bg-surface rounded-xl border border-border overflow-x-auto shadow-sm opacity-70">
+                  <table className="w-full border-collapse min-w-[600px] text-[13px]">
                     <tbody>
                       {contacted.map((r) => (
                         <tr
                           key={r.accountCode || r.account}
                           onClick={() => router.push(`/accounts/${encodeURIComponent(r.accountCode || r.account)}`)}
-                          style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                          className="border-t border-border/50 cursor-pointer hover:bg-black/5 dark:hover:bg-[#1C2128] transition-colors"
                         >
-                          <td style={{ padding: '10px 16px', color: '#7D8590', fontWeight: 500, textDecoration: 'line-through' }}>{r.account}</td>
-                          <td style={{ padding: '10px 16px', textAlign: 'right', color: '#7D8590' }}>{fmtMonth(r.lastActiveMonth)}</td>
-                          <td style={{ padding: '10px 16px', textAlign: 'right', color: '#7D8590' }}>{fmt$(r.ltm)}</td>
-                          <td style={{ padding: '10px 16px' }}>
-                            <span style={{ fontSize: 11, color: '#3FB950', fontWeight: 600 }}>✓ Contacted</span>
+                          <td className="px-4 py-2.5 text-muted font-medium line-through decoration-muted/50">{r.account}</td>
+                          <td className="px-4 py-2.5 text-right text-muted">{fmtMonth(r.lastActiveMonth)}</td>
+                          <td className="px-4 py-2.5 text-right text-muted">{fmt$(r.ltm)}</td>
+                          <td className="px-4 py-2.5 text-right">
+                            <span className="text-[11px] text-primary font-semibold">✓ Contacted</span>
                           </td>
                         </tr>
                       ))}
@@ -340,7 +336,7 @@ export default function DormantPage() {
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </Shell>
