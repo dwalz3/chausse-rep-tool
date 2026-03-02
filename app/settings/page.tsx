@@ -8,8 +8,8 @@ const APP_VERSION = 'v0.2.0';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '20px 24px', marginBottom: 16 }}>
-      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#E6EDF3', margin: '0 0 16px' }}>{title}</h3>
+    <div className="bg-surface rounded-xl border border-border p-5 sm:p-6 mb-4 shadow-sm">
+      <h3 className="text-[15px] font-bold text-text m-0 mb-4">{title}</h3>
       {children}
     </div>
   );
@@ -17,12 +17,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function FieldRow({ label, description, children }: { label: string; description?: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, paddingBottom: 16, marginBottom: 16, borderBottom: '1px solid #21262D' }}>
-      <div style={{ flex: 1 }}>
-        <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#E6EDF3' }}>{label}</p>
-        {description && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7D8590' }}>{description}</p>}
+    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-6 pb-4 mb-4 border-b border-border/50 last:border-0 last:pb-0 last:mb-0">
+      <div className="flex-1">
+        <p className="m-0 text-sm font-medium text-text">{label}</p>
+        {description && <p className="m-0 mt-0.5 text-xs text-muted leading-relaxed">{description}</p>}
       </div>
-      <div style={{ flexShrink: 0 }}>{children}</div>
+      <div className="shrink-0">{children}</div>
     </div>
   );
 }
@@ -33,8 +33,8 @@ function NumInput({ value, onChange, min, max, step, prefix, suffix }: {
   prefix?: string; suffix?: string;
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 4, border: '1px solid #30363D', borderRadius: 8, overflow: 'hidden', backgroundColor: '#1C2128' }}>
-      {prefix && <span style={{ paddingLeft: 10, fontSize: 13, color: '#7D8590' }}>{prefix}</span>}
+    <div className="flex items-center gap-1 border border-border rounded-lg overflow-hidden bg-surface dark:bg-[#1C2128] focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all">
+      {prefix && <span className="pl-2.5 text-[13px] text-muted">{prefix}</span>}
       <input
         type="number"
         value={value}
@@ -42,9 +42,9 @@ function NumInput({ value, onChange, min, max, step, prefix, suffix }: {
         max={max}
         step={step ?? 1}
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-        style={{ width: 80, padding: '8px 10px', border: 'none', outline: 'none', fontSize: 14, backgroundColor: '#1C2128', color: '#E6EDF3', textAlign: 'right' }}
+        className="w-20 px-2.5 py-2 border-none outline-none text-sm bg-transparent text-text text-right"
       />
-      {suffix && <span style={{ paddingRight: 10, fontSize: 13, color: '#7D8590' }}>{suffix}</span>}
+      {suffix && <span className="pr-2.5 text-[13px] text-muted">{suffix}</span>}
     </div>
   );
 }
@@ -72,8 +72,8 @@ export default function SettingsPage() {
 
   return (
     <Shell>
-      <div style={{ maxWidth: 640 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: '0 0 20px' }}>Settings</h1>
+      <div className="max-w-[640px] mx-auto w-full pb-8">
+        <h1 className="text-2xl font-bold text-text m-0 mb-5">Settings</h1>
 
         {/* Portfolio settings */}
         <Section title="Portfolio">
@@ -120,7 +120,7 @@ export default function SettingsPage() {
               suffix="×"
             />
           </FieldRow>
-          <p style={{ fontSize: 13, color: '#7D8590', margin: 0 }}>
+          <p className="text-[13px] text-muted m-0 mt-2">
             {monthlyGoal > 0
               ? <>Fixed goal: <strong>${monthlyGoal.toLocaleString()}/mo</strong></>
               : <>Auto-target active: <strong>{goalMultiplier.toFixed(2)}×</strong> of same month last year ({((goalMultiplier - 1) * 100).toFixed(0)}% growth)</>
@@ -134,43 +134,38 @@ export default function SettingsPage() {
             label="Clear All Uploaded Data"
             description="Removes all uploaded datasets (RC5, RA25, wine properties, pricing, etc.) from local storage. Settings are preserved."
           >
-            <button
-              onClick={handleClear}
-              style={{
-                backgroundColor: confirmClear ? '#F85149' : '#161B22',
-                color: confirmClear ? '#FFFFFF' : '#F85149',
-                border: '1px solid #F85149',
-                borderRadius: 8,
-                padding: '8px 16px',
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              {confirmClear ? 'Click again to confirm' : 'Clear All Data'}
-            </button>
+            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+              <button
+                onClick={handleClear}
+                className={`flex-1 rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors border ${confirmClear
+                    ? 'bg-red-600 text-white border-red-600 hover:bg-red-700'
+                    : 'bg-surface text-red-500 border-red-500/50 hover:bg-red-500/10'
+                  }`}
+              >
+                {confirmClear ? 'Click again to confirm' : 'Clear All Data'}
+              </button>
+              {confirmClear && (
+                <button
+                  onClick={() => setConfirmClear(false)}
+                  className="bg-transparent border-none text-xs text-muted cursor-pointer p-2 hover:text-text transition-colors"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </FieldRow>
-
-          {confirmClear && (
-            <button
-              onClick={() => setConfirmClear(false)}
-              style={{ backgroundColor: 'transparent', border: 'none', fontSize: 12, color: '#7D8590', cursor: 'pointer', padding: 0 }}
-            >
-              Cancel
-            </button>
-          )}
         </Section>
 
         {/* About */}
         <Section title="About">
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#7D8590' }}>
+          <div className="flex justify-between text-[13px] text-muted">
             <span>Chausse Rep Field Tool</span>
-            <span style={{ fontWeight: 600, color: '#E6EDF3' }}>{APP_VERSION}</span>
+            <span className="font-semibold text-text">{APP_VERSION}</span>
           </div>
           {rep && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#7D8590', marginTop: 8 }}>
+            <div className="flex justify-between text-[13px] text-muted mt-2 border-t border-border/50 pt-2">
               <span>Signed in as</span>
-              <span style={{ fontWeight: 600, color: '#E6EDF3', textTransform: 'capitalize' }}>{rep}</span>
+              <span className="font-semibold text-text capitalize">{rep}</span>
             </div>
           )}
         </Section>

@@ -24,9 +24,9 @@ function fmtDate(d: Date | null) {
 function InfoRow({ label, value }: { label: string; value: string | number | undefined | null }) {
   if (!value && value !== 0) return null;
   return (
-    <div style={{ display: 'flex', gap: 16, padding: '10px 0', borderBottom: '1px solid #21262D' }}>
-      <span style={{ width: 140, fontSize: 13, color: '#7D8590', flexShrink: 0 }}>{label}</span>
-      <span style={{ fontSize: 13, color: '#E6EDF3', fontWeight: 500 }}>{String(value)}</span>
+    <div className="flex gap-4 py-2.5 border-b border-border/50 last:border-0">
+      <span className="w-32 sm:w-[140px] text-[13px] text-muted shrink-0">{label}</span>
+      <span className="text-[13px] text-text font-medium">{String(value)}</span>
     </div>
   );
 }
@@ -56,7 +56,7 @@ export default function WineDetailPage() {
   if (!winePropertiesData) {
     return (
       <Shell>
-        <div style={{ textAlign: 'center', color: '#7D8590', fontSize: 14, padding: 48 }}>
+        <div style={{ textAlign: 'center', color: '#a8a29e', fontSize: 14, padding: 48 }}>
           Upload Wine Properties data first.
         </div>
       </Shell>
@@ -66,7 +66,7 @@ export default function WineDetailPage() {
   if (!wine) {
     return (
       <Shell>
-        <div style={{ textAlign: 'center', color: '#7D8590', fontSize: 14, padding: 48 }}>
+        <div style={{ textAlign: 'center', color: '#a8a29e', fontSize: 14, padding: 48 }}>
           Wine not found: <strong>{code}</strong>
         </div>
       </Shell>
@@ -75,52 +75,33 @@ export default function WineDetailPage() {
 
   return (
     <Shell>
-      <div style={{ maxWidth: 700 }}>
+      <div className="max-w-[700px] mx-auto w-full pb-8">
         {/* Back */}
         <button
           onClick={() => router.back()}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            backgroundColor: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#7D8590',
-            fontSize: 13,
-            marginBottom: 20,
-            padding: 0,
-          }}
+          className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-muted text-[13px] mb-5 p-0 hover:text-text transition-colors"
         >
           <ArrowLeft size={14} />
           Back to Portfolio
         </button>
 
         {/* Header */}
-        <div
-          style={{
-            backgroundColor: '#161B22',
-            borderRadius: 12,
-            border: '1px solid #30363D',
-            padding: '24px 28px',
-            marginBottom: 16,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 16 }}>
+        <div className="bg-surface rounded-xl border border-border p-6 sm:p-7 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
             <div>
               <WineTypeBadge type={wine.wineType} />
-              <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: '8px 0 4px' }}>
+              <h1 className="text-2xl font-bold text-text m-0 mt-2 mb-1">
                 {wine.wineName || wine.name}
               </h1>
-              <p style={{ margin: 0, fontSize: 15, color: '#7D8590' }}>{wine.producer}</p>
+              <p className="m-0 text-[15px] text-muted">{wine.producer}</p>
             </div>
-            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <p style={{ margin: 0, fontSize: 26, fontWeight: 700, color: '#3FB950' }}>{fmt$(wine.bottlePrice)}</p>
-              <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7D8590' }}>per bottle</p>
+            <div className="sm:text-right shrink-0">
+              <p className="m-0 text-[26px] font-bold text-primary">{fmt$(wine.bottlePrice)}</p>
+              <p className="m-0 mt-0.5 text-xs text-muted">per bottle</p>
             </div>
           </div>
 
-          <div style={{ borderTop: '1px solid #21262D', paddingTop: 16 }}>
+          <div className="border-t border-border pt-4 mt-2">
             <InfoRow label="Wine Code" value={wine.wineCode} />
             <InfoRow label="Vintage" value={wine.vintage} />
             <InfoRow label="Country" value={wine.country} />
@@ -132,15 +113,15 @@ export default function WineDetailPage() {
           </div>
 
           {(wine.isNatural || wine.isBiodynamic || wine.isDirect) && (
-            <div style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div className="mt-4 flex gap-2 flex-wrap">
               {wine.isNatural && (
-                <span style={{ backgroundColor: '#D1FAE5', color: '#065F46', borderRadius: 4, fontSize: 11, fontWeight: 600, padding: '2px 8px' }}>Natural</span>
+                <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 rounded px-2 py-0.5 text-[11px] font-semibold">Natural</span>
               )}
               {wine.isBiodynamic && (
-                <span style={{ backgroundColor: '#D1FAE5', color: '#065F46', borderRadius: 4, fontSize: 11, fontWeight: 600, padding: '2px 8px' }}>Biodynamic</span>
+                <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 rounded px-2 py-0.5 text-[11px] font-semibold">Biodynamic</span>
               )}
               {wine.isDirect && (
-                <span style={{ backgroundColor: '#FEF3C7', color: '#92400E', borderRadius: 4, fontSize: 11, fontWeight: 600, padding: '2px 8px' }}>Direct Import</span>
+                <span className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded px-2 py-0.5 text-[11px] font-semibold">Direct Import</span>
               )}
             </div>
           )}
@@ -148,25 +129,14 @@ export default function WineDetailPage() {
 
         {/* Open PO */}
         {wine.openPOCases > 0 && (
-          <div
-            style={{
-              backgroundColor: '#161B22',
-              borderRadius: 10,
-              border: '1px solid #30363D',
-              padding: '16px 20px',
-              marginBottom: 16,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-            }}
-          >
-            <Package size={18} color="#3FB950" />
+          <div className="flex items-center gap-3 bg-surface rounded-xl border border-border p-4 sm:p-5 mb-4">
+            <Package size={18} className="text-primary shrink-0" />
             <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#E6EDF3' }}>
+              <p className="m-0 text-sm font-semibold text-text">
                 {wine.openPOCases} cases on order
               </p>
               {wine.expectedArrival && (
-                <p style={{ margin: '2px 0 0', fontSize: 13, color: '#7D8590' }}>
+                <p className="m-0 mt-0.5 text-[13px] text-muted">
                   Expected: {fmtDate(wine.expectedArrival)}
                 </p>
               )}
@@ -176,33 +146,25 @@ export default function WineDetailPage() {
 
         {/* Allocations */}
         {wineAllocs.length > 0 && (
-          <div
-            style={{
-              backgroundColor: '#161B22',
-              borderRadius: 10,
-              border: '1px solid #30363D',
-              padding: '16px 20px',
-              marginBottom: 16,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <Calendar size={16} color="#7D8590" />
-              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#E6EDF3' }}>Allocations</h3>
+          <div className="bg-surface rounded-xl border border-border p-4 sm:p-5 mb-4 overflow-x-auto hide-scrollbar">
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar size={16} className="text-muted" />
+              <h3 className="m-0 text-sm font-bold text-text">Allocations</h3>
             </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <table className="w-full border-collapse text-[13px] min-w-[300px]">
               <thead>
-                <tr style={{ borderBottom: '1px solid #30363D' }}>
-                  <th style={{ textAlign: 'left', padding: '6px 0', color: '#7D8590', fontWeight: 500 }}>Account</th>
-                  <th style={{ textAlign: 'right', padding: '6px 0', color: '#7D8590', fontWeight: 500 }}>Cases</th>
-                  <th style={{ textAlign: 'right', padding: '6px 0', color: '#7D8590', fontWeight: 500 }}>Deadline</th>
+                <tr className="border-b border-border">
+                  <th className="text-left py-1.5 px-2 text-muted font-medium whitespace-nowrap">Account</th>
+                  <th className="text-right py-1.5 px-2 text-muted font-medium whitespace-nowrap">Cases</th>
+                  <th className="text-right py-1.5 px-2 text-muted font-medium whitespace-nowrap">Deadline</th>
                 </tr>
               </thead>
               <tbody>
                 {wineAllocs.map((a, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid #21262D' }}>
-                    <td style={{ padding: '8px 0', color: '#E6EDF3' }}>{a.account || '—'}</td>
-                    <td style={{ padding: '8px 0', textAlign: 'right', fontWeight: 600, color: '#3FB950' }}>{a.allocatedCases}</td>
-                    <td style={{ padding: '8px 0', textAlign: 'right', color: '#7D8590' }}>{a.deadline || '—'}</td>
+                  <tr key={i} className="border-b border-border/50 last:border-0 hover:bg-black/5 dark:hover:bg-white/5">
+                    <td className="py-2 px-2 text-text">{a.account || '—'}</td>
+                    <td className="py-2 px-2 text-right font-semibold text-primary">{a.allocatedCases}</td>
+                    <td className="py-2 px-2 text-right text-muted whitespace-nowrap">{a.deadline || '—'}</td>
                   </tr>
                 ))}
               </tbody>

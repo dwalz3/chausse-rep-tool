@@ -33,10 +33,10 @@ function fmtMonth(ym: string | null) {
 
 function StatusPill({ isDormant, isNew }: { isDormant: boolean; isNew: boolean }) {
   const label = isNew ? 'New' : isDormant ? 'Dormant' : 'Active';
-  const color = isNew ? '#58A6FF' : isDormant ? '#E3B341' : '#3FB950';
-  const bg = isNew ? '#031D41' : isDormant ? '#2D2000' : '#0D2918';
+  const textClass = isNew ? 'text-blue-700 dark:text-blue-300' : isDormant ? 'text-amber-700 dark:text-amber-300' : 'text-green-700 dark:text-green-300';
+  const bgClass = isNew ? 'bg-blue-100 dark:bg-blue-900/40' : isDormant ? 'bg-amber-100 dark:bg-amber-900/40' : 'bg-green-100 dark:bg-green-900/40';
   return (
-    <span style={{ backgroundColor: bg, color, borderRadius: 20, fontSize: 12, fontWeight: 600, padding: '3px 10px' }}>
+    <span className={`rounded-full text-xs font-semibold px-2.5 py-1 whitespace-nowrap ${bgClass} ${textClass}`}>
       {label}
     </span>
   );
@@ -153,161 +153,176 @@ export default function AccountDetailPage() {
 
   return (
     <Shell>
-      <div style={{ maxWidth: 960 }}>
+      <div className="max-w-[1000px] mx-auto w-full pb-8">
         {/* Back */}
         <button
           onClick={() => router.back()}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: '#7D8590', fontSize: 13, marginBottom: 20, padding: 0 }}
+          className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-muted text-[13px] mb-5 p-0 hover:text-text transition-colors"
         >
           <ArrowLeft size={14} />
           Back to Accounts
         </button>
 
         {/* Header card — full width */}
-        <div style={{ backgroundColor: '#161B22', borderRadius: 12, border: '1px solid #30363D', padding: '20px 24px', marginBottom: 20 }}>
+        <div className="bg-surface rounded-xl border border-border p-5 sm:p-6 mb-5">
           {/* Name + sparkline row */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-5">
             <div>
-              <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: '0 0 8px' }}>
+              <h1 className="text-2xl sm:text-[26px] font-bold text-text m-0 mb-2 leading-tight">
                 {account.account}
               </h1>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div className="flex gap-2 items-center flex-wrap">
                 <StatusPill isDormant={account.isDormant} isNew={account.isNew} />
                 {account.accountType && (
-                  <span style={{ fontSize: 11, backgroundColor: '#21262D', color: '#8B949E', borderRadius: 4, padding: '2px 7px', fontWeight: 500 }}>
+                  <span className="text-[11px] bg-black/5 dark:bg-white/10 text-muted rounded p-1 px-2 font-medium">
                     {account.accountType}
                   </span>
                 )}
                 {account.region && (
-                  <span style={{ fontSize: 11, backgroundColor: '#031D41', color: '#58A6FF', borderRadius: 4, padding: '2px 7px', fontWeight: 500 }}>
+                  <span className="text-[11px] bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded p-1 px-2 font-medium">
                     {account.region}
                   </span>
                 )}
               </div>
             </div>
-            <TrendSparkline data={account.monthlyRevenue} width={80} height={28} />
+            <div className="hidden sm:block">
+              <TrendSparkline data={account.monthlyRevenue} width={80} height={28} />
+            </div>
           </div>
 
           {/* KPI grid — 4 columns */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderTop: '1px solid #21262D', paddingTop: 16, gap: 0 }}>
+          <div className="grid grid-cols-2 md:grid-cols-4 border-t border-border/50 pt-4 gap-4 md:gap-0">
             {[
               {
                 label: '3-Mo Revenue',
                 value: fmt$(three_mo),
                 sub: trendPct !== null ? `${trendPct >= 0 ? '+' : ''}${trendPct.toFixed(0)}% vs prior` : 'no prior period',
-                subColor: trendColor,
+                subColorClass: trendPct !== null ? (trendPct >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500') : 'text-muted',
               },
-              { label: 'YTD Revenue', value: fmt$(ytd), sub: 'calendar year', subColor: '#7D8590' },
-              { label: 'All-Time', value: fmt$(account.totalRevenue), sub: `${account.activeMonths} mo active`, subColor: '#7D8590' },
-              { label: 'Avg / Month', value: avgMonthly > 0 ? fmt$(avgMonthly) : '—', sub: 'active months only', subColor: '#7D8590' },
-            ].map(({ label, value, sub, subColor }) => (
-              <div key={label} style={{ padding: '0 12px 0 0' }}>
-                <p style={{ margin: 0, fontSize: 10, color: '#7D8590', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+              { label: 'YTD Revenue', value: fmt$(ytd), sub: 'calendar year', subColorClass: 'text-muted' },
+              { label: 'All-Time', value: fmt$(account.totalRevenue), sub: `${account.activeMonths} mo active`, subColorClass: 'text-muted' },
+              { label: 'Avg / Month', value: avgMonthly > 0 ? fmt$(avgMonthly) : '—', sub: 'active months only', subColorClass: 'text-muted' },
+            ].map(({ label, value, sub, subColorClass }) => (
+              <div key={label} className="md:pr-3">
+                <p className="m-0 text-[10px] text-muted font-semibold uppercase tracking-wider mb-1">
                   {label}
                 </p>
-                <p style={{ margin: '4px 0 2px', fontSize: 20, fontWeight: 700, color: '#E6EDF3' }}>{value}</p>
-                <p style={{ margin: 0, fontSize: 11, color: subColor }}>{sub}</p>
+                <p className="m-0 text-xl font-bold text-text mb-0.5">{value}</p>
+                <p className={`m-0 text-[11px] ${subColorClass}`}>{sub}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Two-column layout: main + sidenote sidebar */}
-        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-
+        <div className="flex flex-col lg:flex-row gap-5 items-start">
           {/* Main column — chart + top wines */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 20px', marginBottom: 16 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: '#E6EDF3', margin: '0 0 12px' }}>Revenue by Month</h3>
+          <div className="flex-1 min-w-0 w-full">
+            <div className="bg-surface rounded-xl border border-border p-4 sm:p-5 mb-4">
+              <h3 className="text-sm font-bold text-text m-0 mb-4 tracking-tight">Revenue by Month</h3>
               <AccountRevenueChart monthlyRevenue={account.monthlyRevenue} monthLabels={account.monthLabels} />
             </div>
 
             {topWines.length > 0 && (
-              <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                  <h3 style={{ fontSize: 13, fontWeight: 700, color: '#E6EDF3', margin: 0 }}>Top Wines Purchased</h3>
-                  {ra23Data && <span style={{ fontSize: 11, backgroundColor: '#0D2918', color: '#3FB950', borderRadius: 4, padding: '2px 6px', fontWeight: 600 }}>RA23</span>}
+              <div className="bg-surface rounded-xl border border-border pt-5 pb-0 mb-4 overflow-hidden">
+                <div className="flex items-center gap-2 mb-4 px-5">
+                  <h3 className="text-sm font-bold text-text m-0">Top Wines Purchased</h3>
+                  {ra23Data && (
+                    <span className="text-[11px] bg-primary/10 text-primary rounded px-1.5 py-0.5 font-semibold">
+                      RA23
+                    </span>
+                  )}
                 </div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #30363D' }}>
-                      <th style={{ textAlign: 'left', padding: '5px 0', color: '#7D8590', fontWeight: 500, fontSize: 11 }}>Wine</th>
-                      <th style={{ textAlign: 'left', padding: '5px 8px', color: '#7D8590', fontWeight: 500, fontSize: 11 }}>Type</th>
-                      <th style={{ textAlign: 'right', padding: '5px 0', color: '#7D8590', fontWeight: 500, fontSize: 11 }}>Revenue</th>
-                      <th style={{ textAlign: 'right', padding: '5px 0', color: '#7D8590', fontWeight: 500, fontSize: 11 }}>Cases</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topWines.map((w, i) => {
-                      const props = winePropsMap.get(w.wineCode);
-                      const displayName = props?.wineName || w.wineName;
-                      const cases = w.qty > 0 ? Math.round(w.qty / 12) : 0;
-                      const canNavigate = !!props;
-                      return (
-                        <tr
-                          key={i}
-                          style={{ borderBottom: '1px solid #21262D', cursor: canNavigate ? 'pointer' : 'default' }}
-                          onClick={() => canNavigate && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
-                          onMouseEnter={(e) => canNavigate && (e.currentTarget.style.backgroundColor = '#1C2128')}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                        >
-                          <td style={{ padding: '7px 0', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            <div style={{ fontWeight: 500, color: '#E6EDF3' }}>{displayName}</div>
-                            {props?.producer && <div style={{ fontSize: 11, color: '#7D8590' }}>{props.producer}</div>}
-                          </td>
-                          <td style={{ padding: '7px 8px' }}>
-                            {props && <WineTypeBadge type={props.wineType} />}
-                          </td>
-                          <td style={{ padding: '7px 0', textAlign: 'right', fontWeight: 600, color: '#E6EDF3' }}>{fmt$(w.revenue)}</td>
-                          <td style={{ padding: '7px 0', textAlign: 'right', color: '#7D8590' }}>{cases > 0 ? `${cases} cs` : '—'}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <div className="overflow-x-auto hide-scrollbar">
+                  <table className="w-full border-collapse text-[13px] min-w-[400px]">
+                    <thead className="bg-black/5 dark:bg-white/5 border-y border-border/50">
+                      <tr>
+                        <th className="text-left py-2 px-5 text-muted font-medium whitespace-nowrap">Wine</th>
+                        <th className="text-left py-2 px-2 text-muted font-medium whitespace-nowrap">Type</th>
+                        <th className="text-right py-2 px-5 text-muted font-medium whitespace-nowrap">Revenue</th>
+                        <th className="text-right py-2 px-5 text-muted font-medium whitespace-nowrap">Cases</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topWines.map((w, i) => {
+                        const props = winePropsMap.get(w.wineCode);
+                        const displayName = props?.wineName || w.wineName;
+                        const cases = w.qty > 0 ? Math.round(w.qty / 12) : 0;
+                        const canNavigate = !!props;
+                        return (
+                          <tr
+                            key={i}
+                            className={`border-b border-border/50 last:border-0 transition-colors ${canNavigate ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''}`}
+                            onClick={() => canNavigate && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
+                          >
+                            <td className="py-3 px-5 text-text truncate max-w-[200px] sm:max-w-xs">
+                              <div className="font-medium text-text truncate">{displayName}</div>
+                              {props?.producer && <div className="text-[11px] text-muted truncate">{props.producer}</div>}
+                            </td>
+                            <td className="py-3 px-2">
+                              {props && <WineTypeBadge type={props.wineType} />}
+                            </td>
+                            <td className="py-3 px-5 text-right font-semibold text-text whitespace-nowrap">{fmt$(w.revenue)}</td>
+                            <td className="py-3 px-5 text-right text-muted whitespace-nowrap">{cases > 0 ? `${cases} cs` : '—'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
             {/* Suggest These Next */}
             {suggestNext.length > 0 && (
-              <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 20px' }}>
-                <h3 style={{ fontSize: 13, fontWeight: 700, color: '#79BAFF', margin: '0 0 12px' }}>Suggest These Next</h3>
-                <p style={{ margin: '0 0 12px', fontSize: 12, color: '#7D8590' }}>Top wines this account hasn&apos;t ordered yet.</p>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                  <tbody>
-                    {suggestNext.map((w, i) => {
-                      const props = winePropsMap.get(normCode(w.wineCode));
-                      return (
-                        <tr
-                          key={i}
-                          style={{ borderBottom: '1px solid #21262D', cursor: 'pointer' }}
-                          onClick={() => w.wineCode && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                        >
-                          <td style={{ padding: '7px 0', width: 20, color: '#484F58', fontSize: 12 }}>#{w.rank}</td>
-                          <td style={{ padding: '7px 8px' }}>
-                            {props && <WineTypeBadge type={props.wineType} />}
-                          </td>
-                          <td style={{ padding: '7px 0', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            <div style={{ fontWeight: 500, color: '#E6EDF3' }}>{props?.wineName || w.wineName}</div>
-                            {props?.producer && <div style={{ fontSize: 11, color: '#7D8590' }}>{props.producer}</div>}
-                          </td>
-                          <td style={{ padding: '7px 0', textAlign: 'right', color: '#7D8590', fontVariantNumeric: 'tabular-nums' }}>
-                            {w.revenue > 0 ? fmt$(w.revenue) : '—'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="bg-surface rounded-xl border border-border pt-5 pb-0 mb-4 overflow-hidden">
+                <div className="px-5 mb-4">
+                  <h3 className="text-sm font-bold text-blue-500 m-0 mb-1">Suggest These Next</h3>
+                  <p className="m-0 text-xs text-muted">Top wines this account hasn&apos;t ordered yet.</p>
+                </div>
+                <div className="overflow-x-auto hide-scrollbar">
+                  <table className="w-full border-collapse text-[13px] min-w-[400px]">
+                    <thead className="bg-black/5 dark:bg-white/5 border-y border-border/50">
+                      <tr>
+                        <th className="py-2 px-5 w-10"></th>
+                        <th className="text-left py-2 px-2 text-muted font-medium whitespace-nowrap">Type</th>
+                        <th className="text-left py-2 px-5 text-muted font-medium whitespace-nowrap">Wine</th>
+                        <th className="text-right py-2 px-5 text-muted font-medium whitespace-nowrap">Global Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {suggestNext.map((w, i) => {
+                        const props = winePropsMap.get(normCode(w.wineCode));
+                        return (
+                          <tr
+                            key={i}
+                            className="border-b border-border/50 last:border-0 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                            onClick={() => w.wineCode && router.push(`/portfolio/${encodeURIComponent(w.wineCode)}`)}
+                          >
+                            <td className="py-3 px-5 text-muted text-xs whitespace-nowrap">#{w.rank}</td>
+                            <td className="py-3 px-2">
+                              {props && <WineTypeBadge type={props.wineType} />}
+                            </td>
+                            <td className="py-3 px-5 text-text truncate max-w-[180px] sm:max-w-xs">
+                              <div className="font-medium text-text truncate">{props?.wineName || w.wineName}</div>
+                              {props?.producer && <div className="text-[11px] text-muted truncate">{props.producer}</div>}
+                            </td>
+                            <td className="py-3 px-5 text-right text-muted tabular-nums whitespace-nowrap">
+                              {w.revenue > 0 ? fmt$(w.revenue) : '—'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
 
           {/* Sidenote sidebar — metadata + notes */}
-          <div style={{ width: 220, flexShrink: 0 }}>
-            <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 18px', marginBottom: 16 }}>
+          <div className="w-full xl:w-[260px] shrink-0 flex flex-col gap-4">
+            <div className="bg-surface rounded-xl border border-border p-4 sm:p-5">
               {account.region && (
                 <SidenoteField label="Territory">{account.region}</SidenoteField>
               )}
@@ -320,11 +335,11 @@ export default function AccountDetailPage() {
               <SidenoteField label="Last Active">{fmtMonth(account.lastActiveMonth)}</SidenoteField>
               {account.primaryRep && account.primaryRep !== 'unknown' && account.primaryRep !== 'shared' && (
                 <SidenoteField label="Primary Rep">
-                  <span style={{ textTransform: 'capitalize' }}>{account.primaryRep}</span>
+                  <span className="capitalize">{account.primaryRep}</span>
                 </SidenoteField>
               )}
             </div>
-            <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: '16px 18px' }}>
+            <div className="bg-surface rounded-xl border border-border p-4 sm:p-5">
               <AccountNotes accountName={account.account} />
             </div>
           </div>

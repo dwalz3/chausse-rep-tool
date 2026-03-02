@@ -4,16 +4,8 @@ export default function WineTypeBadge({ type }: { type: string }) {
   const { bg, text } = getWineTypeStyle(type);
   return (
     <span
-      style={{
-        backgroundColor: bg,
-        color: text,
-        borderRadius: 4,
-        fontSize: 11,
-        fontWeight: 600,
-        padding: '2px 7px',
-        whiteSpace: 'nowrap',
-        display: 'inline-block',
-      }}
+      className="inline-block whitespace-nowrap px-2 py-0.5 rounded text-[11px] font-semibold"
+      style={{ backgroundColor: bg, color: text }}
     >
       {type}
     </span>

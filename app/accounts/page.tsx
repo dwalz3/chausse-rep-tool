@@ -35,14 +35,14 @@ function getStatus(row: Rc5Row): 'new' | 'dormant' | 'at-risk' | 'active' {
 
 function StatusPill({ status }: { status: ReturnType<typeof getStatus> }) {
   const map = {
-    'new':     { label: 'New',     color: '#58A6FF', bg: '#031D41' },
-    'dormant': { label: 'Dormant', color: '#E3B341', bg: '#2D2000' },
-    'at-risk': { label: 'At-Risk', color: '#C8922B', bg: '#2D2000' },
-    'active':  { label: 'Active',  color: '#3FB950', bg: '#0D2918' },
+    'new': { label: 'New', textClass: 'text-blue-700 dark:text-blue-300', bgClass: 'bg-blue-100 dark:bg-blue-900/40' },
+    'dormant': { label: 'Dormant', textClass: 'text-amber-700 dark:text-amber-300', bgClass: 'bg-amber-100 dark:bg-amber-900/40' },
+    'at-risk': { label: 'At-Risk', textClass: 'text-orange-700 dark:text-orange-300', bgClass: 'bg-orange-100 dark:bg-orange-900/40' },
+    'active': { label: 'Active', textClass: 'text-green-700 dark:text-green-300', bgClass: 'bg-green-100 dark:bg-green-900/40' },
   };
-  const { label, color, bg } = map[status];
+  const { label, textClass, bgClass } = map[status];
   return (
-    <span style={{ backgroundColor: bg, color, borderRadius: 20, fontSize: 11, fontWeight: 600, padding: '2px 8px', whiteSpace: 'nowrap' }}>
+    <span className={`rounded-full text-[11px] font-semibold px-2 py-0.5 whitespace-nowrap ${bgClass} ${textClass}`}>
       {label}
     </span>
   );
@@ -52,14 +52,14 @@ function TrendCell({ row }: { row: Rc5Row }) {
   const recent = row.monthlyRevenue[10] + row.monthlyRevenue[11] + row.monthlyRevenue[12];
   const prior = row.monthlyRevenue[7] + row.monthlyRevenue[8] + row.monthlyRevenue[9];
   const pct = prior > 0 ? ((recent - prior) / prior) * 100 : null;
-  const color = pct === null ? '#7D8590' : pct >= 5 ? '#3FB950' : pct <= -5 ? '#F85149' : '#7D8590';
+  const colorClass = pct === null ? 'text-muted' : pct >= 5 ? 'text-green-600 dark:text-green-500' : pct <= -5 ? 'text-red-600 dark:text-red-500' : 'text-muted';
   const label = pct === null
     ? (recent > 0 ? '↑ New' : '—')
     : `${pct >= 0 ? '+' : ''}${pct.toFixed(0)}%`;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+    <div className="flex items-center justify-end gap-1.5">
       <TrendSparkline data={row.monthlyRevenue} width={48} height={18} />
-      <span style={{ color, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', minWidth: 36, textAlign: 'right' }}>
+      <span className={`text-[11px] font-semibold whitespace-nowrap min-w-[36px] text-right ${colorClass}`}>
         {label}
       </span>
     </div>
@@ -75,18 +75,10 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
   return (
     <button
       onClick={onClick}
-      style={{
-        padding: '5px 12px',
-        borderRadius: 20,
-        border: '1px solid',
-        borderColor: active ? '#3FB950' : '#30363D',
-        backgroundColor: active ? '#3FB950' : '#161B22',
-        color: active ? '#FFFFFF' : '#E6EDF3',
-        fontSize: 12,
-        fontWeight: active ? 600 : 400,
-        cursor: 'pointer',
-        whiteSpace: 'nowrap',
-      }}
+      className={`px-3 py-1 rounded-full border text-xs whitespace-nowrap cursor-pointer transition-colors ${active
+          ? 'border-primary bg-primary text-white font-semibold'
+          : 'border-border bg-surface text-text hover:bg-black/5 dark:hover:bg-white/5 font-normal'
+        }`}
     >
       {label}
     </button>
@@ -168,26 +160,26 @@ export default function AccountsPage() {
 
   return (
     <Shell>
-      <div>
+      <div className="max-w-[1000px] mx-auto w-full pb-8">
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#E6EDF3', margin: 0 }}>Accounts</h1>
+            <h1 className="text-2xl font-bold text-text m-0 mb-1">Accounts</h1>
             {!noData && (
-              <p style={{ fontSize: 13, color: '#7D8590', margin: '4px 0 0' }}>
+              <p className="text-[13px] text-muted m-0">
                 {sorted.length} accounts · {rows.filter((r) => r.isDormant).length} dormant
               </p>
             )}
           </div>
           {!noData && (
-            <div style={{ position: 'relative' }}>
-              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#7D8590' }} />
+            <div className="relative">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
               <input
                 type="text"
                 placeholder="Search accounts…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, border: '1px solid #30363D', borderRadius: 8, fontSize: 13, color: '#E6EDF3', backgroundColor: '#161B22', outline: 'none', width: 220 }}
+                className="w-full sm:w-[220px] pl-9 pr-3 py-2 border border-border rounded-lg text-[13px] text-text bg-surface outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-muted"
               />
             </div>
           )}
@@ -195,11 +187,11 @@ export default function AccountsPage() {
 
         {/* Filter strip */}
         {!noData && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+          <div className="flex gap-2 flex-wrap mb-4 items-center">
             {TERRITORY_FILTERS.map((t) => (
               <FilterChip key={t} label={t} active={territory === t} onClick={() => setTerritory(t)} />
             ))}
-            <div style={{ width: 1, backgroundColor: '#30363D', margin: '0 4px' }} />
+            <div className="w-[1px] h-5 bg-border mx-1" />
             {STATUS_FILTERS.map(({ key, label }) => (
               <FilterChip key={key} label={label} active={statusFilter === key} onClick={() => setStatusFilter(key)} />
             ))}
@@ -207,13 +199,13 @@ export default function AccountsPage() {
         )}
 
         {noData ? (
-          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', padding: 32, textAlign: 'center', color: '#7D8590', fontSize: 14 }}>
-            Upload RC5 data on the <a href="/upload" style={{ color: '#3FB950', fontWeight: 600 }}>Upload page</a> first.
+          <div className="bg-surface rounded-xl border border-border p-8 text-center text-muted text-sm">
+            Upload RC5 data on the <a href="/upload" className="text-primary font-semibold hover:underline">Upload page</a> first.
           </div>
         ) : (
-          <div style={{ backgroundColor: '#161B22', borderRadius: 10, border: '1px solid #30363D', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <thead style={{ backgroundColor: '#1C2128' }}>
+          <div className="bg-surface rounded-xl border border-border overflow-x-auto hide-scrollbar">
+            <table className="w-full border-collapse text-[13px] min-w-[750px]">
+              <thead className="bg-black/5 dark:bg-white/5">
                 <tr>
                   {[
                     { key: 'account' as SortKey, label: 'Account' },
@@ -225,16 +217,17 @@ export default function AccountsPage() {
                     <th
                       key={key}
                       onClick={() => toggleSort(key)}
-                      style={{ textAlign: key === 'account' ? 'left' : 'right', padding: '10px 16px', color: '#7D8590', fontWeight: 500, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+                      className={`py-3 px-4 text-muted font-medium cursor-pointer select-none whitespace-nowrap hover:text-text transition-colors ${key === 'account' ? 'text-left' : 'text-right'
+                        }`}
                     >
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <span className={`inline-flex items-center gap-1 ${key === 'account' ? '' : 'justify-end'}`}>
                         {label}
                         <SortIcon col={key} sortKey={sortKey} sortDir={sortDir} />
                       </span>
                     </th>
                   ))}
-                  <th style={{ padding: '10px 16px', color: '#7D8590', fontWeight: 500, textAlign: 'right', width: 80 }}>Trend</th>
-                  <th style={{ padding: '10px 16px', color: '#7D8590', fontWeight: 500, textAlign: 'center' }}>Status</th>
+                  <th className="py-3 px-4 text-muted font-medium text-right w-20">Trend</th>
+                  <th className="py-3 px-4 text-muted font-medium text-center w-24">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -246,26 +239,24 @@ export default function AccountsPage() {
                     <tr
                       key={row.accountCode || row.account}
                       onClick={() => router.push(`/accounts/${encodeURIComponent(row.accountCode || row.account)}`)}
-                      style={{ borderTop: '1px solid #21262D', cursor: 'pointer' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1C2128')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                      className="border-t border-border/50 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors group"
                     >
-                      <td style={{ padding: '10px 16px', color: '#E6EDF3', fontWeight: 500 }}>
+                      <td className="py-3 px-4 text-text font-medium truncate max-w-[200px] sm:max-w-[260px]" title={row.account}>
                         {row.account}
                         {row.accountType && (
-                          <span style={{ marginLeft: 8, fontSize: 11, color: '#7D8590', fontWeight: 400 }}>{row.accountType}</span>
+                          <span className="ml-2 text-[11px] text-muted font-normal inline-block">{row.accountType}</span>
                         )}
                       </td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#7D8590' }}>
+                      <td className="py-3 px-4 text-right text-muted whitespace-nowrap">
                         {fmtMonth(row.lastActiveMonth)}
                       </td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{fmt$(three_mo)}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{fmt$(latest_mo)}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right', color: '#E6EDF3', fontVariantNumeric: 'tabular-nums' }}>{fmt$(row.totalRevenue)}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+                      <td className="py-3 px-4 text-right text-text whitespace-nowrap font-medium">{fmt$(three_mo)}</td>
+                      <td className="py-3 px-4 text-right text-text whitespace-nowrap">{fmt$(latest_mo)}</td>
+                      <td className="py-3 px-4 text-right text-muted whitespace-nowrap">{fmt$(row.totalRevenue)}</td>
+                      <td className="py-3 px-4 text-right whitespace-nowrap w-20">
                         <TrendCell row={row} />
                       </td>
-                      <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                      <td className="py-3 px-4 text-center whitespace-nowrap w-24">
                         <StatusPill status={status} />
                       </td>
                     </tr>
@@ -273,7 +264,7 @@ export default function AccountsPage() {
                 })}
                 {sorted.length === 0 && (
                   <tr>
-                    <td colSpan={7} style={{ padding: 32, textAlign: 'center', color: '#7D8590' }}>
+                    <td colSpan={7} className="p-8 text-center text-muted border-t border-border/50">
                       No accounts match your filters.
                     </td>
                   </tr>

@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "canvas": "^3.2.1",
     "fuse.js": "^7.1.0",
     "lucide-react": "^0.575.0",
     "next": "16.1.6",

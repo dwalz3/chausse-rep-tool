@@ -29,30 +29,38 @@ export default function RepRevenueChart({ rc5Data, rep }: Props) {
   }));
 
   return (
-    <div style={{ width: '100%', height: 200 }}>
+    <div className="w-full h-[200px]">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id="repGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3FB950" stopOpacity={0.2} />
-              <stop offset="95%" stopColor="#3FB950" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
+              <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#30363D" vertical={false} />
-          <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#7D8590' }} axisLine={false} tickLine={false} />
-          <YAxis tickFormatter={fmtDollar} tick={{ fontSize: 11, fill: '#7D8590' }} axisLine={false} tickLine={false} width={52} />
+          <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+          <YAxis tickFormatter={fmtDollar} tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} width={48} />
           <Tooltip
             formatter={(v: number | undefined) => ['$' + (v ?? 0).toLocaleString(), 'Revenue']}
-            contentStyle={{ borderRadius: 8, border: '1px solid #30363D', fontSize: 13 }}
+            contentStyle={{
+              backgroundColor: 'var(--surface)',
+              borderRadius: '8px',
+              border: '1px solid var(--border)',
+              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+              fontSize: '13px',
+              color: 'var(--text)'
+            }}
+            itemStyle={{ color: 'var(--text)', fontWeight: 600 }}
+            cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4' }}
           />
           <Area
             type="monotone"
             dataKey="revenue"
-            stroke="#3FB950"
+            stroke="var(--primary)"
             strokeWidth={2}
             fill="url(#repGrad)"
             dot={false}
-            activeDot={{ r: 4, fill: '#3FB950' }}
+            activeDot={{ r: 4, fill: 'var(--primary)', stroke: 'var(--surface)', strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>
