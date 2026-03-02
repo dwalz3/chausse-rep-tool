@@ -394,13 +394,27 @@ function PortfolioInner() {
                               {fmt$(row.bottlePrice)}
                             </td>
 
-                            {/* Inventory — color-coded via RB6 */}
+                            {/* Inventory — color-coded via RB6 or RB1 */}
                             <td className="py-1.5 px-3 text-[11px] tabular-nums text-center">
                               {(() => {
-                                const btl = rb6Row ? rb6Row.onHandBottles : row.inventoryTotalBottles;
-                                if (rb6Row?.isOutOfStock) return <span className="bg-red-100 dark:bg-[#3D0000] text-red-700 dark:text-[#F85149] rounded px-1.5 py-[1px] font-bold text-[10px]">Out</span>;
+                                const rb6Btl = rb6Row?.onHandBottles ?? 0;
+                                const rb1Btl = row.inventoryTotalBottles ?? 0;
+                                const btl = Math.max(rb6Btl, rb1Btl);
+
+                                const explicitlyOutRb6 = rb6Row && rb6Row.isOutOfStock;
+                                const explicitlyOutRb1 = inventoryData && rb1Btl === 0;
+
+                                const isOut = btl === 0 && (explicitlyOutRb6 || explicitlyOutRb1);
+
+                                if (isOut && row.openPOCases === 0) {
+                                  return <span className="bg-red-100 dark:bg-[#3D0000] text-red-700 dark:text-[#F85149] rounded px-1.5 py-[1px] font-bold text-[10px]">Out</span>;
+                                }
+
                                 if (btl > 0 || row.openPOCases > 0) {
-                                  const invColorClass = rb6Row?.isCritical ? 'text-red-600 dark:text-red-500' : rb6Row?.isLowStock ? 'text-amber-600 dark:text-amber-500' : 'text-green-600 dark:text-green-500';
+                                  let invColorClass = 'text-green-600 dark:text-green-500';
+                                  if (btl > 0 && btl < 6) invColorClass = 'text-red-600 dark:text-red-500';
+                                  else if (btl >= 6 && btl < 12) invColorClass = 'text-amber-600 dark:text-amber-500';
+
                                   return (
                                     <div className="flex flex-col items-center gap-[1px]">
                                       {btl > 0 && <span className={`font-semibold ${invColorClass}`}>{btl} btl</span>}

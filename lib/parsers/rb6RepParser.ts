@@ -79,15 +79,16 @@ function resolveFromRows(
   const headerRowIdx = findHeaderRow(raw);
   const headers = (raw[headerRowIdx] as unknown[]).map(norm);
 
-  const colCode     = findCol(headers, 'wine code', 'item code', 'product code', 'item #', 'code', 'sku');
-  const colName     = findCol(headers, 'wine name', 'item name', 'item description', 'description', 'name', 'item');
+  const colCode = findCol(headers, 'wine code', 'item code', 'product code', 'item #', 'code', 'sku');
+  const colName = findCol(headers, 'wine name', 'item name', 'item description', 'description', 'name', 'item');
   const colSupplier = findCol(headers, 'supplier', 'producer', 'vendor', 'winery', 'brand');
 
   // On-hand bottles: prefer "available" (Vinosmith), then other bottle columns
   const colOnHand = findCol(headers,
     'available',
-    'on hand', 'on-hand', 'in stock', 'inventory',
-    'total bottles', 'btl on hand', 'bottles on hand', 'total btl'
+    'on hand', 'on-hand', 'in stock', 'inventory', 'qty',
+    'total bottles', 'btl on hand', 'bottles on hand', 'total btl',
+    'bottles', 'quantity'
   );
 
   // Average monthly velocity
@@ -114,9 +115,9 @@ function resolveFromRows(
       supplier: colSupplier >= 0 ? String(r[colSupplier] ?? '').trim() : '',
       onHandBottles,
       avgMonthlyVelocity,
-      isOutOfStock: onHandBottles === 0,
-      isCritical: onHandBottles > 0 && onHandBottles < 6,
-      isLowStock: onHandBottles >= 6 && onHandBottles < 12,
+      isOutOfStock: colOnHand >= 0 ? onHandBottles === 0 : false,
+      isCritical: colOnHand >= 0 ? (onHandBottles > 0 && onHandBottles < 6) : false,
+      isLowStock: colOnHand >= 0 ? (onHandBottles >= 6 && onHandBottles < 12) : false,
     };
 
     rows.push(row);
